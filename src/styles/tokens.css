@@ -1,0 +1,83 @@
+/*
+ * Design tokens. Light = "Sandstone", dark = "Midnight" (from the base design).
+ * Dark mode follows the system unless the user picks a theme, which sets
+ * data-theme="light" | "dark" on <html>.
+ */
+:root {
+  color-scheme: light;
+  --page: #e9e2d6;
+  --frame: #f7f2ea;
+  --surface: #fffcf7;
+  --fill: #f0e9dd;
+  --fill-hover: #e7decf;
+  --line: #e5dccd;
+  --ink: #2b2118;
+  --ink2: #5a4a3b;
+  --muted: #857563;
+  --solid: #3a2a1e;
+  --solid-hover: #4a3727;
+  --on-solid: #fff8ee;
+  --on-solid-muted: #cdbba6;
+  --solid-track: #54402f;
+  --sel-row: #fbf4e8;
+  --accent: oklch(0.72 0.13 60);
+  --accent-soft: oklch(0.93 0.045 70);
+  --accent-ink: oklch(0.45 0.11 55);
+  --danger: #d6453d;
+
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  --radius-frame: 28px;
+  --radius-card: 22px;
+  --radius-tile: 14px;
+  --radius-control: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0c0d0b;
+    --frame: #141513;
+    --surface: #1a1b18;
+    --fill: #24251f;
+    --fill-hover: #2d2e28;
+    --line: #2a2b26;
+    --ink: #f1f1ea;
+    --ink2: #c9cac3;
+    --muted: #8f908a;
+    --solid: #2b2d27;
+    --solid-hover: #34362f;
+    --on-solid: #f7f7f2;
+    --on-solid-muted: #a3a49d;
+    --solid-track: #3a3c35;
+    --sel-row: #1f2219;
+    --accent: oklch(0.87 0.2 128);
+    --accent-soft: oklch(0.34 0.07 128);
+    --accent-ink: oklch(0.92 0.17 128);
+    --danger: #ff6b63;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0c0d0b;
+  --frame: #141513;
+  --surface: #1a1b18;
+  --fill: #24251f;
+  --fill-hover: #2d2e28;
+  --line: #2a2b26;
+  --ink: #f1f1ea;
+  --ink2: #c9cac3;
+  --muted: #8f908a;
+  --solid: #2b2d27;
+  --solid-hover: #34362f;
+  --on-solid: #f7f7f2;
+  --on-solid-muted: #a3a49d;
+  --solid-track: #3a3c35;
+  --sel-row: #1f2219;
+  --accent: oklch(0.87 0.2 128);
+  --accent-soft: oklch(0.34 0.07 128);
+  --accent-ink: oklch(0.92 0.17 128);
+  --danger: #ff6b63;
+}

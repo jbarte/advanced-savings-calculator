@@ -73,13 +73,27 @@ UI language: **English**.
 - Do **not** present results as financial advice. The UI must show a short disclaimer.
 - Do **not** commit or push without being asked.
 
-## Commands
+## Design
 
-> These will be set up during scaffolding.
+The UI is based on a dashboard design (Geist fonts, rounded cards, dark "solid"
+accents). Light theme = "Sandstone", dark theme = "Midnight".
+
+- All colours are CSS custom properties in `src/styles/tokens.css`. Use the tokens,
+  never hard-coded colours.
+- Component styles live in `src/styles/app.css` with BEM-style class names
+  (`.card`, `.card__head`, `.tile[aria-pressed="true"]`).
+- Build DOM with the `h()` / `s()` helpers in `src/ui/dom.ts`. Never use
+  `innerHTML` with user-provided text.
+- Until the engine exists, the UI reads static data from `src/state/sample-data.json`
+  through the `ScenarioView` type in `src/state/types.ts`. The engine should
+  produce that same shape.
+
+## Commands
 
 ```bash
 npm install       # install dev dependencies
-npm run dev       # start the local dev server
+npm run dev       # start the local dev server (http://localhost:5173/advanced-savings-calculator/)
 npm test          # run unit tests (Vitest)
-npm run build     # build the static site into dist/
+npm run typecheck # strict TypeScript check
+npm run build     # typecheck and build the static site into dist/
 ```
