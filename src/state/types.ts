@@ -1,7 +1,7 @@
+import type { Ore, ProjectionPoint } from "../core/types";
 import type { YearMonth } from "../core/year-month";
 
-/** Money in minor units (öre). Always an integer. */
-export type Ore = number;
+export type { Ore, ProjectionPoint };
 
 export const HORIZONS = [10, 20, 30] as const;
 export type HorizonYears = (typeof HORIZONS)[number];
@@ -10,15 +10,6 @@ export const METRICS = ["balance", "deposited", "growth", "withdrawn"] as const;
 export type Metric = (typeof METRICS)[number];
 
 export type ThemePreference = "system" | "light" | "dark";
-
-/** One point on the projection, `month` months after the scenario start. */
-export interface ProjectionPoint {
-  readonly month: number;
-  readonly balance: Ore;
-  readonly deposited: Ore;
-  readonly withdrawn: Ore;
-  readonly growth: Ore;
-}
 
 export interface PlannedWithdrawal {
   readonly month: number;
@@ -41,7 +32,8 @@ export interface GoalSummary {
 
 /**
  * Everything the UI needs to render one scenario. Today this comes from static
- * sample data; later the calculation engine in src/core/ will produce it.
+ * sample data. Later, src/state/view-model.ts will build it from the engine's
+ * output (the types in src/core/types.ts).
  */
 export interface ScenarioView {
   readonly id: string;

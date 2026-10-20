@@ -90,12 +90,37 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 - **One-way data flow.** UI events call `Actions` (`src/ui/actions.ts`). Actions update the
   store, and the store triggers a full re-render. UI components never change state
   directly.
-- **The engine produces the UI's view model.** The UI renders the `ScenarioView` type from
-  `src/state/types.ts`. Right now that comes from `src/state/sample-data.json`. The engine
-  must produce the same shape so the UI doesn't need to change.
-- **Money is stored as integers in minor units (öre).** Never use floats for stored
-  amounts. Rates may be floats, but round explicitly and in one place. Convert to kronor
-  only when formatting (`src/ui/format.ts`).
+- **Form inputs commit on `change`, not on `input`.** A full re-render replaces every
+  element, so updating the store on each keystroke would rebuild the field being typed
+  in (the cursor jumps and autocomplete breaks). Text and number inputs update the store
+  on the `change` event (blur or Enter). Live feedback while typing, such as validation
+  messages, stays local to the input. If a feature truly needs live updates, render the
+  form once and re-render only the result cards, and ask before restructuring.
+- **Dependencies point inwards: `ui → state → core`.** `src/core/` never imports from
+  `src/state/` or `src/ui/`, and `src/state/` never imports from `src/ui/`.
+- **The engine has its own types.** `src/core/types.ts` defines the engine's input and
+  output (`PlanInput`, `WithdrawalInput`, `GoalInput`, `ProjectionPoint`, `Ore`). They
+  describe money and time only, never how things are displayed.
+- **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
+  `src/state/types.ts`. A mapper in `src/state/view-model.ts` (to be written alongside the
+  engine) turns engine output into `ScenarioView`, including display-oriented fields like
+  `percentReached`. Until then, `ScenarioView` comes from `src/state/sample-data.json`.
+  The UI must not need to change when the engine replaces the sample data.
+- **Calculation rules** (decided, change only after asking):
+  - **Money is stored as integers in minor units (öre).** Never use floats for stored
+    amounts. Convert to kronor only when formatting (`src/ui/format.ts`).
+  - **The monthly rate is the effective rate:** `(1 + yearly)^(1/12) − 1`, from
+    `monthlyRate()` in `src/core/money.ts`. Twelve months of compounding give exactly
+    the yearly return. Never use `yearly / 12`.
+  - **The balance is rounded to whole öre once per month**, with `roundToOre()` in
+    `src/core/money.ts` (halves round away from zero). That is the only place money gets
+    rounded.
+  - **Order within a month:** growth is applied to the balance at the start of the month,
+    then the monthly deposit is added, then any withdrawals for that month are taken out.
+    Month 0 is the start month: it holds only the start amount (no growth, no deposit),
+    but a withdrawal can be scheduled in it.
+  - **A withdrawal can't take the balance below 0.** It is capped at the available
+    balance and the shortfall is reported, never silently dropped.
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
   granularity, never raw `Date` objects in the core.
 - **Functions do one thing.** If a function needs a comment to explain what it does,
@@ -162,10 +187,12 @@ until the user picks one with the toggle.
 └── src/
     ├── main.ts               # Entry point: creates the store and actions, renders the app
     ├── core/                 # Pure calculation engine (no DOM, no I/O)
+    │   ├── types.ts          # Engine input/output: PlanInput, ProjectionPoint, Ore …
+    │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
     │   └── year-month.test.ts
     ├── state/                # State, data models, storage
-    │   ├── types.ts          # Ore, ScenarioView, AppState, HORIZONS, METRICS
+    │   ├── types.ts          # ScenarioView, AppState, HORIZONS, METRICS
     │   ├── store.ts          # Minimal observable store
     │   ├── theme.ts          # Theme preference in localStorage
     │   ├── sample-data.json  # Placeholder data (replaced by the engine)
