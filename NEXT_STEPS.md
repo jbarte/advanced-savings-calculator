@@ -33,7 +33,15 @@ Status as of 2026-10-20. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and 
 6. **"+ New scenario"**: create, rename, duplicate and delete scenarios.
 7. **Persistence and sharing**: save scenarios to `localStorage` and encode the active
    scenario in the URL so "Share link" really shares it. All of this goes in `src/state/` only.
-8. **Polish for the CV**: README with a screenshot and feature list, empty and error states,
+8. **Swedish localization**: add Swedish alongside English.
+   - Move all UI text into translation files (e.g. `src/ui/i18n/en.ts` and `sv.ts`) with
+     typed keys, so a missing translation is a type error.
+   - Format month names and numbers per language (`Apr 2031` / `apr. 2031`, `1.7M kr` /
+     `1,7 mn kr`) instead of the fixed formats in `format.ts` and `year-month.ts`.
+   - Pick the default language from the browser, add a language switch in the header,
+     and remember the choice in `localStorage` (through `src/state/`).
+   - Set `<html lang>` to match, and update the "UI language" line in CLAUDE.md.
+9. **Polish for the CV**: README with a screenshot and feature list, empty and error states,
    an accessibility pass, and possibly a CSV export.
 
 ## Known loose ends
