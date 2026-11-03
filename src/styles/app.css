@@ -133,7 +133,7 @@ button {
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .nav__item {
@@ -147,11 +147,12 @@ button {
   color: var(--ink2);
   font-size: 15px;
   text-align: left;
+  transition: background 150ms, box-shadow 150ms;
 }
 
 .nav__item:hover {
   background: var(--surface);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-lift-sm);
   color: var(--ink);
 }
 
@@ -159,7 +160,7 @@ button {
   background: var(--solid);
   color: var(--on-solid);
   font-weight: 500;
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-lift-sm);
 }
 
 .nav__count {
@@ -297,7 +298,7 @@ button {
 .btn-solid[data-state="hover"] {
   background: var(--solid-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-lift), 0 0 14px color-mix(in oklab, var(--solid) 45%, transparent);
+  box-shadow: var(--shadow-lift-sm), 0 0 10px color-mix(in oklab, var(--solid) 30%, transparent);
 }
 
 .btn-solid:active,
