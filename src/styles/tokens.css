@@ -6,6 +6,9 @@
  *
  * Depth levels: --shadow-inner (sunken: inputs, tracks, pressed), none (flat), --shadow-lift (raised:
  * cards, buttons), --shadow-float (elevated: modals, featured card).
+ * Parts under ~32px (thumbs, markers, chips, thin tracks) use the -sm variants, or the blur spills past
+ * their edges. Anything on a solid or elevated colour uses --shadow-inner-solid / --shadow-on-color,
+ * because the neutral white highlight turns into a grey smear on colour.
  */
 :root {
   color-scheme: light;
@@ -41,6 +44,16 @@
   --shadow-inner: inset 3px 3px 7px rgb(120 105 88 / 0.28), inset -3px -3px 7px rgb(255 255 255 / 0.75);
   --shadow-lift: 4px 4px 10px rgb(140 125 108 / 0.3), -4px -4px 10px rgb(255 255 255 / 0.85);
   --shadow-float: 10px 12px 24px rgb(130 115 98 / 0.35), -8px -8px 20px rgb(255 255 255 / 0.9);
+  --shadow-inner-sm: inset 1px 1px 3px rgb(120 105 88 / 0.3), inset -1px -1px 2px rgb(255 255 255 / 0.8);
+  --shadow-lift-sm: 2px 2px 5px rgb(140 125 108 / 0.35), -2px -2px 4px rgb(255 255 255 / 0.85);
+  --shadow-inner-solid: inset 2px 2px 5px rgb(0 0 0 / 0.28), inset -1px -1px 3px rgb(255 255 255 / 0.12);
+  --shadow-on-color: 0 2px 6px rgb(0 0 0 / 0.18), inset 0 1px 0 rgb(255 255 255 / 0.22);
+
+  --thumb: linear-gradient(145deg, #ffffff, #ebe6df);
+  --on-color-fill: rgb(255 255 255 / 0.18);
+  --on-color-fill-hover: rgb(255 255 255 / 0.26);
+  --on-color-track: rgb(0 0 0 / 0.2);
+  --backdrop: rgb(60 50 40 / 0.35);
 
   /* Type */
   --font-sans: "Geist", system-ui, sans-serif;
@@ -116,6 +129,16 @@
     --shadow-inner: inset 3px 3px 7px rgb(0 0 0 / 0.55), inset -3px -3px 7px rgb(255 255 255 / 0.04);
     --shadow-lift: 4px 4px 10px rgb(0 0 0 / 0.5), -3px -3px 8px rgb(255 255 255 / 0.04);
     --shadow-float: 10px 12px 24px rgb(0 0 0 / 0.6), -6px -6px 16px rgb(255 255 255 / 0.05);
+    --shadow-inner-sm: inset 1px 1px 3px rgb(0 0 0 / 0.6), inset -1px -1px 2px rgb(255 255 255 / 0.05);
+    --shadow-lift-sm: 2px 2px 5px rgb(0 0 0 / 0.5), -1px -1px 3px rgb(255 255 255 / 0.05);
+    --shadow-inner-solid: inset 2px 2px 5px rgb(0 0 0 / 0.35), inset -1px -1px 3px rgb(255 255 255 / 0.1);
+    --shadow-on-color: 0 2px 6px rgb(0 0 0 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.18);
+
+    --thumb: linear-gradient(145deg, #57514c, #3d3834);
+    --on-color-fill: rgb(255 255 255 / 0.16);
+    --on-color-fill-hover: rgb(255 255 255 / 0.24);
+    --on-color-track: rgb(0 0 0 / 0.25);
+    --backdrop: rgb(0 0 0 / 0.5);
   }
 }
 
@@ -153,4 +176,14 @@
   --shadow-inner: inset 3px 3px 7px rgb(0 0 0 / 0.55), inset -3px -3px 7px rgb(255 255 255 / 0.04);
   --shadow-lift: 4px 4px 10px rgb(0 0 0 / 0.5), -3px -3px 8px rgb(255 255 255 / 0.04);
   --shadow-float: 10px 12px 24px rgb(0 0 0 / 0.6), -6px -6px 16px rgb(255 255 255 / 0.05);
+  --shadow-inner-sm: inset 1px 1px 3px rgb(0 0 0 / 0.6), inset -1px -1px 2px rgb(255 255 255 / 0.05);
+  --shadow-lift-sm: 2px 2px 5px rgb(0 0 0 / 0.5), -1px -1px 3px rgb(255 255 255 / 0.05);
+  --shadow-inner-solid: inset 2px 2px 5px rgb(0 0 0 / 0.35), inset -1px -1px 3px rgb(255 255 255 / 0.1);
+  --shadow-on-color: 0 2px 6px rgb(0 0 0 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.18);
+
+  --thumb: linear-gradient(145deg, #57514c, #3d3834);
+  --on-color-fill: rgb(255 255 255 / 0.16);
+  --on-color-fill-hover: rgb(255 255 255 / 0.24);
+  --on-color-track: rgb(0 0 0 / 0.25);
+  --backdrop: rgb(0 0 0 / 0.5);
 }
