@@ -131,6 +131,16 @@ export function renderSelect(props: SelectProps): HTMLElement {
   return h("div", { class: "select" }, control);
 }
 
+/**
+ * Shows a dialog on top of the page. It is added to <body>, not to the app root, so a page re-render
+ * can't remove it, and it removes itself when it closes.
+ */
+export function openModal(dialog: HTMLDialogElement): void {
+  dialog.addEventListener("close", () => dialog.remove());
+  document.body.append(dialog);
+  dialog.showModal();
+}
+
 /* ---------- Step indicator ---------- */
 
 /** `current` is the zero-based index of the active step; earlier steps are done. */
@@ -184,12 +194,18 @@ export function renderToast(message: string, onDismiss?: () => void): HTMLElemen
 
 export interface ModalProps {
   readonly title: string;
+  /** Content between the title and the buttons, such as a form. */
+  readonly body?: HTMLElement;
   readonly primaryLabel: string;
   readonly secondaryLabel: string;
-  readonly onPrimary: () => void;
+  /** Return `false` to keep the dialog open, for example when the form is invalid. */
+  readonly onPrimary: () => boolean | void;
 }
 
-/** Built on <dialog>: the browser handles focus trapping, Escape and the backdrop. Call showModal() after appending. */
+/**
+ * Built on <dialog>: the browser handles focus trapping, Escape and the backdrop. Call showModal() after
+ * appending, or use `openModal`.
+ */
 export function renderModal(props: ModalProps): HTMLDialogElement {
   const dialog = h(
     "dialog",
@@ -201,14 +217,14 @@ export function renderModal(props: ModalProps): HTMLDialogElement {
       },
     },
     h("h2", { id: "modal-title", class: "modal__title" }, props.title),
+    props.body ?? null,
     h(
       "div",
       { class: "modal__actions" },
       renderButton({
         label: props.primaryLabel,
         onClick: () => {
-          props.onPrimary();
-          dialog.close();
+          if (props.onPrimary() !== false) dialog.close();
         },
       }),
       renderButton({ label: props.secondaryLabel, variant: "secondary", onClick: () => dialog.close() }),

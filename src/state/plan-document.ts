@@ -1,5 +1,17 @@
 import type { Ore } from "../core/types";
+import { addMonths } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
+
+/** A planned one-off withdrawal. `id` is unique within the plan and stays the same when it is edited. */
+export interface WithdrawalEvent {
+  readonly id: number;
+  readonly date: YearMonth;
+  readonly amount: Ore;
+  readonly label: string;
+}
+
+/** A withdrawal before it has an id. */
+export type WithdrawalDraft = Omit<WithdrawalEvent, "id">;
 
 /**
  * Everything that defines a plan, in a shape that can be saved and shared. Dates are real
@@ -12,10 +24,11 @@ export interface PlanDocument {
   readonly monthlyDeposit: Ore;
   /** Expected yearly return in percent, e.g. 7 for 7 %. */
   readonly annualReturnPct: number;
+  readonly withdrawals: readonly WithdrawalEvent[];
 }
 
-/** The editable fields of a plan. */
-export type PlanFields = Omit<PlanDocument, "version">;
+/** The plan's single-value fields, edited in the Plan card. */
+export type PlanFields = Omit<PlanDocument, "version" | "withdrawals">;
 
 /*
  * Input limits. Chosen so that even the largest allowed plan (maximum start amount and deposit at the
@@ -28,16 +41,25 @@ export const PLAN_LIMITS = {
   maxReturnPct: 50,
   minStartYear: 2000,
   maxStartYear: 2100,
+  maxWithdrawals: 50,
+  maxLabelLength: 40,
 } as const;
 
 const DEFAULT_RETURN_PCT = 7;
 
-/** A worked example for first-time visitors, starting this month. */
+/** A worked example for first-time visitors, starting this month, with a car purchase five years in. */
 export function createExamplePlan(today: YearMonth): PlanDocument {
-  return { version: 1, start: today, startAmount: 5_000_000, monthlyDeposit: 300_000, annualReturnPct: DEFAULT_RETURN_PCT };
+  return {
+    version: 1,
+    start: today,
+    startAmount: 5_000_000,
+    monthlyDeposit: 300_000,
+    annualReturnPct: DEFAULT_RETURN_PCT,
+    withdrawals: [{ id: 1, date: addMonths(today, 60), amount: 15_000_000, label: "New car" }],
+  };
 }
 
 /** An empty plan: nothing saved yet, with a typical return so it works as soon as an amount is typed. */
 export function createBlankPlan(today: YearMonth): PlanDocument {
-  return { version: 1, start: today, startAmount: 0, monthlyDeposit: 0, annualReturnPct: DEFAULT_RETURN_PCT };
+  return { version: 1, start: today, startAmount: 0, monthlyDeposit: 0, annualReturnPct: DEFAULT_RETURN_PCT, withdrawals: [] };
 }

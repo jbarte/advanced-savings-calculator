@@ -30,9 +30,9 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestone 1 is done: the calculation engine runs and the start amount, monthly
-deposit, return and start date are editable. Withdrawals, deposit changes, saving and sharing
-are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+**Status:** milestones 1 and 2 are done: the calculation engine runs, the start amount, monthly
+deposit, return and start date are editable, and withdrawals can be added, edited and removed
+with their lost growth shown. Deposit changes, saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -121,9 +121,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   through a hand-written validator and migrations, so old saves and old links keep working.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
-  (`project`) for 360 months and shapes the result, including display-oriented fields.
-  Fields for features that don't exist yet are empty: `goal` is `null` and `withdrawals`
-  is `[]`, and the UI hides the matching cards.
+  (`project`) for 360 months and shapes the result, including display-oriented fields. It
+  takes the horizon in months, which is how far each withdrawal's lost growth is measured.
+  Features that don't exist yet are empty: `goal` is `null`, and the UI hides that card.
 - **Calculation rules** (decided, change only after asking):
   - **Money is stored as integers in minor units (öre).** Never use floats for stored
     amounts. Convert to kronor only when formatting (`src/ui/format.ts`), and parse typed
@@ -131,6 +131,13 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - **Input limits live in `PLAN_LIMITS`** (`src/state/plan-document.ts`). They keep every
     balance below `Number.MAX_SAFE_INTEGER` öre, so money stays exact. `project()` throws a
     `RangeError` instead of returning an inexact balance.
+  - **Lost growth of a withdrawal** by a month H is the end balance at H without that
+    withdrawal, minus the end balance at H with it, minus the amount actually withdrawn, never
+    below 0 (`lostGrowth` in `src/core/lost-growth.ts`). It is found by running the projection
+    twice, so it takes any horizon in months.
+  - **A withdrawal dated before the plan start** can't be projected. The view model lists it as
+    `before-start` and leaves it out of the engine input. One dated after the horizon is
+    `after-horizon` and costs nothing within it.
   - **The monthly rate is the effective rate:** `(1 + yearly)^(1/12) − 1`, from
     `monthlyRate()` in `src/core/money.ts`. Twelve months of compounding give exactly
     the yearly return. Never use `yearly / 12`.
@@ -151,6 +158,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     with an end month goes back to whatever applied before it. If two active changes have the
     same start month, the one later in the list wins. A change dated in month 0 first takes
     effect in month 1, since month 0 has no deposit.
+- **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
+  to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
+  types, and nothing reaches the store until Save (`withdrawal-dialog.ts`).
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
   granularity, never raw `Date` objects in the core.
 - **Functions do one thing.** If a function needs a comment to explain what it does,
@@ -234,12 +244,14 @@ with the toggle.
     ├── core/                 # Pure calculation engine (no DOM, no I/O)
     │   ├── types.ts          # Engine input/output: PlanInput, Projection, Ore …
     │   ├── project.ts        # project(): the monthly projection (+ project.test.ts)
+    │   ├── lost-growth.ts    # lostGrowth(): what a withdrawal costs by a horizon (+ test)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
     │   └── year-month.test.ts
     ├── state/                # State, data models, storage
     │   ├── types.ts          # ScenarioView, AppState, HORIZONS, METRICS
-    │   ├── plan-document.ts  # PlanDocument, PLAN_LIMITS, example and blank plans
+    │   ├── plan-document.ts  # PlanDocument, WithdrawalEvent, PLAN_LIMITS, example and blank plans
+    │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
@@ -256,7 +268,8 @@ with the toggle.
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
-    │   ├── withdrawals-table.ts # Planned withdrawals and their cost
+    │   ├── withdrawals-table.ts # Planned withdrawals table: add, edit, remove, lost growth
+    │   ├── withdrawal-dialog.ts # Dialog to add or edit a withdrawal
     │   ├── side-cards.ts     # Bento cards: plan inputs, goal gauge, scenario comparison
     │   ├── components.ts     # Design-system components (toggle, slider, toast, modal …)
     │   ├── design-system.ts  # Reference page for tokens and components (#design-system)

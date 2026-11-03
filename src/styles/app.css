@@ -402,7 +402,12 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
+}
+
+.section-head .card__meta {
+  white-space: nowrap;
 }
 
 /* ---------- KPI tiles ---------- */
@@ -612,12 +617,12 @@ button {
 }
 
 .table {
-  min-width: 620px;
+  min-width: 780px;
 }
 
 .table__row {
   display: grid;
-  grid-template-columns: minmax(180px, 2fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(160px, 1.6fr);
+  grid-template-columns: minmax(180px, 2fr) minmax(110px, 1fr) minmax(130px, 1fr) minmax(160px, 1.6fr) auto;
   gap: 12px;
   align-items: center;
   padding: 14px 20px;
@@ -811,6 +816,33 @@ button {
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--accent-ink);
+}
+
+.btn-text--danger {
+  color: var(--danger);
+}
+
+.table__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.table__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip--warn {
+  color: var(--danger);
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .btn-text:hover {

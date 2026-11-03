@@ -27,16 +27,26 @@ function assertSafeBalance(balance: number, month: number): void {
   }
 }
 
-function withdrawalsInMonth(withdrawals: readonly WithdrawalInput[], month: number): WithdrawalInput[] {
-  return withdrawals.filter((withdrawal) => withdrawal.month === month);
+interface IndexedWithdrawal {
+  readonly withdrawal: WithdrawalInput;
+  readonly index: number;
+}
+
+/** The withdrawals dated in `month`, in list order, with their position in the list. */
+function withdrawalsInMonth(withdrawals: readonly WithdrawalInput[], month: number): IndexedWithdrawal[] {
+  return withdrawals.flatMap((withdrawal, index) => (withdrawal.month === month ? [{ withdrawal, index }] : []));
 }
 
 /** Takes one withdrawal out of `balance`, never going below 0. */
-function applyWithdrawal(balance: Ore, withdrawal: WithdrawalInput): { balance: Ore; applied: AppliedWithdrawal } {
+function applyWithdrawal(
+  balance: Ore,
+  { withdrawal, index }: IndexedWithdrawal,
+): { balance: Ore; applied: AppliedWithdrawal } {
   const taken = Math.min(withdrawal.amount, balance);
   return {
     balance: balance - taken,
     applied: {
+      index,
       month: withdrawal.month,
       requested: withdrawal.amount,
       applied: taken,

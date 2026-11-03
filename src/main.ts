@@ -5,6 +5,7 @@ import { currentRoute } from "./state/route";
 import { createStore } from "./state/store";
 import { loadThemePreference, saveThemePreference, systemPrefersDark } from "./state/theme";
 import { PLAN_SCENARIO_ID, buildScenarioView } from "./state/view-model";
+import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
 import type { Actions } from "./ui/actions";
 import { renderApp } from "./ui/app";
 import { renderDesignSystem } from "./ui/design-system";
@@ -34,6 +35,9 @@ const actions: Actions = {
   setHorizon: (horizon) => store.update({ horizon }),
   updatePlan: (patch) => store.update({ plan: { ...store.get().plan, ...patch }, planOrigin: "own" }),
   startFromScratch: () => store.update({ plan: createBlankPlan(currentYearMonth()), planOrigin: "own" }),
+  addWithdrawal: (draft) => store.update({ plan: addWithdrawal(store.get().plan, draft), planOrigin: "own" }),
+  updateWithdrawal: (id, draft) => store.update({ plan: updateWithdrawal(store.get().plan, id, draft), planOrigin: "own" }),
+  removeWithdrawal: (id) => store.update({ plan: removeWithdrawal(store.get().plan, id), planOrigin: "own" }),
   toggleTheme: () => {
     const theme = isDark() ? "light" : "dark";
     saveThemePreference(theme);
@@ -57,7 +61,7 @@ const render = (): void => {
     return;
   }
   const name = state.planOrigin === "example" ? "Example plan" : "My plan";
-  renderApp(root, { scenarios: [buildScenarioView(state.plan, name)], state, isDark: isDark() }, actions);
+  renderApp(root, { scenarios: [buildScenarioView(state.plan, name, state.horizon * 12)], state, isDark: isDark() }, actions);
 };
 
 store.subscribe(createRenderScheduler(render));

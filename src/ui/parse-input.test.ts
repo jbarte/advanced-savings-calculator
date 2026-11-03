@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS } from "../state/plan-document";
-import { monthInputValue, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
+import { monthInputValue, parseKronor, parseLabel, parseMonthOnOrAfter, parseReturnPct, parseWithdrawalAmount, parseYearMonth } from "./parse-input";
 
 const max = PLAN_LIMITS.maxStartAmount;
 
@@ -96,5 +96,52 @@ describe("monthInputValue", () => {
   it("formats as YYYY-MM with a leading zero", () => {
     expect(monthInputValue({ year: 2026, month: 1 })).toBe("2026-01");
     expect(monthInputValue({ year: 2031, month: 12 })).toBe("2031-12");
+  });
+});
+
+describe("parseWithdrawalAmount", () => {
+  it("accepts whole kronor above 0", () => {
+    expect(parseWithdrawalAmount("150 000")).toEqual({ ok: true, value: 15_000_000 });
+    expect(parseWithdrawalAmount("1")).toEqual({ ok: true, value: 100 });
+  });
+
+  it("rejects 0 and the usual bad input", () => {
+    expect(parseWithdrawalAmount("0")).toEqual({ ok: false, message: "Enter an amount above 0" });
+    expect(parseWithdrawalAmount("")).toEqual({ ok: false, message: "Enter an amount" });
+    expect(parseWithdrawalAmount("-5")).toEqual({ ok: false, message: "Enter 0 or more" });
+    expect(parseWithdrawalAmount("abc").ok).toBe(false);
+  });
+});
+
+describe("parseLabel", () => {
+  it("trims the text", () => {
+    expect(parseLabel("  New car ")).toEqual({ ok: true, value: "New car" });
+  });
+
+  it("falls back to a default when empty", () => {
+    expect(parseLabel("")).toEqual({ ok: true, value: "Withdrawal" });
+    expect(parseLabel("   ")).toEqual({ ok: true, value: "Withdrawal" });
+  });
+
+  it("accepts exactly 40 characters and rejects 41", () => {
+    expect(parseLabel("x".repeat(40))).toEqual({ ok: true, value: "x".repeat(40) });
+    expect(parseLabel("x".repeat(41))).toEqual({ ok: false, message: "Use 40 characters or fewer" });
+  });
+});
+
+describe("parseMonthOnOrAfter", () => {
+  const start = { year: 2026, month: 6 };
+
+  it("accepts the start month and later", () => {
+    expect(parseMonthOnOrAfter("2026-06", start)).toEqual({ ok: true, value: { year: 2026, month: 6 } });
+    expect(parseMonthOnOrAfter("2031-01", start)).toEqual({ ok: true, value: { year: 2031, month: 1 } });
+  });
+
+  it("rejects an earlier month and names the start", () => {
+    expect(parseMonthOnOrAfter("2026-05", start)).toEqual({ ok: false, message: "Pick Jun 2026 or later" });
+  });
+
+  it("passes on the format errors from parseYearMonth", () => {
+    expect(parseMonthOnOrAfter("soon", start)).toEqual({ ok: false, message: "Use the format YYYY-MM, for example 2026-01" });
   });
 });

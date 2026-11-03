@@ -58,7 +58,7 @@ describe("project", () => {
       expect(points[2]?.balance).toBe(10_200_000);
       expect(points[3]?.balance).toBe(10_300_000 - 2_000_000);
       expect(points[3]?.withdrawn).toBe(2_000_000);
-      expect(withdrawals).toEqual([{ month: 3, requested: 2_000_000, applied: 2_000_000, shortfall: 0 }]);
+      expect(withdrawals).toEqual([{ index: 0, month: 3, requested: 2_000_000, applied: 2_000_000, shortfall: 0 }]);
     });
 
     it("allows a withdrawal in month 0", () => {
@@ -71,7 +71,7 @@ describe("project", () => {
       const { points, withdrawals } = project(plan({ withdrawals: [{ month: 2, amount: 15_000_000, label: "Too big" }] }));
       expect(points[2]?.balance).toBe(0);
       expect(points[2]?.withdrawn).toBe(10_000_000);
-      expect(withdrawals).toEqual([{ month: 2, requested: 15_000_000, applied: 10_000_000, shortfall: 5_000_000 }]);
+      expect(withdrawals).toEqual([{ index: 0, month: 2, requested: 15_000_000, applied: 10_000_000, shortfall: 5_000_000 }]);
     });
 
     it("applies several withdrawals in one month in order, each capped by what is left", () => {
@@ -86,6 +86,21 @@ describe("project", () => {
       expect(withdrawals.map((w) => [w.applied, w.shortfall])).toEqual([
         [7_000_000, 0],
         [3_000_000, 4_000_000],
+      ]);
+    });
+
+    it("reports the position of each withdrawal in the input, even when the list is not in date order", () => {
+      const { withdrawals } = project(
+        plan({
+          withdrawals: [
+            { month: 5, amount: 1_000_000, label: "Later" },
+            { month: 2, amount: 1_000_000, label: "Earlier" },
+          ],
+        }),
+      );
+      expect(withdrawals.map((w) => [w.index, w.month])).toEqual([
+        [1, 2],
+        [0, 5],
       ]);
     });
 

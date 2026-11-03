@@ -12,6 +12,11 @@ export function addMonths(start: YearMonth, offset: number): YearMonth {
   return { year: Math.floor(index / 12), month: (index % 12) + 1 };
 }
 
+/** Whole months from `from` to `to`. Negative when `to` is earlier. */
+export function monthsBetween(from: YearMonth, to: YearMonth): number {
+  return (to.year - from.year) * 12 + (to.month - from.month);
+}
+
 /** Formats a year-month as "Apr 2031". */
 export function formatYearMonth(ym: YearMonth): string {
   return `${MONTH_NAMES[ym.month - 1]} ${ym.year}`;
