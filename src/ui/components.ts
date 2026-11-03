@@ -228,3 +228,63 @@ export function renderEmptyState(title: string, hint: string): HTMLElement {
     h("span", { class: "empty__hint" }, hint),
   );
 }
+
+/* ---------- Text field ---------- */
+
+export interface TextFieldProps {
+  readonly id: string;
+  readonly label: string;
+  /** Short unit shown inside the field, e.g. "KR". Empty for none. */
+  readonly unit: string;
+  readonly value: string;
+  /** Keeps keyboard focus on this field when the page re-renders. */
+  readonly dataKey: string;
+  readonly type?: "text" | "month";
+  readonly inputMode?: "numeric" | "decimal";
+  readonly placeholder?: string;
+  /** Returns an error message, or null when the text is valid. */
+  readonly validate: (text: string) => string | null;
+  /** Called with valid text when the user commits it (leaves the field or presses Enter). */
+  readonly onCommit: (text: string) => void;
+}
+
+/**
+ * A labelled input that checks the text as the user types but only commits on `change`. A commit
+ * re-renders the page, which would otherwise rebuild the field mid-typing.
+ */
+export function renderTextField(props: TextFieldProps): HTMLElement {
+  const errorId = `${props.id}-error`;
+  const error = h("p", { class: "field__error", id: errorId, role: "alert" });
+  const input = h("input", {
+    id: props.id,
+    type: props.type ?? "text",
+    value: props.value,
+    inputmode: props.inputMode,
+    placeholder: props.placeholder,
+    autocomplete: "off",
+    "data-key": props.dataKey,
+    "aria-describedby": errorId,
+  });
+
+  const show = (message: string | null): void => {
+    error.textContent = message ?? "";
+    if (message === null) input.removeAttribute("aria-invalid");
+    else input.setAttribute("aria-invalid", "true");
+  };
+
+  input.addEventListener("input", () => show(props.validate(input.value)));
+  input.addEventListener("change", () => {
+    const message = props.validate(input.value);
+    show(message);
+    if (message === null) props.onCommit(input.value);
+  });
+  input.addEventListener("focus", () => input.select());
+
+  return h(
+    "div",
+    { class: "field" },
+    h("label", { for: props.id }, props.label),
+    h("div", { class: "field__control" }, input, props.unit ? h("span", { class: "field__unit" }, props.unit) : null),
+    error,
+  );
+}

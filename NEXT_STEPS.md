@@ -8,9 +8,12 @@ Status as of 2026-11-03. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and 
   scenario tabs, projection chart with withdrawal markers, withdrawals table, goal gauge, scenario
   comparison. The shell is restyled with the "Neo-Tactile Soft UI" design system (merged into `main`).
 - **Live:** https://jbarte.github.io/advanced-savings-calculator/ (deploys on every push to `main`).
-- **Placeholder:** all numbers come from static sample data in `src/state/sample-data.json`.
-  There is no calculation engine yet. `src/core/` holds the engine's types (`types.ts`), the rate
-  and rounding helpers (`money.ts`) and a date helper.
+- **Milestone 1 is done** (see below): the calculation engine in `src/core/project.ts` drives the
+  page, and the start amount, monthly deposit, return and start date are editable. The page opens
+  with an example plan starting this month, or an empty plan after "Start from scratch".
+- **Not built yet:** adding withdrawals, deposit changes, saving, sharing. A reload resets the plan.
+  Hidden until their milestones: scenario tabs, the comparison card, the goal card and the
+  withdrawals table. The Share button is disabled.
 
 ## The target scenario
 
@@ -53,7 +56,7 @@ This is the product, described from the user's side:
 
 Each milestone gives a visitor something new they can do.
 
-### 1. "Use my own numbers" (requirements 1 and 5)
+### 1. "Use my own numbers" (requirements 1 and 5): done
 
 - I enter start capital, monthly saving, expected return and start date, and the chart, tiles and end
   balance update.
@@ -61,12 +64,16 @@ Each milestone gives a visitor something new they can do.
 - First visit shows a worked example I can edit, plus a "Start from scratch" button.
 - Until scenario comparison exists, the UI shows one plan and hides the scenario tabs.
 - **Done when:** results match a hand calculation, and a bad value never crashes the page.
-- *Technical work:*
-  - Calculation engine `project(plan: PlanInput): ProjectionPoint[]`, tests first, following the
-    calculation rules in CLAUDE.md.
-  - `src/state/view-model.ts` to turn engine output into `ScenarioView`.
-  - Editable Plan card (inputs commit on `change`, see CLAUDE.md).
-  - Delete `sample-data.json`/`.ts`.
+- *Built:*
+  - `project(plan: PlanInput): Projection` in `src/core/project.ts`, with withdrawals already
+    supported (capped at the balance, shortfall reported) so milestone 2 only adds the UI and the
+    lost-growth figure.
+  - `PlanDocument` and `PLAN_LIMITS` in `src/state/plan-document.ts`, and `buildScenarioView` in
+    `src/state/view-model.ts`. The sample data is gone.
+  - Editable Plan card (`renderTextField`, `parse-input.ts`), inputs commit on `change`, and
+    `render-scheduler.ts` keeps Tab and clicks working across re-renders.
+  - Whole kronor only for now. Cross-checked by hand: 50 000 kr + 3 000 kr/mo at 7 % over 30 years
+    gives 3 888 970 kr.
 
 ### 2. "What does this withdrawal cost me?" (requirement 2)
 
@@ -171,4 +178,7 @@ Each milestone gives a visitor something new they can do.
 
 - `actions/deploy-pages@v4` gives a warning that it targets an outdated Node version. Bump it when a
   new major version comes out.
-- "+ New scenario" is disabled and the Plan inputs are read-only until milestones 1 and 8.
+- The Share button is disabled until milestone 6, and "+ New scenario" does not exist until milestone 8.
+- The start date uses `<input type="month">`. It was checked in a Chromium-based browser only. Firefox
+  and Safari show a plain `YYYY-MM` text box or their own picker, which the parser handles, but that is
+  untested.

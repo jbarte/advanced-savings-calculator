@@ -32,11 +32,11 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
       h(
         "div",
         { class: "bento" },
-        renderInputsCard(active),
-        renderGoalCard(active),
-        renderComparisonCard(scenarios, active, state, actions),
+        renderInputsCard(active, state, actions),
+        active.goal ? renderGoalCard(active, active.goal) : null,
+        scenarios.length > 1 ? renderComparisonCard(scenarios, active, state, actions) : null,
       ),
-      renderWithdrawals(active, state),
+      active.withdrawals.length > 0 ? renderWithdrawals(active, state) : null,
       h(
         "p",
         { class: "disclaimer" },

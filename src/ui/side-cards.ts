@@ -1,37 +1,118 @@
 import { addMonths, formatYearMonth } from "../core/year-month";
-import type { AppState, ScenarioView } from "../state/types";
+import { PLAN_LIMITS } from "../state/plan-document";
+import type { AppState, GoalSummary, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
+import { renderTextField } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
+import { monthInputValue, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
+import type { ParseResult } from "./parse-input";
 import { lastPoint, monthLabel } from "./view-helpers";
 
-/** Read-only for now; becomes the editable form once the engine exists. */
-export function renderInputsCard(scenario: ScenarioView): HTMLElement {
-  const field = (id: string, label: string, value: string, unit: string): HTMLElement =>
-    h(
-      "div",
-      { class: "field" },
-      h("label", { for: id }, label),
-      h("div", { class: "field__control" }, h("input", { id, value, readonly: true }), h("span", { class: "field__unit" }, unit)),
-    );
+interface ParsedFieldProps<T> {
+  readonly id: string;
+  readonly label: string;
+  readonly unit: string;
+  readonly value: string;
+  readonly dataKey: string;
+  readonly type?: "text" | "month";
+  readonly inputMode?: "numeric" | "decimal";
+  readonly placeholder?: string;
+  readonly parse: (text: string) => ParseResult<T>;
+  readonly apply: (value: T) => void;
+}
+
+/** A text field whose text is checked and read by `parse`. Only valid values reach `apply`. */
+function renderParsedField<T>(props: ParsedFieldProps<T>): HTMLElement {
+  return renderTextField({
+    id: props.id,
+    label: props.label,
+    unit: props.unit,
+    value: props.value,
+    dataKey: props.dataKey,
+    ...(props.type ? { type: props.type } : {}),
+    ...(props.inputMode ? { inputMode: props.inputMode } : {}),
+    ...(props.placeholder ? { placeholder: props.placeholder } : {}),
+    validate: (text) => {
+      const result = props.parse(text);
+      return result.ok ? null : result.message;
+    },
+    onCommit: (text) => {
+      const result = props.parse(text);
+      if (result.ok) props.apply(result.value);
+    },
+  });
+}
+
+export function renderInputsCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+  const isExample = state.planOrigin === "example";
+
+  const side = h(
+    "div",
+    { class: "card__head-side" },
+    isExample ? h("span", { class: "card__meta" }, "Example plan") : null,
+    isExample
+      ? h(
+          "button",
+          { class: "btn-text", type: "button", "data-key": "start-from-scratch", onclick: () => actions.startFromScratch() },
+          "Start from scratch",
+        )
+      : null,
+  );
 
   return h(
     "section",
     { class: "card", "aria-labelledby": "inputs-heading" },
-    h("div", { class: "card__head" }, h("h2", { id: "inputs-heading" }, "Plan"), h("span", { class: "card__meta" }, "Sample data")),
+    h("div", { class: "card__head" }, h("h2", { id: "inputs-heading" }, "Plan"), side),
     h(
       "div",
       { class: "fields" },
-      field("start-amount", "Start amount", formatKronor(scenario.startAmount), "KR"),
-      field("monthly-deposit", "Monthly deposit", formatKronor(scenario.monthlyDeposit), "KR/MO"),
-      field("annual-return", "Expected return", String(scenario.annualReturnPct), "%/YR"),
-      field("start-date", "Start", formatYearMonth(scenario.start), ""),
+      renderParsedField({
+        id: "start-amount",
+        label: "Start amount",
+        unit: "KR",
+        value: formatKronor(scenario.startAmount),
+        dataKey: "plan-start-amount",
+        inputMode: "numeric",
+        parse: (text) => parseKronor(text, PLAN_LIMITS.maxStartAmount),
+        apply: (startAmount) => actions.updatePlan({ startAmount }),
+      }),
+      renderParsedField({
+        id: "monthly-deposit",
+        label: "Monthly deposit",
+        unit: "KR/MO",
+        value: formatKronor(scenario.monthlyDeposit),
+        dataKey: "plan-monthly-deposit",
+        inputMode: "numeric",
+        parse: (text) => parseKronor(text, PLAN_LIMITS.maxMonthlyDeposit),
+        apply: (monthlyDeposit) => actions.updatePlan({ monthlyDeposit }),
+      }),
+      renderParsedField({
+        id: "annual-return",
+        label: "Expected return",
+        unit: "%/YR",
+        value: String(scenario.annualReturnPct),
+        dataKey: "plan-annual-return",
+        inputMode: "decimal",
+        parse: parseReturnPct,
+        apply: (annualReturnPct) => actions.updatePlan({ annualReturnPct }),
+      }),
+      renderParsedField({
+        id: "start-date",
+        label: "Start",
+        unit: "",
+        value: monthInputValue(scenario.start),
+        dataKey: "plan-start-date",
+        type: "month",
+        placeholder: "YYYY-MM",
+        parse: parseYearMonth,
+        apply: (start) => actions.updatePlan({ start }),
+      }),
     ),
   );
 }
 
-export function renderGoalCard(scenario: ScenarioView): HTMLElement {
-  const { goal } = scenario;
+export function renderGoalCard(scenario: ScenarioView, goal: GoalSummary): HTMLElement {
   const pct = goal.percentReached;
   const arc = "M22 104 A78 78 0 0 1 178 104";
   const arcAttrs = { d: arc, fill: "none", "stroke-width": 22, pathLength: 100 };

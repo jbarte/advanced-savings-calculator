@@ -1,21 +1,23 @@
 import "./styles/app.css";
-import { SAMPLE_SCENARIOS } from "./state/sample-data";
+import { currentYearMonth } from "./state/clock";
+import { createBlankPlan, createExamplePlan } from "./state/plan-document";
 import { currentRoute } from "./state/route";
 import { createStore } from "./state/store";
 import { loadThemePreference, saveThemePreference, systemPrefersDark } from "./state/theme";
+import { PLAN_SCENARIO_ID, buildScenarioView } from "./state/view-model";
 import type { Actions } from "./ui/actions";
 import { renderApp } from "./ui/app";
 import { renderDesignSystem } from "./ui/design-system";
+import { createRenderScheduler } from "./ui/render-scheduler";
 import { applyTheme } from "./ui/theme";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app element");
 
-const firstScenario = SAMPLE_SCENARIOS[1] ?? SAMPLE_SCENARIOS[0];
-if (!firstScenario) throw new Error("No sample scenarios");
-
 const store = createStore({
-  scenarioId: firstScenario.id,
+  scenarioId: PLAN_SCENARIO_ID,
+  plan: createExamplePlan(currentYearMonth()),
+  planOrigin: "example",
   horizon: 30,
   metric: "balance",
   theme: loadThemePreference(),
@@ -30,6 +32,8 @@ const actions: Actions = {
   selectScenario: (scenarioId) => store.update({ scenarioId }),
   selectMetric: (metric) => store.update({ metric }),
   setHorizon: (horizon) => store.update({ horizon }),
+  updatePlan: (patch) => store.update({ plan: { ...store.get().plan, ...patch }, planOrigin: "own" }),
+  startFromScratch: () => store.update({ plan: createBlankPlan(currentYearMonth()), planOrigin: "own" }),
   toggleTheme: () => {
     const theme = isDark() ? "light" : "dark";
     saveThemePreference(theme);
@@ -46,12 +50,17 @@ const actions: Actions = {
 };
 
 const render = (): void => {
-  applyTheme(store.get().theme);
-  if (currentRoute() === "design-system") renderDesignSystem(root, isDark(), actions);
-  else renderApp(root, { scenarios: SAMPLE_SCENARIOS, state: store.get(), isDark: isDark() }, actions);
+  const state = store.get();
+  applyTheme(state.theme);
+  if (currentRoute() === "design-system") {
+    renderDesignSystem(root, isDark(), actions);
+    return;
+  }
+  const name = state.planOrigin === "example" ? "Example plan" : "My plan";
+  renderApp(root, { scenarios: [buildScenarioView(state.plan, name)], state, isDark: isDark() }, actions);
 };
 
-store.subscribe(render);
+store.subscribe(createRenderScheduler(render));
 window.addEventListener("hashchange", render);
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 render();

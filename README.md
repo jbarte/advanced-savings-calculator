@@ -7,8 +7,9 @@ month to reach a goal.
 
 **Live:** https://jbarte.github.io/advanced-savings-calculator/
 
-> **Status:** in development. The interface is in place and runs on sample data. The
-> calculation engine is the next step. See [NEXT_STEPS.md](NEXT_STEPS.md).
+> **Status:** in development. You can already enter your own start amount, monthly deposit,
+> return and start date and see the projection. Withdrawals, deposit changes, saving and
+> sharing are next. See [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## The problem
 

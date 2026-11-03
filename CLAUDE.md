@@ -30,8 +30,9 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** the UI shell is done and runs on static sample data. The calculation engine is
-the next step. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+**Status:** milestone 1 is done: the calculation engine runs and the start amount, monthly
+deposit, return and start date are editable. Withdrawals, deposit changes, saving and sharing
+are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -98,13 +99,19 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   element, so updating the store on each keystroke would rebuild the field being typed
   in (the cursor jumps and autocomplete breaks). Text and number inputs update the store
   on the `change` event (blur or Enter). Live feedback while typing, such as validation
-  messages, stays local to the input. If a feature truly needs live updates, render the
-  form once and re-render only the result cards, and ask before restructuring.
+  messages, stays local to the input (`renderTextField` in `src/ui/components.ts`). If a
+  feature truly needs live updates, render the form once and re-render only the result
+  cards, and ask before restructuring.
+- **Renders are deferred one tick** by `createRenderScheduler` (`src/ui/render-scheduler.ts`).
+  `change` fires while focus is still leaving a field, so rendering at once would put focus
+  back in it (Tab would not move on) and would replace a button under the pointer (losing
+  the click). Always trigger renders through the store, never by calling `render()` after
+  an input event.
 - **Dependencies point inwards: `ui → state → core`.** `src/core/` never imports from
   `src/state/` or `src/ui/`, and `src/state/` never imports from `src/ui/`.
 - **The engine has its own types.** `src/core/types.ts` defines the engine's input and
-  output (`PlanInput`, `WithdrawalInput`, `DepositChangeInput`, `GoalInput`,
-  `ProjectionPoint`, `Ore`). They describe money and time only, never how things are
+  output (`PlanInput`, `WithdrawalInput`, `DepositChangeInput`, `GoalInput`, `Projection`,
+  `ProjectionPoint`, `AppliedWithdrawal`, `Ore`). They describe money and time only, never how things are
   displayed. `DepositChangeInput` is still to be added (milestone 3).
 - **The plan is a document.** `src/state/` defines one versioned, JSON-friendly
   `PlanDocument` (start capital, return, base deposit and a list of events, with real
@@ -113,13 +120,17 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   (dates become month offsets there). Every document has a `version`, and loading goes
   through a hand-written validator and migrations, so old saves and old links keep working.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
-  `src/state/types.ts`. A mapper in `src/state/view-model.ts` (to be written alongside the
-  engine) turns engine output into `ScenarioView`, including display-oriented fields like
-  `percentReached`. Until then, `ScenarioView` comes from `src/state/sample-data.json`.
-  The UI must not need to change when the engine replaces the sample data.
+  `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
+  (`project`) for 360 months and shapes the result, including display-oriented fields.
+  Fields for features that don't exist yet are empty: `goal` is `null` and `withdrawals`
+  is `[]`, and the UI hides the matching cards.
 - **Calculation rules** (decided, change only after asking):
   - **Money is stored as integers in minor units (öre).** Never use floats for stored
-    amounts. Convert to kronor only when formatting (`src/ui/format.ts`).
+    amounts. Convert to kronor only when formatting (`src/ui/format.ts`), and parse typed
+    amounts from the digits, not through a float (`src/ui/parse-input.ts`).
+  - **Input limits live in `PLAN_LIMITS`** (`src/state/plan-document.ts`). They keep every
+    balance below `Number.MAX_SAFE_INTEGER` öre, so money stays exact. `project()` throws a
+    `RangeError` instead of returning an inexact balance.
   - **The monthly rate is the effective rate:** `(1 + yearly)^(1/12) − 1`, from
     `monthlyRate()` in `src/core/money.ts`. Twelve months of compounding give exactly
     the yearly return. Never use `yearly / 12`.
@@ -221,22 +232,26 @@ with the toggle.
 └── src/
     ├── main.ts               # Entry point: creates the store and actions, renders the app
     ├── core/                 # Pure calculation engine (no DOM, no I/O)
-    │   ├── types.ts          # Engine input/output: PlanInput, ProjectionPoint, Ore …
+    │   ├── types.ts          # Engine input/output: PlanInput, Projection, Ore …
+    │   ├── project.ts        # project(): the monthly projection (+ project.test.ts)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
     │   └── year-month.test.ts
     ├── state/                # State, data models, storage
     │   ├── types.ts          # ScenarioView, AppState, HORIZONS, METRICS
+    │   ├── plan-document.ts  # PlanDocument, PLAN_LIMITS, example and blank plans
+    │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
+    │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
     │   ├── route.ts          # Reads the URL hash (#design-system)
-    │   ├── theme.ts          # Theme preference in localStorage
-    │   ├── sample-data.json  # Placeholder data (replaced by the engine)
-    │   └── sample-data.ts    # Maps the JSON to ScenarioView
+    │   └── theme.ts          # Theme preference in localStorage
     ├── ui/                   # DOM rendering and events
     │   ├── app.ts            # Page layout (app bar, hero, chart, bento, table), focus restore
     │   ├── actions.ts        # Actions interface (UI → state)
     │   ├── dom.ts            # h() / s() element helpers
     │   ├── format.ts         # Money formatting (öre → "1 234 kr")
+    │   ├── parse-input.ts    # Typed text → öre, percent, year-month (+ test)
+    │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
     │   ├── chart-geometry.ts # Chart scaling and SVG paths (+ .test.ts)
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle

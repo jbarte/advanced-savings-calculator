@@ -2,6 +2,7 @@ import { HORIZONS, METRICS } from "../state/types";
 import type { AppState, Metric, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { areaPath, axisTicks, linePath, nearestIndex, niceScale, toPoints } from "./chart-geometry";
+import { renderEmptyState } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
@@ -11,6 +12,13 @@ const METRIC_LABELS: Record<Metric, string> = {
   deposited: "Deposited",
   growth: "Growth",
   withdrawn: "Withdrawn",
+};
+
+const EMPTY_METRIC_TITLES: Record<Metric, string> = {
+  balance: "No balance yet",
+  deposited: "No deposits yet",
+  growth: "No growth yet",
+  withdrawn: "No withdrawals yet",
 };
 
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
@@ -80,8 +88,18 @@ export function renderChartCard(scenario: ScenarioView, state: AppState): HTMLEl
       h("h2", { id: "chart-heading" }, `${METRIC_LABELS[state.metric]} over time`),
       h("span", { class: "card__meta" }, `${scenario.start.year}–${scenario.start.year + state.horizon}`),
     ),
-    renderChart(scenario, state),
+    renderChartOrEmptyState(scenario, state),
   );
+}
+
+function renderChartOrEmptyState(scenario: ScenarioView, state: AppState): HTMLElement {
+  if (!scenario.points.some((p) => p.balance > 0)) {
+    return renderEmptyState("Nothing to show yet", "Enter a start amount or a monthly deposit to see your projection.");
+  }
+  if (!visiblePoints(scenario, state.horizon).some((p) => p[state.metric] !== 0)) {
+    return renderEmptyState(EMPTY_METRIC_TITLES[state.metric], "This shows up here once your plan includes it.");
+  }
+  return renderChart(scenario, state);
 }
 
 function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
