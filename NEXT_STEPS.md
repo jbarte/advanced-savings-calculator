@@ -1,51 +1,174 @@
 # Next steps
 
-Status as of 2026-10-20. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and rules.
+Status as of 2026-11-03. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and rules.
 
 ## Where things stand
 
-- **Done:** project setup (Vite, strict TypeScript, Vitest), design tokens with light/dark
-  themes, and the full UI shell: scenario sidebar, projection chart with withdrawal markers,
-  withdrawals table, goal gauge, scenario comparison.
+- **Done:** project setup (Vite, strict TypeScript, Vitest), light/dark themes, and the full UI shell:
+  scenario tabs, projection chart with withdrawal markers, withdrawals table, goal gauge, scenario
+  comparison. The shell is restyled with the "Neo-Tactile Soft UI" design system (merged into `main`).
 - **Live:** https://jbarte.github.io/advanced-savings-calculator/ (deploys on every push to `main`).
 - **Placeholder:** all numbers come from static sample data in `src/state/sample-data.json`.
-  There is no calculation engine yet. `src/core/` holds the engine's types (`types.ts`),
-  the rate and rounding helpers (`money.ts`) and a date helper.
+  There is no calculation engine yet. `src/core/` holds the engine's types (`types.ts`), the rate
+  and rounding helpers (`money.ts`) and a date helper.
 
-## To do, in order
+## The target scenario
 
-1. **Calculation engine (`src/core/`)**: tests first. Follow the calculation rules in
-   CLAUDE.md (effective monthly rate, monthly rounding, order within a month, capped
-   withdrawals).
-   - `project(plan: PlanInput): ProjectionPoint[]`: monthly projection with dated
-     withdrawals.
-   - Lost growth per withdrawal by the end of the horizon.
-   - Input and output use the types in `src/core/types.ts`, never `ScenarioView`.
-2. **View model and replacing the sample data**: write `src/state/view-model.ts` to turn
-   engine output into `ScenarioView`, switch `main.ts` over to it, then delete
-   `sample-data.json`/`.ts`. `src/ui/` shouldn't need any changes.
-3. **Editable Plan card**: make the inputs in `renderInputsCard` (`src/ui/side-cards.ts`)
-   editable, store the values in state and validate them (no negative amounts, return of
-   at least -100 %). Inputs update the store on `change`, not `input` (see CLAUDE.md).
-4. **Add/edit/remove withdrawals** in the Planned withdrawals table.
-5. **Goal planning**: let the user set the goal amount and date, then solve for the
-   required monthly deposit (bisection or a closed form) and the month the goal is reached.
-6. **"+ New scenario"**: create, rename, duplicate and delete scenarios.
-7. **Persistence and sharing**: save scenarios to `localStorage` and encode the active
-   scenario in the URL so "Share link" really shares it. All of this goes in `src/state/` only.
-8. **Swedish localization**: add Swedish alongside English.
-   - Move all UI text into translation files (e.g. `src/ui/i18n/en.ts` and `sv.ts`) with
-     typed keys, so a missing translation is a type error.
-   - Format month names and numbers per language (`Apr 2031` / `apr. 2031`, `1.7M kr` /
-     `1,7 mn kr`) instead of the fixed formats in `format.ts` and `year-month.ts`.
-   - Pick the default language from the browser, add a language switch in the header,
-     and remember the choice in `localStorage` (through `src/state/`).
+This is the product, described from the user's side:
+
+1. I set my **start capital** and a **monthly saving**.
+2. I can place a **withdrawal at a specific date**.
+3. I can **change my monthly deposit** from a certain date, or **for a period** (for example pause it
+   during parental leave).
+4. **All events are visible on a graph**, so I get a good overview.
+5. The graph reflects **all calculations and changes**, immediately.
+6. **Everything is saved**, so my plan is still there when I come back.
+7. The whole plan can be **shared as a link without any login**, something like
+   `myurl.com/<unique id of my plan>`.
+
+### Does it fit the current plan?
+
+| # | Requirement | Verdict |
+|---|---|---|
+| 1 | Start capital and monthly saving | Fits. Already in the model, the UI just needs editable inputs. |
+| 2 | Withdrawal at a date | Fits. Already in the model and shown as markers on the chart. |
+| 3 | Deposit changes at a date or for a period | **New.** The model has a single flat `monthlyDeposit`. Needs a new event type in the engine, a rule for how changes combine (see CLAUDE.md), and UI to add it. |
+| 4 | All events visible on the graph | Partly. Withdrawals have markers. Deposit changes need period bands and markers, and all events need one timeline list. |
+| 5 | Graph reflects everything | Fits once the engine replaces the sample data. 360 months is trivial to recalculate on every change. |
+| 6 | Everything saved | Fits. `localStorage` needs no backend. Needs a versioned plan format so old saved plans keep working. |
+| 7 | Share link without login | **Only partly.** A self-contained link works with no login and no server: the whole plan is packed into the URL after the `#`. A short `myurl.com/<id>` link needs a server to store plans, which conflicts with "no backend". See open decision 1. |
+
+### What changes in the model
+
+- **Deposit changes** become a second kind of event next to withdrawals. A change has a start date,
+  an optional end date and an amount (0 pauses saving). Rules are in CLAUDE.md under "Calculation rules".
+- **The plan becomes a document.** One versioned, JSON-friendly `PlanDocument` (start capital,
+  return, base deposit and a list of events, all with real dates) is the single thing that gets saved
+  to `localStorage` and packed into the share link.
+- **The share link format** is `…/advanced-savings-calculator/#plan=<compressed plan>`. The part after
+  `#` is never sent to a server, which matches the privacy promise. `route.ts` already reads the hash
+  for `#design-system`, so it gets a second route for `#plan=`.
+
+## Milestones
+
+Each milestone gives a visitor something new they can do.
+
+### 1. "Use my own numbers" (requirements 1 and 5)
+
+- I enter start capital, monthly saving, expected return and start date, and the chart, tiles and end
+  balance update.
+- Invalid input (negative amount, return below -100 %) shows a clear message, never broken numbers.
+- First visit shows a worked example I can edit, plus a "Start from scratch" button.
+- Until scenario comparison exists, the UI shows one plan and hides the scenario tabs.
+- **Done when:** results match a hand calculation, and a bad value never crashes the page.
+- *Technical work:*
+  - Calculation engine `project(plan: PlanInput): ProjectionPoint[]`, tests first, following the
+    calculation rules in CLAUDE.md.
+  - `src/state/view-model.ts` to turn engine output into `ScenarioView`.
+  - Editable Plan card (inputs commit on `change`, see CLAUDE.md).
+  - Delete `sample-data.json`/`.ts`.
+
+### 2. "What does this withdrawal cost me?" (requirement 2)
+
+- I add a withdrawal with a date, amount and label, and see it on the graph as a drop.
+- The table shows the growth I lose by the end of the period.
+- I can edit or remove a withdrawal.
+- If it is bigger than my balance, I am told it was reduced and by how much.
+- **Done when:** a 300 000 kr withdrawal in 2031 shows the same lost growth as a hand calculation.
+- *Technical work:* engine support for capped withdrawals and lost growth, an "Add event" flow in the
+  UI, validation (date inside the plan, amount above 0).
+
+### 3. "Change my saving over time" (requirement 3)
+
+- I can change my monthly deposit from a date onward ("from Jan 2030, save 5 000 instead").
+- I can change it for a period only ("pause saving Mar 2029 – Feb 2030"), and it goes back to what
+  it was before when the period ends.
+- "Add event" asks which kind: withdrawal or deposit change.
+- The graph shows the new deposit level straight away.
+- **Done when:** a pause for twelve months lowers the end balance by exactly what the hand
+  calculation says, and a period inside an open-ended change returns to that change afterwards.
+- *Technical work:* `DepositChangeInput` in `src/core/types.ts`, the deposit schedule rule (tests for
+  overlaps, a change in month 0, a change after the horizon, and a change that ends before it starts),
+  UI for adding, editing and removing.
+
+### 4. "See everything at a glance" (requirement 4)
+
+- Every event is visible on the graph: withdrawals as drops with labels, deposit changes as shaded
+  periods or step markers, each with a hover or focus description.
+- One timeline list shows all events sorted by date (replaces the withdrawals table). Selecting an
+  event highlights it on the graph.
+- A short legend explains the markers.
+- Works on a phone and with the keyboard.
+- **Done when:** a plan with ten mixed events is readable at phone width.
+
+### 5. "It is all saved" (requirement 6)
+
+- My plan is still there when I come back. Nothing is sent anywhere.
+- A small "Saved" indicator, and a clear notice if my browser blocks storage.
+- "Start over" clears everything, with a confirmation.
+- Optional: export and import the plan as a JSON file as a backup.
+- **Done when:** a plan saved by this version still opens after the format changes (versioned
+  `PlanDocument` with migrations), and broken saved data falls back to the example with a message.
+- *Technical work:* `PlanDocument` and its validator in `src/state/`, autosave through the store.
+
+### 6. "Share my plan" (requirement 7)
+
+- "Share link" copies a link that opens the same plan for anyone, with no login.
+- When I open a link, I choose whether to open it as a new copy or replace my own plan. The default
+  is a copy, so I never lose my own plan by accident.
+- A short note says that anyone with the link can see the plan.
+- A broken, cut-off or outdated link shows a friendly message, not a blank page.
+- **Done when:** a plan survives the round trip (plan → link → plan) unchanged, and a link with
+  invalid or oversized data is rejected without crashing.
+- *Technical work:* encode and decode in `src/state/` (deflate through the browser's built-in
+  `CompressionStream` and base64url, so no dependency; fall back to uncompressed if it is missing).
+  Treat the incoming data as untrusted: size limit, schema check, value ranges. Measure the link
+  length with a large plan.
+
+### Later, still in scope (not in the scenario above)
+
+7. **Goal planning:** set a goal amount and date, see whether I am on track, what monthly deposit I
+   need and when I would reach it, with events included.
+8. **Scenario comparison:** create, rename, duplicate and delete scenarios, and compare them, ideally
+   as lines on one chart. Saving then covers all scenarios, and a share link covers one plan.
+9. **Swedish localization:** add Swedish alongside English.
+   - Move all UI text into translation files (e.g. `src/ui/i18n/en.ts` and `sv.ts`) with typed keys,
+     so a missing translation is a type error.
+   - Format month names and numbers per language (`Apr 2031` / `apr. 2031`, `1.7M kr` / `1,7 mn kr`)
+     instead of the fixed formats in `format.ts` and `year-month.ts`.
+   - Pick the default language from the browser, add a language switch in the header, and remember
+     the choice in `localStorage` (through `src/state/`).
    - Set `<html lang>` to match, and update the "UI language" line in CLAUDE.md.
-9. **Polish for the CV**: README with a screenshot and feature list, empty and error states,
-   an accessibility pass, and possibly a CSV export.
+10. **Polish for the CV:** README with a screenshot and feature list, empty and error states, an
+    accessibility pass, and possibly a CSV export.
+
+## Open decisions
+
+1. **Short link or self-contained link?** Recommendation: self-contained (`#plan=…`) first.
+   - A short `myurl.com/<id>` link needs a server and a database. It would change the "no backend,
+     all data stays in your browser" promise, add costs and privacy duties (you would store people's
+     finances), and GitHub Pages cannot serve `/<id>` paths without a redirect trick.
+   - The plan is a single `PlanDocument`, so a short-link service can be added later by storing the
+     same document under an id. Nothing built in milestones 1–6 would be wasted.
+   - Decide this before milestone 6, and update the rules in CLAUDE.md if the answer is a backend.
+2. **Should the graph move while I type?** With the current rule, text inputs update the plan when I
+   leave the field or press Enter. If you want updates on every keystroke or while dragging a slider,
+   the form has to be built once and only the results re-rendered. Recommendation: keep "on change"
+   for text fields, decide again once the first version is in front of you.
+3. **Scenario tabs:** milestone 1 hides them, because the scenario above is one plan. Say so if you
+   would rather keep comparison next to the editor from the start.
+
+## Not in the list, possible later
+
+- One-time extra deposits (a bonus, an inheritance).
+- Inflation (real versus nominal value) and Swedish ISK/KF tax rules.
+- Self-hosted Geist fonts, instead of loading them from Google, which fits the "no tracking" promise.
+- ESLint (with a rule that checks the layer imports) and Prettier. These are new dev dependencies,
+  so they need approval first.
+- Run typecheck, tests and build on pull requests as well, not only on pushes to `main`.
 
 ## Known loose ends
 
-- `actions/deploy-pages@v4` gives a warning that it targets an outdated Node version. Bump it
-  when a new major version comes out.
-- "+ New scenario" is disabled and the Plan inputs are read-only until steps 3 and 6.
+- `actions/deploy-pages@v4` gives a warning that it targets an outdated Node version. Bump it when a
+  new major version comes out.
+- "+ New scenario" is disabled and the Plan inputs are read-only until milestones 1 and 8.

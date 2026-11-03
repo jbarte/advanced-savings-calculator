@@ -9,6 +9,10 @@ covers:
 
 - **Planned withdrawals on specific dates.** Example: take out 150 000 kr in March 2031 for a
   house down payment and see how that changes the end result and the growth that follows.
+- **Changes to the monthly deposit.** Raise, lower or pause the deposit from a date onward, or for
+  a period only, and see all events on one chart.
+- **Autosave and sharing.** The plan is saved in the browser and can be shared with a link, with no
+  login.
 - **Scenario comparison.** Build several plans side by side, for example different monthly
   amounts, returns, start dates or withdrawal schedules, and compare them in one chart and
   one table.
@@ -27,7 +31,7 @@ https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backen
 stays in the user's browser.
 
 **Status:** the UI shell is done and runs on static sample data. The calculation engine is
-the next step. See [NEXT_STEPS.md](NEXT_STEPS.md).
+the next step. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -99,8 +103,15 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 - **Dependencies point inwards: `ui → state → core`.** `src/core/` never imports from
   `src/state/` or `src/ui/`, and `src/state/` never imports from `src/ui/`.
 - **The engine has its own types.** `src/core/types.ts` defines the engine's input and
-  output (`PlanInput`, `WithdrawalInput`, `GoalInput`, `ProjectionPoint`, `Ore`). They
-  describe money and time only, never how things are displayed.
+  output (`PlanInput`, `WithdrawalInput`, `DepositChangeInput`, `GoalInput`,
+  `ProjectionPoint`, `Ore`). They describe money and time only, never how things are
+  displayed. `DepositChangeInput` is still to be added (milestone 3).
+- **The plan is a document.** `src/state/` defines one versioned, JSON-friendly
+  `PlanDocument` (start capital, return, base deposit and a list of events, with real
+  `YearMonth` dates rather than month offsets). It is the only thing that gets saved to
+  `localStorage` or put in a share link. A mapper turns it into the engine's `PlanInput`
+  (dates become month offsets there). Every document has a `version`, and loading goes
+  through a hand-written validator and migrations, so old saves and old links keep working.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. A mapper in `src/state/view-model.ts` (to be written alongside the
   engine) turns engine output into `ScenarioView`, including display-oriented fields like
@@ -121,6 +132,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     but a withdrawal can be scheduled in it.
   - **A withdrawal can't take the balance below 0.** It is capped at the available
     balance and the shortfall is reported, never silently dropped.
+  - **Deposit schedule** (proposed, to be built in milestone 3): the plan has a base monthly
+    deposit. A deposit change has a start month, an optional end month (both inclusive) and
+    an amount (0 pauses saving). In any month, the deposit is the amount of the change that
+    is active and has the latest start month. If none is active, the base deposit applies.
+    So a change without an end month lasts until a later change replaces it, and a change
+    with an end month goes back to whatever applied before it. If two active changes have the
+    same start month, the one later in the list wins. A change dated in month 0 first takes
+    effect in month 1, since month 0 has no deposit.
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
   granularity, never raw `Date` objects in the core.
 - **Functions do one thing.** If a function needs a comment to explain what it does,
@@ -136,7 +155,15 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - a withdrawal before the start date
   - zero return
   - a goal that cannot be reached
-- **Shareable scenarios.** A scenario can be encoded in the URL so users can share a link.
+- **Sharing is a self-contained link.** A plan is shared by packing its `PlanDocument` into
+  the URL hash: `#plan=<compressed plan>`, using the browser's built-in `CompressionStream`
+  (deflate) and base64url, so there is no dependency and no server. The hash is never sent to
+  a server. `src/state/route.ts` reads the hash, so `#plan=` sits next to `#design-system`.
+  - Data from a link is untrusted: check size, schema and value ranges before using it.
+  - Opening a link never overwrites the user's own plan without asking. Default to opening
+    it as a copy.
+  - A short link like `/<id>` would need a backend. Don't build one without asking
+    (see "Open decisions" in NEXT_STEPS.md).
 
 ## Design
 
@@ -166,7 +193,7 @@ with the toggle.
 - Do **not** add or swap any dependency without asking first. This covers dev
   dependencies too, such as a formatter or linter.
 - Do **not** add a backend, database, user accounts, analytics or tracking. Everything runs
-  client-side.
+  client-side. This includes a short-link service for sharing plans.
 - Do **not** put financial calculation logic in `src/ui/`, and do not touch the DOM from
   `src/core/`.
 - Do **not** use floating-point numbers for stored money amounts.
