@@ -7,8 +7,9 @@ month to reach a goal.
 
 **Live:** https://jbarte.github.io/advanced-savings-calculator/
 
-> **Status:** in development. The interface is in place and runs on sample data. The
-> calculation engine is the next step. See [NEXT_STEPS.md](NEXT_STEPS.md).
+> **Status:** in development. You can already enter your own start amount, monthly deposit,
+> return and start date and see the projection. Withdrawals, deposit changes, saving and
+> sharing are next. See [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## The problem
 
@@ -21,6 +22,12 @@ long-term cost of a decision like that visible.
 
 - **Withdrawals on specific dates.** Plan withdrawals and see the dip in the curve and the
   growth you lose by the end of the period.
+- **Change your monthly saving over time.** Raise, lower or pause your deposit from a date
+  onward, or for a period only (for example during parental leave).
+- **Everything on one chart.** Withdrawals and deposit changes are shown on the graph and in
+  one timeline, and the graph updates with every change.
+- **Saved automatically, shareable with a link.** Your plan stays in your browser, and a link
+  opens the same plan for anyone, with no login.
 - **Scenario comparison.** Several plans side by side, with the end balance of each one.
 - **Goal planning.** How much do you need to save each month to reach X kr by a given date,
   and when do you get there?
@@ -28,7 +35,8 @@ long-term cost of a decision like that visible.
   growth and withdrawals.
 - **Light and dark mode** that follows the system setting.
 - **Private by design:** no accounts, no backend and no tracking. All data stays in your
-  browser.
+  browser. A shared link contains the plan itself in the part after `#`, which is never sent
+  to a server.
 
 ## Tech stack
 

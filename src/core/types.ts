@@ -41,3 +41,18 @@ export interface GoalInput {
   /** Months after the plan start when the target should be reached. */
   readonly month: number;
 }
+
+/** What happened to one planned withdrawal. `shortfall` is the part the balance couldn't cover. */
+export interface AppliedWithdrawal {
+  readonly month: number;
+  readonly requested: Ore;
+  readonly applied: Ore;
+  readonly shortfall: Ore;
+}
+
+export interface Projection {
+  /** One point per month, from month 0 to `PlanInput.months`. */
+  readonly points: readonly ProjectionPoint[];
+  /** Planned withdrawals within the projection, in the order they were applied. */
+  readonly withdrawals: readonly AppliedWithdrawal[];
+}

@@ -777,6 +777,51 @@ button {
   color: var(--muted);
 }
 
+/* The native month picker needs more room than the number fields. */
+@media (max-width: 520px) {
+  .field:has(input[type="month"]) {
+    grid-column: 1 / -1;
+  }
+}
+
+.field__control:has(input[aria-invalid="true"]) {
+  box-shadow: var(--shadow-inner), 0 0 0 var(--border-2) var(--danger);
+}
+
+.field__error {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--danger);
+}
+
+.field__error:empty {
+  display: none;
+}
+
+.card__head-side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btn-text {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-1);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--accent-ink);
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+.btn-text:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus);
+}
+
 /* ---------- Goal gauge ---------- */
 
 .gauge {

@@ -1,5 +1,6 @@
 import type { Ore, ProjectionPoint } from "../core/types";
 import type { YearMonth } from "../core/year-month";
+import type { PlanDocument } from "./plan-document";
 
 export type { Ore, ProjectionPoint };
 
@@ -43,12 +44,18 @@ export interface ScenarioView {
   readonly monthlyDeposit: Ore;
   readonly annualReturnPct: number;
   readonly withdrawals: readonly PlannedWithdrawal[];
-  readonly goal: GoalSummary;
+  /** Null until the user has set a goal. */
+  readonly goal: GoalSummary | null;
   readonly points: readonly ProjectionPoint[];
 }
 
+/** Whether the plan is the built-in example or one the user has started to fill in. */
+export type PlanOrigin = "example" | "own";
+
 export interface AppState {
   readonly scenarioId: string;
+  readonly plan: PlanDocument;
+  readonly planOrigin: PlanOrigin;
   readonly horizon: HorizonYears;
   readonly metric: Metric;
   readonly theme: ThemePreference;

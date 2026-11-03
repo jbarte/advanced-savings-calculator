@@ -63,7 +63,9 @@ export function renderAppBar(
       class: "btn-solid",
       type: "button",
       "data-key": "share",
-      "aria-label": "Copy share link",
+      disabled: true,
+      title: "Sharing is coming soon",
+      "aria-label": "Copy share link (coming soon)",
       onclick: async () => {
         shareLabel.textContent = (await actions.copyShareLink()) ? "Copied" : "Copy failed";
         setTimeout(() => (shareLabel.textContent = "Share"), 2000);
@@ -82,7 +84,7 @@ export function renderAppBar(
       h("div", { class: "brand__mark", "aria-hidden": "true" }),
       h("div", { class: "brand__name" }, "Savings", h("span", {}, "calc")),
     ),
-    renderScenarioTabs(scenarios, active, actions),
+    scenarios.length > 1 ? renderScenarioTabs(scenarios, active, actions) : null,
     h("div", { class: "appbar__actions" }, share, renderThemeButton(isDark, actions)),
   );
 }
