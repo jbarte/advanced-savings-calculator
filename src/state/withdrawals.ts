@@ -1,8 +1,10 @@
 import { PLAN_LIMITS } from "./plan-document";
 import type { PlanDocument, WithdrawalDraft } from "./plan-document";
+import { validateWithdrawalDraft } from "./validate-plan";
 
-/** Adds a withdrawal. Its id is one above the highest id in the plan. */
+/** Adds a withdrawal. Its id is one above the highest id in the plan. Throws a RangeError if it is invalid. */
 export function addWithdrawal(plan: PlanDocument, draft: WithdrawalDraft): PlanDocument {
+  validateWithdrawalDraft(draft);
   if (plan.withdrawals.length >= PLAN_LIMITS.maxWithdrawals) {
     throw new RangeError(`A plan can have at most ${PLAN_LIMITS.maxWithdrawals} withdrawals`);
   }
@@ -12,6 +14,7 @@ export function addWithdrawal(plan: PlanDocument, draft: WithdrawalDraft): PlanD
 
 /** Replaces a withdrawal's fields. It keeps its id and its place in the list. */
 export function updateWithdrawal(plan: PlanDocument, id: number, draft: WithdrawalDraft): PlanDocument {
+  validateWithdrawalDraft(draft);
   if (!plan.withdrawals.some((withdrawal) => withdrawal.id === id)) {
     throw new RangeError(`There is no withdrawal with id ${id}`);
   }

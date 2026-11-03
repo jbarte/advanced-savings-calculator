@@ -2,10 +2,10 @@ import { addMonths } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import type { WithdrawalDraft } from "../state/plan-document";
 import { openModal, renderModal, renderTextField } from "./components";
+import { inputIn, showErrors } from "./dialog-form";
 import { h } from "./dom";
 import { formatKronor } from "./format";
-import { monthInputValue, parseLabel, parseMonthOnOrAfter, parseWithdrawalAmount } from "./parse-input";
-import type { ParseResult } from "./parse-input";
+import { errorMessage, monthInputValue, parseLabel, parseMonthOnOrAfter, parseWithdrawalAmount } from "./parse-input";
 
 export interface WithdrawalDialogProps {
   /** The plan's start month. A withdrawal can't be earlier. */
@@ -15,18 +15,8 @@ export interface WithdrawalDialogProps {
   readonly onSave: (draft: WithdrawalDraft) => void;
 }
 
-const messageOf =
-  <T>(parse: (text: string) => ParseResult<T>) =>
-  (text: string): string | null => {
-    const result = parse(text);
-    return result.ok ? null : result.message;
-  };
-
-function inputIn(field: HTMLElement): HTMLInputElement {
-  const input = field.querySelector("input");
-  if (!input) throw new Error("Text field has no input");
-  return input;
-}
+/** A new withdrawal starts one year after the plan start, which is a starting point and not a rule. */
+const DEFAULT_MONTHS_AHEAD = 12;
 
 /**
  * A dialog to add or edit a withdrawal. Nothing reaches the plan until Save, so typing never causes a
@@ -43,7 +33,7 @@ export function openWithdrawalDialog(props: WithdrawalDialogProps): void {
     value: initial?.label ?? "",
     dataKey: "withdrawal-label",
     placeholder: "Withdrawal",
-    validate: messageOf(parseLabel),
+    validate: errorMessage(parseLabel),
     onCommit: nothing,
   });
   const amount = renderTextField({
@@ -53,7 +43,7 @@ export function openWithdrawalDialog(props: WithdrawalDialogProps): void {
     value: initial ? formatKronor(initial.amount) : "",
     dataKey: "withdrawal-amount",
     inputMode: "numeric",
-    validate: messageOf(parseWithdrawalAmount),
+    validate: errorMessage(parseWithdrawalAmount),
     onCommit: nothing,
   });
   const month = renderTextField({
@@ -61,10 +51,10 @@ export function openWithdrawalDialog(props: WithdrawalDialogProps): void {
     label: "Month",
     unit: "",
     type: "month",
-    value: monthInputValue(initial?.date ?? addMonths(props.start, 12)),
+    value: monthInputValue(initial?.date ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
     dataKey: "withdrawal-month",
     placeholder: "YYYY-MM",
-    validate: messageOf((text) => parseMonthOnOrAfter(text, props.start)),
+    validate: errorMessage((text) => parseMonthOnOrAfter(text, props.start)),
     onCommit: nothing,
   });
 
@@ -72,12 +62,7 @@ export function openWithdrawalDialog(props: WithdrawalDialogProps): void {
 
   /** Returns true when the withdrawal was valid and has been handed over. */
   const save = (): boolean => {
-    for (const input of inputs) input.dispatchEvent(new Event("input")); // show any error messages
-    const firstInvalid = inputs.find((input) => input.getAttribute("aria-invalid") === "true");
-    if (firstInvalid) {
-      firstInvalid.focus();
-      return false;
-    }
+    if (!showErrors(inputs)) return false;
     const parsedLabel = parseLabel(inputs[0]?.value ?? "");
     const parsedAmount = parseWithdrawalAmount(inputs[1]?.value ?? "");
     const parsedMonth = parseMonthOnOrAfter(inputs[2]?.value ?? "", props.start);

@@ -1,8 +1,8 @@
-import { addMonths, formatYearMonth } from "../core/year-month";
+import { addMonths, formatYearMonth, yearsToMonths } from "../core/year-month";
 import type { HorizonYears, ProjectionPoint, ScenarioView } from "../state/types";
 
 export function visiblePoints(scenario: ScenarioView, horizon: HorizonYears): readonly ProjectionPoint[] {
-  return scenario.points.filter((p) => p.month <= horizon * 12);
+  return scenario.points.filter((p) => p.month <= yearsToMonths(horizon));
 }
 
 export function lastPoint(scenario: ScenarioView, horizon: HorizonYears): ProjectionPoint {

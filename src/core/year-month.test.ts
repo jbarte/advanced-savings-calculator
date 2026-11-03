@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, formatYearMonth, monthsBetween } from "./year-month";
+import { MONTHS_PER_YEAR, addMonths, formatYearMonth, monthsBetween, yearsToMonths } from "./year-month";
 
 describe("addMonths", () => {
   it("returns the start month for offset 0", () => {
@@ -45,5 +45,17 @@ describe("monthsBetween", () => {
     for (const offset of [-30, -1, 0, 1, 17, 360]) {
       expect(monthsBetween(start, addMonths(start, offset))).toBe(offset);
     }
+  });
+});
+
+describe("MONTHS_PER_YEAR and yearsToMonths", () => {
+  it("has twelve months in a year", () => {
+    expect(MONTHS_PER_YEAR).toBe(12);
+  });
+
+  it("converts whole years to months", () => {
+    expect(yearsToMonths(0)).toBe(0);
+    expect(yearsToMonths(1)).toBe(12);
+    expect(yearsToMonths(30)).toBe(360);
   });
 });

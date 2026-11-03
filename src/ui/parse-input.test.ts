@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS } from "../state/plan-document";
-import { monthInputValue, parseKronor, parseLabel, parseMonthOnOrAfter, parseReturnPct, parseWithdrawalAmount, parseYearMonth } from "./parse-input";
+import { errorMessage, monthInputValue, parseKronor, parseLabel, parseMonthOnOrAfter, parseReturnPct, parseWithdrawalAmount, parseYearMonth } from "./parse-input";
 
 const max = PLAN_LIMITS.maxStartAmount;
 
@@ -143,5 +143,16 @@ describe("parseMonthOnOrAfter", () => {
 
   it("passes on the format errors from parseYearMonth", () => {
     expect(parseMonthOnOrAfter("soon", start)).toEqual({ ok: false, message: "Use the format YYYY-MM, for example 2026-01" });
+  });
+});
+
+describe("errorMessage", () => {
+  it("is null for valid text", () => {
+    expect(errorMessage((text) => parseKronor(text, max))("50 000")).toBeNull();
+  });
+
+  it("is the parser's message for invalid text", () => {
+    expect(errorMessage((text) => parseKronor(text, max))("abc")).toBe("Enter a number, for example 50 000");
+    expect(errorMessage(parseReturnPct)("-101")).toBe("Use -100 % or more");
   });
 });

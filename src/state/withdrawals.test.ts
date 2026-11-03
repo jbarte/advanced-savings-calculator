@@ -59,3 +59,17 @@ describe("removeWithdrawal", () => {
     expect(removeWithdrawal(plan, 9)).toEqual(plan);
   });
 });
+
+describe("validation", () => {
+  it("rejects an invalid withdrawal when adding", () => {
+    expect(() => addWithdrawal(blank, { ...draft(1), amount: 0 })).toThrow(RangeError);
+    expect(() => addWithdrawal(blank, { ...draft(1), label: "x".repeat(PLAN_LIMITS.maxLabelLength + 1) })).toThrow(RangeError);
+    expect(() => addWithdrawal(blank, { ...draft(1), date: { year: 2030, month: 13 } })).toThrow(RangeError);
+  });
+
+  it("rejects an invalid withdrawal when updating, and leaves the plan alone", () => {
+    const plan = addWithdrawal(blank, draft(1));
+    expect(() => updateWithdrawal(plan, 1, { ...draft(1), amount: -1 })).toThrow(RangeError);
+    expect(plan.withdrawals[0]?.amount).toBe(100_000);
+  });
+});

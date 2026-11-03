@@ -74,4 +74,6 @@ export interface AppState {
   readonly horizon: HorizonYears;
   readonly metric: Metric;
   readonly theme: ThemePreference;
+  /** Why the last change was not applied, shown until the next change or until dismissed. */
+  readonly notice: string | null;
 }

@@ -1,7 +1,8 @@
+import { yearsToMonths } from "../core/year-month";
 import { HORIZONS, METRICS } from "../state/types";
 import type { AppState, Metric, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
-import { areaPath, axisTicks, linePath, nearestIndex, niceScale, toPoints } from "./chart-geometry";
+import { areaPath, axisTicks, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
 import { renderEmptyState } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
@@ -96,7 +97,7 @@ function renderChartOrEmptyState(scenario: ScenarioView, state: AppState): HTMLE
   if (!scenario.points.some((p) => p.balance > 0)) {
     return renderEmptyState("Nothing to show yet", "Enter a start amount or a monthly deposit to see your projection.");
   }
-  if (!visiblePoints(scenario, state.horizon).some((p) => p[state.metric] !== 0)) {
+  if (isAllZero(visiblePoints(scenario, state.horizon).map((p) => p[state.metric]))) {
     return renderEmptyState(EMPTY_METRIC_TITLES[state.metric], "This shows up here once your plan includes it.");
   }
   return renderChart(scenario, state);
@@ -105,10 +106,11 @@ function renderChartOrEmptyState(scenario: ScenarioView, state: AppState): HTMLE
 function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
   const points = visiblePoints(scenario, state.horizon);
   const values = points.map((p) => p[state.metric]);
-  const scale = niceScale(Math.max(...values));
+  const scale = niceScale(Math.min(...values), Math.max(...values));
   const ticks = axisTicks(scale);
-  const coords = toPoints(values, scale.max);
-  const totalMonths = state.horizon * 12;
+  const coords = toPoints(values, scale);
+  const zeroY = zeroLine(scale);
+  const totalMonths = yearsToMonths(state.horizon);
 
   const svg = s(
     "svg",
@@ -123,7 +125,7 @@ function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
         s("stop", { class: "chart__fill-stop", offset: 1, "stop-opacity": 0 }),
       ),
     ),
-    s("path", { class: "chart__area", d: areaPath(coords) }),
+    s("path", { class: "chart__area", d: areaPath(coords, zeroY) }),
     s("path", { class: "chart__line", d: linePath(coords) }),
   );
 
@@ -181,6 +183,7 @@ function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
       },
     },
     h("div", { class: "chart__grid", "aria-hidden": "true" }, ...ticks.map(() => h("div"))),
+    scale.min < 0 ? h("div", { class: "chart__zero", style: `top:${zeroY}%`, "aria-hidden": "true" }) : null,
     svg,
     ...markers,
     cursor,

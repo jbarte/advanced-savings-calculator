@@ -11,6 +11,7 @@ export interface Actions {
   addWithdrawal(draft: WithdrawalDraft): void;
   updateWithdrawal(id: number, draft: WithdrawalDraft): void;
   removeWithdrawal(id: number): void;
+  dismissNotice(): void;
   toggleTheme(): void;
   copyShareLink(): Promise<boolean>;
 }

@@ -1,7 +1,7 @@
 import { lostGrowth } from "../core/lost-growth";
 import { project } from "../core/project";
 import type { PlanInput, WithdrawalInput } from "../core/types";
-import { monthsBetween } from "../core/year-month";
+import { monthsBetween, yearsToMonths } from "../core/year-month";
 import type { PlanDocument } from "./plan-document";
 import { HORIZONS } from "./types";
 import type { PlannedWithdrawal, ScenarioView, WithdrawalStatus } from "./types";
@@ -10,7 +10,7 @@ import type { PlannedWithdrawal, ScenarioView, WithdrawalStatus } from "./types"
 export const PLAN_SCENARIO_ID = "plan";
 
 /** Always project as far as the longest horizon the UI can show. */
-export const PROJECTION_MONTHS = Math.max(...HORIZONS) * 12;
+export const PROJECTION_MONTHS = yearsToMonths(Math.max(...HORIZONS));
 
 interface MappedPlan {
   readonly input: PlanInput;

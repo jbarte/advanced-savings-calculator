@@ -4,17 +4,24 @@ export interface YearMonth {
   readonly month: number;
 }
 
+export const MONTHS_PER_YEAR = 12;
+
+/** Whole years as a number of months. */
+export function yearsToMonths(years: number): number {
+  return years * MONTHS_PER_YEAR;
+}
+
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 
 /** Returns the year-month that lies `offset` months after `start`. */
 export function addMonths(start: YearMonth, offset: number): YearMonth {
-  const index = start.year * 12 + (start.month - 1) + offset;
-  return { year: Math.floor(index / 12), month: (index % 12) + 1 };
+  const index = start.year * MONTHS_PER_YEAR + (start.month - 1) + offset;
+  return { year: Math.floor(index / MONTHS_PER_YEAR), month: (index % MONTHS_PER_YEAR) + 1 };
 }
 
 /** Whole months from `from` to `to`. Negative when `to` is earlier. */
 export function monthsBetween(from: YearMonth, to: YearMonth): number {
-  return (to.year - from.year) * 12 + (to.month - from.month);
+  return (to.year - from.year) * MONTHS_PER_YEAR + (to.month - from.month);
 }
 
 /** Formats a year-month as "Apr 2031". */

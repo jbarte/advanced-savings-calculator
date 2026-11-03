@@ -1,5 +1,5 @@
 import type { Ore } from "../core/types";
-import { formatYearMonth, monthsBetween } from "../core/year-month";
+import { MONTHS_PER_YEAR, formatYearMonth, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import { formatKronor } from "./format";
@@ -7,6 +7,14 @@ import { formatKronor } from "./format";
 export type ParseResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly message: string };
+
+/** Turns a parser into what a text field wants: an error message, or null when the text is valid. */
+export function errorMessage<T>(parse: (text: string) => ParseResult<T>): (text: string) => string | null {
+  return (text) => {
+    const result = parse(text);
+    return result.ok ? null : result.message;
+  };
+}
 
 const fail = (message: string): { ok: false; message: string } => ({ ok: false, message });
 
@@ -50,7 +58,7 @@ export function parseYearMonth(text: string): ParseResult<YearMonth> {
   if (!match) return fail("Use the format YYYY-MM, for example 2026-01");
   const year = Number(match[1]);
   const month = Number(match[2]);
-  if (month < 1 || month > 12) return fail("The month must be between 01 and 12");
+  if (month < 1 || month > MONTHS_PER_YEAR) return fail("The month must be between 01 and 12");
   if (year < PLAN_LIMITS.minStartYear || year > PLAN_LIMITS.maxStartYear) {
     return fail(`Use a year between ${PLAN_LIMITS.minStartYear} and ${PLAN_LIMITS.maxStartYear}`);
   }
