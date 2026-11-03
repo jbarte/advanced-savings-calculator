@@ -1,10 +1,9 @@
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
-import { renderPageTitle, renderProjectionCard } from "./projection-card";
+import { renderChartCard, renderHero } from "./projection-card";
 import { renderComparisonCard, renderGoalCard, renderInputsCard } from "./side-cards";
-import { renderSidebar } from "./sidebar";
-import { renderTopbar } from "./topbar";
+import { renderAppBar } from "./topbar";
 import { renderWithdrawals } from "./withdrawals-table";
 
 export interface AppView {
@@ -21,45 +20,32 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   // Re-rendering replaces every element, so restore keyboard focus afterwards.
   const focusKey = document.activeElement?.getAttribute("data-key");
 
-  const page = h(
+  const shell = h(
     "div",
-    { class: "page" },
+    { class: "shell" },
+    renderAppBar(scenarios, active, isDark, actions),
     h(
-      "div",
-      { class: "frame" },
-      renderSidebar(scenarios, active, state, actions),
+      "main",
+      { class: "canvas" },
+      renderHero(active, state, actions),
+      renderChartCard(active, state),
       h(
-        "main",
-        { class: "main" },
-        renderTopbar(active, isDark, actions),
-        h(
-          "div",
-          { class: "content" },
-          h(
-            "div",
-            { class: "col-main" },
-            renderPageTitle(active, state, actions),
-            renderProjectionCard(active, state, actions),
-            renderWithdrawals(active, state),
-          ),
-          h(
-            "div",
-            { class: "col-side" },
-            renderInputsCard(active),
-            renderGoalCard(active),
-            renderComparisonCard(scenarios, active, state, actions),
-            h(
-              "p",
-              { class: "disclaimer" },
-              "Projections assume a constant return and are estimates only. This is not financial advice.",
-            ),
-          ),
-        ),
+        "div",
+        { class: "bento" },
+        renderInputsCard(active),
+        renderGoalCard(active),
+        renderComparisonCard(scenarios, active, state, actions),
+      ),
+      renderWithdrawals(active, state),
+      h(
+        "p",
+        { class: "disclaimer" },
+        "Projections assume a constant return and are estimates only. This is not financial advice.",
       ),
     ),
   );
 
-  root.replaceChildren(page);
+  root.replaceChildren(shell);
 
   if (focusKey) root.querySelector<HTMLElement>(`[data-key="${CSS.escape(focusKey)}"]`)?.focus();
 }

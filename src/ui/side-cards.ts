@@ -2,7 +2,7 @@ import { addMonths, formatYearMonth } from "../core/year-month";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h, s } from "./dom";
-import { formatMoney, formatMoneyCompact } from "./format";
+import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel } from "./view-helpers";
 
 /** Read-only for now; becomes the editable form once the engine exists. */
@@ -22,8 +22,8 @@ export function renderInputsCard(scenario: ScenarioView): HTMLElement {
     h(
       "div",
       { class: "fields" },
-      field("start-amount", "Start amount", formatMoney(scenario.startAmount).replace(" kr", ""), "KR"),
-      field("monthly-deposit", "Monthly deposit", formatMoney(scenario.monthlyDeposit).replace(" kr", ""), "KR/MO"),
+      field("start-amount", "Start amount", formatKronor(scenario.startAmount), "KR"),
+      field("monthly-deposit", "Monthly deposit", formatKronor(scenario.monthlyDeposit), "KR/MO"),
       field("annual-return", "Expected return", String(scenario.annualReturnPct), "%/YR"),
       field("start-date", "Start", formatYearMonth(scenario.start), ""),
     ),

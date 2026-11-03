@@ -28,17 +28,45 @@ export function renderThemeButton(isDark: boolean, actions: Actions): HTMLButton
   );
 }
 
-export function renderTopbar(active: ScenarioView, isDark: boolean, actions: Actions): HTMLElement {
-  const shareLabel = h("span", {}, "Share link");
+function renderScenarioTabs(scenarios: readonly ScenarioView[], active: ScenarioView, actions: Actions): HTMLElement {
+  const tabs = scenarios.map((scenario) =>
+    h(
+      "button",
+      {
+        class: "tabs__item",
+        type: "button",
+        "data-key": `scenario-${scenario.id}`,
+        "aria-current": scenario.id === active.id ? "true" : "false",
+        onclick: () => actions.selectScenario(scenario.id),
+      },
+      scenario.name,
+    ),
+  );
+  const add = h(
+    "button",
+    { class: "tabs__item tabs__item--add", type: "button", disabled: true, title: "New scenario (coming soon)", "aria-label": "New scenario (coming soon)" },
+    "+",
+  );
+  return h("nav", { class: "tabs appbar__tabs", "aria-label": "Scenarios" }, ...tabs, add);
+}
+
+export function renderAppBar(
+  scenarios: readonly ScenarioView[],
+  active: ScenarioView,
+  isDark: boolean,
+  actions: Actions,
+): HTMLElement {
+  const shareLabel = h("span", { class: "appbar__share-label" }, "Share");
   const share = h(
     "button",
     {
       class: "btn-solid",
       type: "button",
       "data-key": "share",
+      "aria-label": "Copy share link",
       onclick: async () => {
-        shareLabel.textContent = (await actions.copyShareLink()) ? "Link copied" : "Copy failed";
-        setTimeout(() => (shareLabel.textContent = "Share link"), 2000);
+        shareLabel.textContent = (await actions.copyShareLink()) ? "Copied" : "Copy failed";
+        setTimeout(() => (shareLabel.textContent = "Share"), 2000);
       },
     },
     h("span", { class: "btn-solid__icon", "aria-hidden": "true" }, "↗"),
@@ -47,8 +75,14 @@ export function renderTopbar(active: ScenarioView, isDark: boolean, actions: Act
 
   return h(
     "header",
-    { class: "topbar" },
-    h("div", { class: "scenario-name" }, h("span", { class: "scenario-name__tag" }, "SCENARIO"), h("span", {}, active.name)),
-    h("div", { class: "topbar__actions" }, share, renderThemeButton(isDark, actions)),
+    { class: "appbar" },
+    h(
+      "div",
+      { class: "brand appbar__brand" },
+      h("div", { class: "brand__mark", "aria-hidden": "true" }),
+      h("div", { class: "brand__name" }, "Savings", h("span", {}, "calc")),
+    ),
+    renderScenarioTabs(scenarios, active, actions),
+    h("div", { class: "appbar__actions" }, share, renderThemeButton(isDark, actions)),
   );
 }

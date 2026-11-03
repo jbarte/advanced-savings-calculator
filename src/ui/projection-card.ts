@@ -3,7 +3,7 @@ import type { AppState, Metric, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { areaPath, axisTicks, linePath, nearestIndex, niceScale, toPoints } from "./chart-geometry";
 import { h, s } from "./dom";
-import { formatMoney, formatMoneyCompact } from "./format";
+import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
 
 const METRIC_LABELS: Record<Metric, string> = {
@@ -13,37 +13,22 @@ const METRIC_LABELS: Record<Metric, string> = {
   withdrawn: "Withdrawn",
 };
 
-export function renderPageTitle(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
-  const index = HORIZONS.indexOf(state.horizon);
-  const next = HORIZONS[(index + 1) % HORIZONS.length] ?? state.horizon;
-  const endYear = scenario.start.year + state.horizon;
+export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+  const end = lastPoint(scenario, state.horizon);
 
-  return h(
-    "div",
-    { class: "page-title" },
-    h(
-      "div",
-      {},
-      h("h1", {}, "Projection"),
-      h("p", {}, "How your savings grow, and what each withdrawal costs you."),
-    ),
+  const horizons = HORIZONS.map((years) =>
     h(
       "button",
       {
-        class: "pill",
+        class: "tabs__item",
         type: "button",
-        "data-key": "horizon",
-        "aria-label": `Time horizon ${state.horizon} years. Change to ${next} years.`,
-        onclick: () => actions.setHorizon(next),
+        "data-key": `horizon-${years}`,
+        "aria-pressed": years === state.horizon ? "true" : "false",
+        onclick: () => actions.setHorizon(years),
       },
-      h("span", { class: "pill__tag" }, "HORIZON"),
-      h("span", { class: "pill__value" }, `${state.horizon} years · ${scenario.start.year}–${endYear}`),
+      `${years} yrs`,
     ),
   );
-}
-
-export function renderProjectionCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
-  const end = lastPoint(scenario, state.horizon);
 
   const tiles = METRICS.map((metric) =>
     h(
@@ -63,14 +48,38 @@ export function renderProjectionCard(scenario: ScenarioView, state: AppState, ac
 
   return h(
     "section",
-    { class: "card", "aria-labelledby": "projection-heading" },
+    { class: "hero", "aria-labelledby": "hero-heading" },
+    h(
+      "div",
+      { class: "hero__top" },
+      h(
+        "div",
+        {},
+        h("h1", { id: "hero-heading", class: "hero__eyebrow" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}`),
+        h(
+          "p",
+          { class: "hero__value" },
+          formatKronor(end[state.metric]),
+          h("span", { class: "hero__unit" }, "kr"),
+        ),
+        h("p", { class: "hero__sub" }, `${scenario.name} · How your savings grow, and what each withdrawal costs you.`),
+      ),
+      h("div", { class: "tabs", role: "group", "aria-label": "Time horizon" }, ...horizons),
+    ),
+    h("div", { class: "kpis" }, ...tiles),
+  );
+}
+
+export function renderChartCard(scenario: ScenarioView, state: AppState): HTMLElement {
+  return h(
+    "section",
+    { class: "card card--chart", "aria-labelledby": "chart-heading" },
     h(
       "div",
       { class: "card__head" },
-      h("h2", { id: "projection-heading" }, METRIC_LABELS[state.metric]),
-      h("div", { class: "card__meta" }, `At ${monthLabel(scenario, end.month)}`),
+      h("h2", { id: "chart-heading" }, `${METRIC_LABELS[state.metric]} over time`),
+      h("span", { class: "card__meta" }, `${scenario.start.year}–${scenario.start.year + state.horizon}`),
     ),
-    h("div", { class: "tiles" }, ...tiles),
     renderChart(scenario, state),
   );
 }

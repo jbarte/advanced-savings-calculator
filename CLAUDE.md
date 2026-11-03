@@ -201,21 +201,23 @@ with the toggle.
     ├── state/                # State, data models, storage
     │   ├── types.ts          # ScenarioView, AppState, HORIZONS, METRICS
     │   ├── store.ts          # Minimal observable store
+    │   ├── route.ts          # Reads the URL hash (#design-system)
     │   ├── theme.ts          # Theme preference in localStorage
     │   ├── sample-data.json  # Placeholder data (replaced by the engine)
     │   └── sample-data.ts    # Maps the JSON to ScenarioView
     ├── ui/                   # DOM rendering and events
-    │   ├── app.ts            # Page layout, re-render and focus restore
+    │   ├── app.ts            # Page layout (app bar, hero, chart, bento, table), focus restore
     │   ├── actions.ts        # Actions interface (UI → state)
     │   ├── dom.ts            # h() / s() element helpers
     │   ├── format.ts         # Money formatting (öre → "1 234 kr")
     │   ├── chart-geometry.ts # Chart scaling and SVG paths (+ .test.ts)
     │   ├── view-helpers.ts   # Small shared view helpers
-    │   ├── sidebar.ts        # Scenario list and goal mini card
-    │   ├── topbar.ts         # Scenario name, share link, theme toggle
-    │   ├── projection-card.ts # Title, horizon pill, KPI tiles, chart
+    │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
+    │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── withdrawals-table.ts # Planned withdrawals and their cost
-    │   ├── side-cards.ts     # Plan inputs, goal gauge, scenario comparison
+    │   ├── side-cards.ts     # Bento cards: plan inputs, goal gauge, scenario comparison
+    │   ├── components.ts     # Design-system components (toggle, slider, toast, modal …)
+    │   ├── design-system.ts  # Reference page for tokens and components (#design-system)
     │   └── theme.ts          # Applies the theme to <html>
     └── styles/
         ├── tokens.css        # Colour tokens (light/dark)
