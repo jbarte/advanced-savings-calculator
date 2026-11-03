@@ -149,6 +149,23 @@ Each milestone gives a visitor something new they can do.
 10. **Polish for the CV:** README with a screenshot and feature list, empty and error states, an
     accessibility pass, and possibly a CSV export.
 
+## Requested, not yet scheduled
+
+- **Custom horizon.** Today the horizon is fixed to 10, 20 or 30 years. I want to set it freely,
+  the same way I set the start: a slider (for example 1–40 years), or an end date typed or picked
+  like the start date, or both.
+  - Interpreted as "set the end of the projection yourself". If the request also meant a savings
+    goal (a target amount by a date), that is milestone 7. The goal date could then default to the
+    end of the horizon.
+  - Touches: `HORIZONS` and `HorizonYears` in `src/state/types.ts`, the hero's horizon switch,
+    `PROJECTION_MONTHS` in `src/state/view-model.ts` (raise it to the new maximum), the chart's
+    x-axis labels, and `PLAN_LIMITS` for the maximum length.
+  - Decide before milestone 2: the lost-growth figure for a withdrawal is meant to be shown "by the
+    end of the horizon". Build it as a function of any horizon in months, not as three values for
+    10, 20 and 30 years (the old `costByHorizon` shape), or it will have to be redone.
+  - Decide where the horizon lives: only a view setting (like today) or part of the saved and shared
+    `PlanDocument`. Recommendation: part of the plan, so a shared link opens with the same end date.
+
 ## Open decisions
 
 1. **Short link or self-contained link?** Recommendation: self-contained (`#plan=…`) first.
