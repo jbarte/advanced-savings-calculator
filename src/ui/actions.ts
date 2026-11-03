@@ -1,4 +1,4 @@
-import type { PlanFields } from "../state/plan-document";
+import type { PlanFields, WithdrawalDraft } from "../state/plan-document";
 import type { HorizonYears, Metric } from "../state/types";
 
 /** Everything the UI can ask the app to do. Wired to the store in main.ts. */
@@ -8,6 +8,9 @@ export interface Actions {
   setHorizon(horizon: HorizonYears): void;
   updatePlan(patch: Partial<PlanFields>): void;
   startFromScratch(): void;
+  addWithdrawal(draft: WithdrawalDraft): void;
+  updateWithdrawal(id: number, draft: WithdrawalDraft): void;
+  removeWithdrawal(id: number): void;
   toggleTheme(): void;
   copyShareLink(): Promise<boolean>;
 }

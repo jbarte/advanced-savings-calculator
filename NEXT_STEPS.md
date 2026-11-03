@@ -8,12 +8,13 @@ Status as of 2026-11-03. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and 
   scenario tabs, projection chart with withdrawal markers, withdrawals table, goal gauge, scenario
   comparison. The shell is restyled with the "Neo-Tactile Soft UI" design system (merged into `main`).
 - **Live:** https://jbarte.github.io/advanced-savings-calculator/ (deploys on every push to `main`).
-- **Milestone 1 is done** (see below): the calculation engine in `src/core/project.ts` drives the
-  page, and the start amount, monthly deposit, return and start date are editable. The page opens
-  with an example plan starting this month, or an empty plan after "Start from scratch".
-- **Not built yet:** adding withdrawals, deposit changes, saving, sharing. A reload resets the plan.
-  Hidden until their milestones: scenario tabs, the comparison card, the goal card and the
-  withdrawals table. The Share button is disabled.
+- **Milestones 1 and 2 are done** (see below): the calculation engine in `src/core/project.ts` drives
+  the page, the start amount, monthly deposit, return and start date are editable, and withdrawals can
+  be added, edited and removed, each with its lost growth. The page opens with an example plan
+  (starting this month, with a 150 000 kr car purchase five years in), or an empty plan after
+  "Start from scratch".
+- **Not built yet:** deposit changes, saving, sharing. A reload resets the plan. Hidden until their
+  milestones: scenario tabs, the comparison card and the goal card. The Share button is disabled.
 
 ## The target scenario
 
@@ -75,15 +76,24 @@ Each milestone gives a visitor something new they can do.
   - Whole kronor only for now. Cross-checked by hand: 50 000 kr + 3 000 kr/mo at 7 % over 30 years
     gives 3 888 970 kr.
 
-### 2. "What does this withdrawal cost me?" (requirement 2)
+### 2. "What does this withdrawal cost me?" (requirement 2): done
 
 - I add a withdrawal with a date, amount and label, and see it on the graph as a drop.
 - The table shows the growth I lose by the end of the period.
 - I can edit or remove a withdrawal.
 - If it is bigger than my balance, I am told it was reduced and by how much.
 - **Done when:** a 300 000 kr withdrawal in 2031 shows the same lost growth as a hand calculation.
-- *Technical work:* engine support for capped withdrawals and lost growth, an "Add event" flow in the
-  UI, validation (date inside the plan, amount above 0).
+- *Built:*
+  - `lostGrowth(plan, index, horizonMonths)` in `src/core/lost-growth.ts`: the end balance without the
+    withdrawal, minus the end balance with it, minus the amount actually withdrawn (never below 0).
+    It takes the horizon in months, so any horizon works.
+  - `WithdrawalEvent` in the plan document, pure add/update/remove in `src/state/withdrawals.ts`, and
+    withdrawals mapped from dates to months in `view-model.ts`. A withdrawal before the plan start is
+    listed as "Before start" and left out of the projection. One after the horizon is "After horizon".
+  - An add/edit dialog (`withdrawal-dialog.ts`), Edit and Remove on each row, a "Reduced" chip when the
+    balance could not cover it, and drop markers on the chart.
+  - Cross-checked by hand: for the example plan the end balance is 3 074 856 kr and the car costs
+    664 115 kr in lost growth by 2056 (60 383 kr by 2036, 263 855 kr by 2046).
 
 ### 3. "Change my saving over time" (requirement 3)
 
@@ -160,9 +170,8 @@ Each milestone gives a visitor something new they can do.
   - Touches: `HORIZONS` and `HorizonYears` in `src/state/types.ts`, the hero's horizon switch,
     `PROJECTION_MONTHS` in `src/state/view-model.ts` (raise it to the new maximum), the chart's
     x-axis labels, and `PLAN_LIMITS` for the maximum length.
-  - Decide before milestone 2: the lost-growth figure for a withdrawal is meant to be shown "by the
-    end of the horizon". Build it as a function of any horizon in months, not as three values for
-    10, 20 and 30 years (the old `costByHorizon` shape), or it will have to be redone.
+  - Already prepared in milestone 2: lost growth and `buildScenarioView(plan, name, horizonMonths)`
+    take the horizon in months, so only the UI, the limits and `PROJECTION_MONTHS` remain.
   - Decide where the horizon lives: only a view setting (like today) or part of the saved and shared
     `PlanDocument`. Recommendation: part of the plan, so a shared link opens with the same end date.
 
@@ -196,6 +205,9 @@ Each milestone gives a visitor something new they can do.
 - `actions/deploy-pages@v4` gives a warning that it targets an outdated Node version. Bump it when a
   new major version comes out.
 - The Share button is disabled until milestone 6, and "+ New scenario" does not exist until milestone 8.
-- The start date uses `<input type="month">`. It was checked in a Chromium-based browser only. Firefox
+- Two withdrawals close together have overlapping labels on the chart. Milestone 4 (overview) covers it.
+- After "Remove" the focused row is gone, so keyboard focus falls back to the page. For the
+  accessibility pass in milestone 10.
+- The start date and the dialog's month use `<input type="month">`. It was checked in a Chromium-based browser only. Firefox
   and Safari show a plain `YYYY-MM` text box or their own picker, which the parser handles, but that is
   untested.

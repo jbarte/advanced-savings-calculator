@@ -8,8 +8,8 @@ month to reach a goal.
 **Live:** https://jbarte.github.io/advanced-savings-calculator/
 
 > **Status:** in development. You can already enter your own start amount, monthly deposit,
-> return and start date and see the projection. Withdrawals, deposit changes, saving and
-> sharing are next. See [NEXT_STEPS.md](NEXT_STEPS.md).
+> return and start date, add planned withdrawals, and see what each one costs you in lost
+> growth. Deposit changes, saving and sharing are next. See [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## The problem
 

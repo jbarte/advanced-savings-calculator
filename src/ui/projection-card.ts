@@ -128,12 +128,12 @@ function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
   );
 
   const markers = scenario.withdrawals
-    .filter((w) => w.month <= totalMonths)
+    .filter((w) => w.status === "planned")
     .map((w) =>
       h(
         "div",
         { class: "chart__marker", style: `left:${(w.month / totalMonths) * 100}%` },
-        h("span", {}, `−${formatMoneyCompact(w.amount)}`),
+        h("span", {}, `−${formatMoneyCompact(w.applied)}`),
       ),
     );
 

@@ -44,6 +44,8 @@ export interface GoalInput {
 
 /** What happened to one planned withdrawal. `shortfall` is the part the balance couldn't cover. */
 export interface AppliedWithdrawal {
+  /** Position of the withdrawal in `PlanInput.withdrawals`. */
+  readonly index: number;
   readonly month: number;
   readonly requested: Ore;
   readonly applied: Ore;

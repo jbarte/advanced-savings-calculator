@@ -12,12 +12,27 @@ export type Metric = (typeof METRICS)[number];
 
 export type ThemePreference = "system" | "light" | "dark";
 
+/**
+ * Where a withdrawal falls: within the chosen horizon, after it, or before the plan starts (such a
+ * withdrawal is listed but left out of the projection).
+ */
+export type WithdrawalStatus = "planned" | "after-horizon" | "before-start";
+
 export interface PlannedWithdrawal {
+  readonly id: number;
+  readonly date: YearMonth;
+  /** Months after the plan start. Negative when the withdrawal is before the start. */
   readonly month: number;
+  /** The amount asked for. */
   readonly amount: Ore;
+  /** The part the balance could cover. */
+  readonly applied: Ore;
+  /** The part it could not cover. */
+  readonly shortfall: Ore;
   readonly label: string;
-  /** Growth the withdrawn money would have earned by the end of each horizon. */
-  readonly costByHorizon: Readonly<Record<HorizonYears, Ore>>;
+  readonly status: WithdrawalStatus;
+  /** Growth the withdrawn money would have earned by the end of the horizon. 0 unless `planned`. */
+  readonly lostGrowth: Ore;
 }
 
 export interface GoalSummary {

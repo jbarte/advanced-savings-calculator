@@ -1,4 +1,5 @@
 import type { Ore } from "../core/types";
+import { formatYearMonth, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import { formatKronor } from "./format";
@@ -59,4 +60,27 @@ export function parseYearMonth(text: string): ParseResult<YearMonth> {
 /** The "YYYY-MM" string for a month input. */
 export function monthInputValue(ym: YearMonth): string {
   return `${ym.year}-${String(ym.month).padStart(2, "0")}`;
+}
+
+/** A withdrawal amount: whole kronor, above 0. */
+export function parseWithdrawalAmount(text: string): ParseResult<Ore> {
+  const result = parseKronor(text, PLAN_LIMITS.maxStartAmount);
+  return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
+}
+
+const DEFAULT_LABEL = "Withdrawal";
+
+/** A short name for an event. Empty text becomes a default. */
+export function parseLabel(text: string): ParseResult<string> {
+  const label = text.trim();
+  if (label === "") return { ok: true, value: DEFAULT_LABEL };
+  if (label.length > PLAN_LIMITS.maxLabelLength) return fail(`Use ${PLAN_LIMITS.maxLabelLength} characters or fewer`);
+  return { ok: true, value: label };
+}
+
+/** A month that is not before `start`. */
+export function parseMonthOnOrAfter(text: string, start: YearMonth): ParseResult<YearMonth> {
+  const result = parseYearMonth(text);
+  if (!result.ok) return result;
+  return monthsBetween(start, result.value) < 0 ? fail(`Pick ${formatYearMonth(start)} or later`) : result;
 }
