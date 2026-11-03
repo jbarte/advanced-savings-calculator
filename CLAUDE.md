@@ -248,6 +248,8 @@ with the toggle.
   `vite.config.ts`.
 - Do **not** present results as financial advice. The UI must keep its disclaimer.
 - Do **not** create config files beyond what exists without asking.
+- Do **update `implementation.md`** at the end of every implementation step or PR: add an entry to
+  its "Log" and keep "Current status" true.
 - Do **not** commit or push without being asked. Larger features go in a feature branch;
   `main` deploys to production on every push.
 
@@ -258,6 +260,7 @@ with the toggle.
 ├── CLAUDE.md                 # Instructions for the agent (this file)
 ├── README.md                 # Public project description
 ├── NEXT_STEPS.md             # Status and prioritized to-do list
+├── implementation.md         # Log of what was built, why, and how it was checked
 ├── index.html                # Page shell, loads fonts and src/main.ts
 ├── package.json              # Scripts and dev dependencies
 ├── tsconfig.json             # Strict TypeScript config
