@@ -548,6 +548,78 @@ button {
   font-size: var(--text-xl);
 }
 
+.chart__marker--deposit {
+  border-left-style: dotted;
+}
+
+/* Same specificity as the base marker label, so it is written as two classes to win regardless of order. */
+.chart__marker.chart__marker--deposit span {
+  top: auto;
+  bottom: var(--space-1);
+}
+
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.events__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.events__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.table__row--deposit {
+  grid-template-columns: minmax(200px, 2fr) minmax(110px, 1fr) minmax(130px, 1fr) auto;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  text-align: left;
+}
+
+.choice:hover:not(:disabled) {
+  box-shadow: var(--shadow-float);
+}
+
+.choice:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.choice:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-lift), var(--glow-focus);
+}
+
+.choice__hint {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
 .chart__zero {
   position: absolute;
   left: 0;

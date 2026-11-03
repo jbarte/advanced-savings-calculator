@@ -9,6 +9,7 @@ import { currentRoute } from "./state/route";
 import { createStore } from "./state/store";
 import { loadThemePreference, saveThemePreference, systemPrefersDark } from "./state/theme";
 import { PLAN_SCENARIO_ID, buildScenarioView } from "./state/view-model";
+import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
 import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
 import type { Actions } from "./ui/actions";
 import { renderApp } from "./ui/app";
@@ -46,6 +47,9 @@ const actions: Actions = {
   addWithdrawal: (draft) => commitPlan((plan) => addWithdrawal(plan, draft)),
   updateWithdrawal: (id, draft) => commitPlan((plan) => updateWithdrawal(plan, id, draft)),
   removeWithdrawal: (id) => commitPlan((plan) => removeWithdrawal(plan, id)),
+  addDepositChange: (draft) => commitPlan((plan) => addDepositChange(plan, draft)),
+  updateDepositChange: (id, draft) => commitPlan((plan) => updateDepositChange(plan, id, draft)),
+  removeDepositChange: (id) => commitPlan((plan) => removeDepositChange(plan, id)),
   dismissNotice: () => store.update({ notice: null }),
   toggleTheme: () => {
     const theme = isDark() ? "light" : "dark";

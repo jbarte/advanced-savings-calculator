@@ -5,7 +5,7 @@ import { renderNotice } from "./error-state";
 import { renderChartCard, renderHero } from "./projection-card";
 import { renderComparisonCard, renderGoalCard, renderInputsCard } from "./side-cards";
 import { renderAppBar } from "./topbar";
-import { renderWithdrawals } from "./withdrawals-table";
+import { renderEventsSection } from "./events-section";
 
 export interface AppView {
   readonly scenarios: readonly ScenarioView[];
@@ -38,7 +38,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
         active.goal ? renderGoalCard(active, active.goal) : null,
         scenarios.length > 1 ? renderComparisonCard(scenarios, active, state, actions) : null,
       ),
-      renderWithdrawals(active, state, actions),
+      renderEventsSection(active, state, actions),
       h(
         "p",
         { class: "disclaimer" },

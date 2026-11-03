@@ -8,6 +8,7 @@ const base: PlanInput = {
   monthlyDeposit: 0,
   annualReturnPct: 0,
   withdrawals: [],
+  depositChanges: [],
   months: 12,
 };
 
@@ -116,6 +117,102 @@ describe("project", () => {
         plan({ annualReturnPct: 7, withdrawals: [{ month: 1, amount: 5_000_000, label: "Half" }] }),
       ).points[12]?.balance ?? 0;
       expect(withWd).toBeLessThan(without - 5_000_000);
+    });
+  });
+
+  describe("deposit changes", () => {
+    const longPlan = (overrides: Partial<PlanInput>): PlanInput => plan({ months: 360, ...overrides });
+    const endOf = (p: PlanInput): number => project(p).points[p.months]?.balance ?? Number.NaN;
+
+    it("a 12 month pause lowers the end balance by exactly the missed deposits (0 % return)", () => {
+      const common = { startAmount: 10_000_000, monthlyDeposit: 300_000 };
+      expect(endOf(longPlan(common))).toBe(118_000_000); // 100 000 + 360 × 3 000 kr
+      const paused = longPlan({ ...common, depositChanges: [{ startMonth: 13, endMonth: 24, amount: 0, label: "Pause" }] });
+      expect(endOf(paused)).toBe(114_400_000); // 36 000 kr less
+      expect(project(paused).points[360]?.deposited).toBe(114_400_000);
+    });
+
+    it("a 12 month pause costs the missed deposits plus what they would have earned (7 % return)", () => {
+      const common = { startAmount: 5_000_000, monthlyDeposit: 300_000, annualReturnPct: 7 };
+      const paused = longPlan({ ...common, depositChanges: [{ startMonth: 13, endMonth: 24, amount: 0, label: "Pause" }] });
+      const m = 1.07 ** (1 / 12) - 1;
+      let missed = 0;
+      for (let t = 13; t <= 24; t++) missed += 300_000 * (1 + m) ** (360 - t); // computed without the engine
+      expect(Math.abs(endOf(longPlan(common)) - endOf(paused) - missed)).toBeLessThan(2_000);
+      expect(Math.round(missed / 100)).toBe(246_944);
+    });
+
+    it("goes back to an open-ended change when a period inside it ends (0 % return)", () => {
+      const p = longPlan({
+        startAmount: 0,
+        monthlyDeposit: 300_000,
+        depositChanges: [
+          { startMonth: 12, endMonth: null, amount: 500_000, label: "Raise" },
+          { startMonth: 24, endMonth: 35, amount: 0, label: "Pause" },
+        ],
+      });
+      const { points } = project(p);
+      expect(points[35]?.balance).toBe(9_300_000); // 11 × 3 000 + 12 × 5 000 kr
+      expect(points[36]?.balance).toBe(9_800_000); // back to 5 000 kr
+      expect(points[360]?.balance).toBe(171_800_000);
+    });
+
+    it("lets the later change win when two start in the same month, and follows the list order", () => {
+      const a = { startMonth: 6, endMonth: null, amount: 200_000, label: "A" };
+      const b = { startMonth: 6, endMonth: null, amount: 300_000, label: "B" };
+      const common = { startAmount: 0, monthlyDeposit: 100_000, months: 6 };
+      expect(project(plan({ ...common, depositChanges: [a, b] })).points[6]?.balance).toBe(5 * 100_000 + 300_000);
+      expect(project(plan({ ...common, depositChanges: [b, a] })).points[6]?.balance).toBe(5 * 100_000 + 200_000);
+    });
+
+    it("a change in month 0 first takes effect in month 1", () => {
+      const p = plan({
+        startAmount: 100_000,
+        monthlyDeposit: 100_000,
+        months: 3,
+        depositChanges: [{ startMonth: 0, endMonth: null, amount: 50_000, label: "Lower" }],
+      });
+      const { points } = project(p);
+      expect(points[0]?.balance).toBe(100_000);
+      expect(points[3]?.balance).toBe(100_000 + 3 * 50_000);
+    });
+
+    it("applies a change that started before the plan from the first month", () => {
+      const p = plan({ startAmount: 0, monthlyDeposit: 100_000, months: 2, depositChanges: [{ startMonth: -5, endMonth: null, amount: 200_000, label: "Old" }] });
+      expect(project(p).points[1]?.balance).toBe(200_000);
+    });
+
+    it("ignores a change that ends before it starts", () => {
+      const withBad = plan({ months: 24, monthlyDeposit: 100_000, depositChanges: [{ startMonth: 10, endMonth: 5, amount: 0, label: "Backwards" }] });
+      expect(project(withBad).points).toEqual(project(plan({ months: 24, monthlyDeposit: 100_000 })).points);
+    });
+
+    it("ignores a change that starts after the last month", () => {
+      const late = plan({ months: 12, monthlyDeposit: 100_000, depositChanges: [{ startMonth: 40, endMonth: null, amount: 0, label: "Late" }] });
+      expect(project(late).points).toEqual(project(plan({ months: 12, monthlyDeposit: 100_000 })).points);
+    });
+
+    it("rejects an invalid change", () => {
+      const withChange = (c: Partial<PlanInput["depositChanges"][number]>): PlanInput =>
+        plan({ depositChanges: [{ startMonth: 1, endMonth: null, amount: 0, label: "x", ...c }] });
+      expect(() => project(withChange({ amount: -1 }))).toThrow(RangeError);
+      expect(() => project(withChange({ amount: 1.5 }))).toThrow(RangeError);
+      expect(() => project(withChange({ startMonth: 1.5 }))).toThrow(RangeError);
+      expect(() => project(withChange({ endMonth: 2.5 }))).toThrow(RangeError);
+    });
+
+    it("keeps balance = deposited - withdrawn + growth with changes and withdrawals together", () => {
+      const p = longPlan({
+        startAmount: 5_000_000,
+        monthlyDeposit: 300_000,
+        annualReturnPct: 7,
+        withdrawals: [{ month: 60, amount: 15_000_000, label: "Car" }],
+        depositChanges: [
+          { startMonth: 13, endMonth: 24, amount: 0, label: "Pause" },
+          { startMonth: 100, endMonth: null, amount: 450_000, label: "Raise" },
+        ],
+      });
+      for (const point of project(p).points) expect(point.balance).toBe(point.deposited - point.withdrawn + point.growth);
     });
   });
 

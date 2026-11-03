@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS } from "../state/plan-document";
-import { errorMessage, monthInputValue, parseKronor, parseLabel, parseMonthOnOrAfter, parseReturnPct, parseWithdrawalAmount, parseYearMonth } from "./parse-input";
+import {
+  errorMessage,
+  monthInputValue,
+  parseDepositAmount,
+  parseKronor,
+  parseLabel,
+  parseMonthOnOrAfter,
+  parseOptionalMonthNotBefore,
+  parseReturnPct,
+  parseWithdrawalAmount,
+  parseYearMonth,
+} from "./parse-input";
 
 const max = PLAN_LIMITS.maxStartAmount;
 
@@ -154,5 +165,54 @@ describe("errorMessage", () => {
   it("is the parser's message for invalid text", () => {
     expect(errorMessage((text) => parseKronor(text, max))("abc")).toBe("Enter a number, for example 50 000");
     expect(errorMessage(parseReturnPct)("-101")).toBe("Use -100 % or more");
+  });
+});
+
+describe("parseDepositAmount", () => {
+  it("accepts whole kronor including 0, which pauses saving", () => {
+    expect(parseDepositAmount("0")).toEqual({ ok: true, value: 0 });
+    expect(parseDepositAmount("5 000")).toEqual({ ok: true, value: 500_000 });
+  });
+
+  it("rejects negative amounts, text, and anything above the monthly limit", () => {
+    expect(parseDepositAmount("-1")).toEqual({ ok: false, message: "Enter 0 or more" });
+    expect(parseDepositAmount("abc").ok).toBe(false);
+    expect(parseDepositAmount("10 000 000")).toEqual({ ok: true, value: 1_000_000_000 });
+    const over = parseDepositAmount("10 000 001");
+    expect(over.ok).toBe(false);
+    if (!over.ok) expect(over.message.replace(/\u00a0/g, " ")).toBe("Use 10 000 000 kr or less");
+  });
+});
+
+describe("parseOptionalMonthNotBefore", () => {
+  const start = { year: 2027, month: 2 };
+
+  it("accepts empty text as no end", () => {
+    expect(parseOptionalMonthNotBefore("", start)).toEqual({ ok: true, value: null });
+    expect(parseOptionalMonthNotBefore("   ", start)).toEqual({ ok: true, value: null });
+  });
+
+  it("accepts the start month and later", () => {
+    expect(parseOptionalMonthNotBefore("2027-02", start)).toEqual({ ok: true, value: { year: 2027, month: 2 } });
+    expect(parseOptionalMonthNotBefore("2028-01", start)).toEqual({ ok: true, value: { year: 2028, month: 1 } });
+  });
+
+  it("rejects an end before the start", () => {
+    expect(parseOptionalMonthNotBefore("2027-01", start)).toEqual({ ok: false, message: "The end month can't be before the start month" });
+  });
+
+  it("does not compare when the start is not known yet", () => {
+    expect(parseOptionalMonthNotBefore("2020-01", null)).toEqual({ ok: true, value: { year: 2020, month: 1 } });
+  });
+
+  it("passes on format errors", () => {
+    expect(parseOptionalMonthNotBefore("later", start)).toEqual({ ok: false, message: "Use the format YYYY-MM, for example 2026-01" });
+  });
+});
+
+describe("parseLabel with a fallback", () => {
+  it("uses the given fallback for empty text", () => {
+    expect(parseLabel("", "Deposit change")).toEqual({ ok: true, value: "Deposit change" });
+    expect(parseLabel("Raise", "Deposit change")).toEqual({ ok: true, value: "Raise" });
   });
 });

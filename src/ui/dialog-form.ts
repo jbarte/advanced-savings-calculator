@@ -1,3 +1,9 @@
+import { openModal, renderModal } from "./components";
+import { h } from "./dom";
+
+/** A new event starts one year after the plan start in its dialog. It is a starting point, not a rule. */
+export const DEFAULT_MONTHS_AHEAD = 12;
+
 /** The <input> inside a text field made by `renderTextField`. */
 export function inputIn(field: HTMLElement): HTMLInputElement {
   const input = field.querySelector("input");
@@ -15,4 +21,34 @@ export function showErrors(inputs: readonly HTMLInputElement[]): boolean {
   if (!firstInvalid) return true;
   firstInvalid.focus();
   return false;
+}
+
+export interface FormDialogProps {
+  readonly title: string;
+  readonly primaryLabel: string;
+  /** The form fields. */
+  readonly fields: readonly HTMLElement[];
+  /** Checks the fields and hands the values over. Returns true when they were valid. */
+  readonly save: () => boolean;
+}
+
+/**
+ * Opens a dialog around form fields. The primary button and Enter in a field both call `save`, and the dialog
+ * closes only when it returns true. Nothing reaches the plan until then, so typing never causes a re-render.
+ */
+export function openFormDialog(props: FormDialogProps): void {
+  const body = h("div", { class: "modal__body" }, ...props.fields);
+  const dialog = renderModal({
+    title: props.title,
+    body,
+    primaryLabel: props.primaryLabel,
+    secondaryLabel: "Cancel",
+    onPrimary: props.save,
+  });
+  body.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    if (props.save()) dialog.close();
+  });
+  openModal(dialog);
 }

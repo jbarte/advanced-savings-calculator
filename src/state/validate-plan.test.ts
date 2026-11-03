@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS, createBlankPlan, createExamplePlan } from "./plan-document";
-import type { PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
-import { validatePlanDocument, validatePlanFields, validateWithdrawalDraft } from "./validate-plan";
+import type { DepositChangeDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
+import { validateDepositChangeDraft, validatePlanDocument, validatePlanFields, validateWithdrawalDraft } from "./validate-plan";
 
 const fields: PlanFields = {
   start: { year: 2026, month: 1 },
@@ -80,6 +80,42 @@ describe("validateWithdrawalDraft", () => {
   });
 });
 
+const change: DepositChangeDraft = {
+  startDate: { year: 2027, month: 2 },
+  endDate: { year: 2028, month: 1 },
+  amount: 0,
+  label: "Parental leave",
+};
+
+describe("validateDepositChangeDraft", () => {
+  it("accepts a period, an open-ended change and a pause", () => {
+    expect(() => validateDepositChangeDraft(change)).not.toThrow();
+    expect(() => validateDepositChangeDraft({ ...change, endDate: null, amount: 500_000 })).not.toThrow();
+  });
+
+  it("accepts a one month period and an amount on the limit", () => {
+    expect(() => validateDepositChangeDraft({ ...change, endDate: change.startDate })).not.toThrow();
+    expect(() => validateDepositChangeDraft({ ...change, amount: PLAN_LIMITS.maxMonthlyDeposit })).not.toThrow();
+  });
+
+  it.each([
+    ["a negative amount", { amount: -1 }],
+    ["a fractional amount", { amount: 1.5 }],
+    ["an amount above the monthly deposit limit", { amount: PLAN_LIMITS.maxMonthlyDeposit + 1 }],
+    ["an empty label", { label: " " }],
+    ["a label that is too long", { label: "x".repeat(PLAN_LIMITS.maxLabelLength + 1) }],
+    ["a start month of 13", { startDate: { year: 2027, month: 13 } }],
+    ["an end year after the limit", { endDate: { year: PLAN_LIMITS.maxStartYear + 1, month: 1 } }],
+    ["an end month before the start month", { endDate: { year: 2027, month: 1 } }],
+  ])("rejects %s", (_name, patch) => {
+    expect(() => validateDepositChangeDraft({ ...change, ...patch })).toThrow(RangeError);
+  });
+
+  it("explains an end before the start", () => {
+    expect(() => validateDepositChangeDraft({ ...change, endDate: { year: 2027, month: 1 } })).toThrow(/end month/i);
+  });
+});
+
 describe("validatePlanDocument", () => {
   const withWithdrawals = (withdrawals: PlanDocument["withdrawals"]): PlanDocument => ({ ...createBlankPlan({ year: 2026, month: 1 }), withdrawals });
   const w = (id: number): PlanDocument["withdrawals"][number] => ({ id, ...draft });
@@ -109,5 +145,31 @@ describe("validatePlanDocument", () => {
     const many = Array.from({ length: PLAN_LIMITS.maxWithdrawals + 1 }, (_, i) => w(i + 1));
     expect(() => validatePlanDocument(withWithdrawals(many))).toThrow(RangeError);
     expect(() => validatePlanDocument(withWithdrawals(many.slice(0, PLAN_LIMITS.maxWithdrawals)))).not.toThrow();
+  });
+
+  describe("deposit changes", () => {
+    const d = (id: number): PlanDocument["depositChanges"][number] => ({ id, ...change });
+    const withChanges = (depositChanges: PlanDocument["depositChanges"]): PlanDocument => ({ ...createBlankPlan({ year: 2026, month: 1 }), depositChanges });
+
+    it("accepts valid changes", () => {
+      expect(() => validatePlanDocument(withChanges([d(1), d(2)]))).not.toThrow();
+    });
+
+    it("rejects an invalid change, duplicate ids and bad ids", () => {
+      expect(() => validatePlanDocument(withChanges([{ ...d(1), amount: -1 }]))).toThrow(RangeError);
+      expect(() => validatePlanDocument(withChanges([d(1), d(1)]))).toThrow(/id/i);
+      expect(() => validatePlanDocument(withChanges([d(0)]))).toThrow(RangeError);
+    });
+
+    it("rejects too many changes, counted apart from withdrawals", () => {
+      const many = Array.from({ length: PLAN_LIMITS.maxDepositChanges + 1 }, (_, i) => d(i + 1));
+      expect(() => validatePlanDocument(withChanges(many))).toThrow(RangeError);
+      expect(() => validatePlanDocument(withChanges(many.slice(0, PLAN_LIMITS.maxDepositChanges)))).not.toThrow();
+    });
+
+    it("lets a withdrawal and a deposit change share the same id", () => {
+      const plan: PlanDocument = { ...withChanges([d(1)]), withdrawals: [{ id: 1, ...draft }] };
+      expect(() => validatePlanDocument(plan)).not.toThrow();
+    });
   });
 });

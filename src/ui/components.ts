@@ -196,10 +196,11 @@ export interface ModalProps {
   readonly title: string;
   /** Content between the title and the buttons, such as a form. */
   readonly body?: HTMLElement;
-  readonly primaryLabel: string;
+  /** Leave out for a dialog that only offers choices in its body and a way to cancel. */
+  readonly primaryLabel?: string;
   readonly secondaryLabel: string;
   /** Return `false` to keep the dialog open, for example when the form is invalid. */
-  readonly onPrimary: () => boolean | void;
+  readonly onPrimary?: () => boolean | void;
 }
 
 /**
@@ -221,12 +222,14 @@ export function renderModal(props: ModalProps): HTMLDialogElement {
     h(
       "div",
       { class: "modal__actions" },
-      renderButton({
-        label: props.primaryLabel,
-        onClick: () => {
-          if (props.onPrimary() !== false) dialog.close();
-        },
-      }),
+      props.primaryLabel === undefined
+        ? null
+        : renderButton({
+            label: props.primaryLabel,
+            onClick: () => {
+              if (props.onPrimary?.() !== false) dialog.close();
+            },
+          }),
       renderButton({ label: props.secondaryLabel, variant: "secondary", onClick: () => dialog.close() }),
     ),
   );

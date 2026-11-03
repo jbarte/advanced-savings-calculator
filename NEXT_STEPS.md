@@ -17,7 +17,10 @@ Status as of 2026-11-03. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and 
   are validated in `src/state/` (an invalid change shows a notice and leaves the plan alone), a failing
   render shows an error view instead of a blank page, `MONTHS_PER_YEAR` replaces the magic 12, and the
   duplicated "parse → error message" logic and the dialog helpers are shared.
-- **Not built yet:** deposit changes, saving, sharing. A reload resets the plan. Hidden until their
+- **Milestone 3 is done** (see below): the monthly deposit can be changed from a month or for a period
+  (including a pause), shown as dotted markers on the chart and in a "Deposit changes" table. "Add
+  event" asks which kind of event to add.
+- **Not built yet:** saving, sharing. A reload resets the plan. Hidden until their
   milestones: scenario tabs, the comparison card and the goal card. The Share button is disabled.
 
 ## The target scenario
@@ -99,7 +102,7 @@ Each milestone gives a visitor something new they can do.
   - Cross-checked by hand: for the example plan the end balance is 3 074 856 kr and the car costs
     664 115 kr in lost growth by 2056 (60 383 kr by 2036, 263 855 kr by 2046).
 
-### 3. "Change my saving over time" (requirement 3)
+### 3. "Change my saving over time" (requirement 3): done
 
 - I can change my monthly deposit from a date onward ("from Jan 2030, save 5 000 instead").
 - I can change it for a period only ("pause saving Mar 2029 – Feb 2030"), and it goes back to what
@@ -108,9 +111,18 @@ Each milestone gives a visitor something new they can do.
 - The graph shows the new deposit level straight away.
 - **Done when:** a pause for twelve months lowers the end balance by exactly what the hand
   calculation says, and a period inside an open-ended change returns to that change afterwards.
-- *Technical work:* `DepositChangeInput` in `src/core/types.ts`, the deposit schedule rule (tests for
-  overlaps, a change in month 0, a change after the horizon, and a change that ends before it starts),
-  UI for adding, editing and removing.
+- *Built:*
+  - `DepositChangeInput` and `depositInMonth` / `depositLevelChanges` in `src/core/deposit-schedule.ts`,
+    used by `project()`. The rules are in CLAUDE.md, including the edge cases: an end before the start is
+    rejected (dialog and `validate-plan.ts`) and never active in the engine, a change before the plan
+    start still applies if it has not ended, and one after the horizon has no effect within it.
+  - `depositChanges` in the plan document with its own ids and its own limit (50), pure operations in
+    `src/state/deposit-changes.ts`, status and `depositLevels` in the view model.
+  - An "Add event" chooser, a dialog (label, new monthly deposit where 0 pauses saving, from month and an
+    optional until month), a table with Edit and Remove, and markers for each change of level.
+  - Cross-checked by hand: a 12 month pause costs 36 000 kr at 0 % return (1 180 000 kr becomes
+    1 144 000 kr), and about 246 944 kr at 7 %. For the example plan the end balance goes from
+    3 074 856 kr to 2 827 912 kr, and the car's lost growth stays 664 115 kr.
 
 ### 4. "See everything at a glance" (requirement 4)
 
@@ -209,7 +221,8 @@ Each milestone gives a visitor something new they can do.
 - `actions/deploy-pages@v4` gives a warning that it targets an outdated Node version. Bump it when a
   new major version comes out.
 - The Share button is disabled until milestone 6, and "+ New scenario" does not exist until milestone 8.
-- Two withdrawals close together have overlapping labels on the chart. Milestone 4 (overview) covers it.
+- Events close together have overlapping labels on the chart (withdrawals, and the "Paused" and "per
+  month" labels of a short pause). Milestone 4 (overview) covers it.
 - After "Remove" the focused row is gone, so keyboard focus falls back to the page. For the
   accessibility pass in milestone 10.
 - The start date and the dialog's month use `<input type="month">`. It was checked in a Chromium-based browser only. Firefox

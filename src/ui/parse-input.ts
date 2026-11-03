@@ -76,12 +76,10 @@ export function parseWithdrawalAmount(text: string): ParseResult<Ore> {
   return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
 }
 
-const DEFAULT_LABEL = "Withdrawal";
-
-/** A short name for an event. Empty text becomes a default. */
-export function parseLabel(text: string): ParseResult<string> {
+/** A short name for an event. Empty text becomes `fallback`. */
+export function parseLabel(text: string, fallback = "Withdrawal"): ParseResult<string> {
   const label = text.trim();
-  if (label === "") return { ok: true, value: DEFAULT_LABEL };
+  if (label === "") return { ok: true, value: fallback };
   if (label.length > PLAN_LIMITS.maxLabelLength) return fail(`Use ${PLAN_LIMITS.maxLabelLength} characters or fewer`);
   return { ok: true, value: label };
 }
@@ -91,4 +89,17 @@ export function parseMonthOnOrAfter(text: string, start: YearMonth): ParseResult
   const result = parseYearMonth(text);
   if (!result.ok) return result;
   return monthsBetween(start, result.value) < 0 ? fail(`Pick ${formatYearMonth(start)} or later`) : result;
+}
+
+/** A monthly deposit: whole kronor from 0 (which pauses saving) up to the monthly limit. */
+export function parseDepositAmount(text: string): ParseResult<Ore> {
+  return parseKronor(text, PLAN_LIMITS.maxMonthlyDeposit);
+}
+
+/** An optional end month: empty means no end. Not before `start` when the start is known. */
+export function parseOptionalMonthNotBefore(text: string, start: YearMonth | null): ParseResult<YearMonth | null> {
+  if (text.trim() === "") return { ok: true, value: null };
+  const result = parseYearMonth(text);
+  if (!result.ok) return result;
+  return start !== null && monthsBetween(start, result.value) < 0 ? fail("The end month can't be before the start month") : result;
 }

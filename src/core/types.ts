@@ -16,6 +16,17 @@ export interface WithdrawalInput {
   readonly label: string;
 }
 
+/**
+ * A change to the monthly deposit, from `startMonth` through `endMonth` (both included, months after the
+ * plan start). With no end it lasts until a later change replaces it. An amount of 0 pauses saving.
+ */
+export interface DepositChangeInput {
+  readonly startMonth: number;
+  readonly endMonth: number | null;
+  readonly amount: Ore;
+  readonly label: string;
+}
+
 export interface PlanInput {
   readonly start: YearMonth;
   readonly startAmount: Ore;
@@ -23,6 +34,7 @@ export interface PlanInput {
   /** Expected yearly return in percent, e.g. 7 for 7 %. */
   readonly annualReturnPct: number;
   readonly withdrawals: readonly WithdrawalInput[];
+  readonly depositChanges: readonly DepositChangeInput[];
   /** How many months to project. */
   readonly months: number;
 }
