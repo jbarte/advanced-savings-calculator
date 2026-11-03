@@ -1,3 +1,4 @@
+import { depositInMonth } from "./deposit-schedule";
 import { monthlyRate, roundToOre } from "./money";
 import type { AppliedWithdrawal, Ore, PlanInput, Projection, ProjectionPoint, WithdrawalInput } from "./types";
 
@@ -12,6 +13,15 @@ function assertValidPlan(plan: PlanInput): void {
   assertWholeOre(plan.monthlyDeposit, "Monthly deposit");
   if (!Number.isSafeInteger(plan.months) || plan.months < 0) {
     throw new RangeError(`Months must be a whole number, 0 or more, got ${plan.months}`);
+  }
+  for (const change of plan.depositChanges) {
+    assertWholeOre(change.amount, `Deposit change "${change.label}"`);
+    if (!Number.isSafeInteger(change.startMonth)) {
+      throw new RangeError(`Deposit change "${change.label}" must start in a whole month, got ${change.startMonth}`);
+    }
+    if (change.endMonth !== null && !Number.isSafeInteger(change.endMonth)) {
+      throw new RangeError(`Deposit change "${change.label}" must end in a whole month, got ${change.endMonth}`);
+    }
   }
   for (const withdrawal of plan.withdrawals) {
     assertWholeOre(withdrawal.amount, `Withdrawal "${withdrawal.label}"`);
@@ -57,7 +67,7 @@ function applyWithdrawal(
 
 /**
  * Projects the balance month by month. Month 0 holds only the start amount. Each later month the
- * balance grows by the monthly rate (rounded to whole öre), then the deposit is added, then that
+ * balance grows by the monthly rate (rounded to whole öre), then the deposit (see `depositInMonth`) is added, then that
  * month's withdrawals are taken out in list order, each capped at what is left.
  */
 export function project(plan: PlanInput): Projection {
@@ -72,8 +82,9 @@ export function project(plan: PlanInput): Projection {
 
   for (let month = 0; month <= plan.months; month++) {
     if (month > 0) {
-      balance = roundToOre(balance * (1 + rate)) + plan.monthlyDeposit;
-      deposited += plan.monthlyDeposit;
+      const deposit = depositInMonth(plan.monthlyDeposit, plan.depositChanges, month);
+      balance = roundToOre(balance * (1 + rate)) + deposit;
+      deposited += deposit;
       assertSafeBalance(balance, month);
     }
 

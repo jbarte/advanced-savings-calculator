@@ -1,9 +1,8 @@
 import { addMonths } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import type { WithdrawalDraft } from "../state/plan-document";
-import { openModal, renderModal, renderTextField } from "./components";
-import { inputIn, showErrors } from "./dialog-form";
-import { h } from "./dom";
+import { renderTextField } from "./components";
+import { DEFAULT_MONTHS_AHEAD, inputIn, openFormDialog, showErrors } from "./dialog-form";
 import { formatKronor } from "./format";
 import { errorMessage, monthInputValue, parseLabel, parseMonthOnOrAfter, parseWithdrawalAmount } from "./parse-input";
 
@@ -14,9 +13,6 @@ export interface WithdrawalDialogProps {
   readonly initial?: WithdrawalDraft;
   readonly onSave: (draft: WithdrawalDraft) => void;
 }
-
-/** A new withdrawal starts one year after the plan start, which is a starting point and not a rule. */
-const DEFAULT_MONTHS_AHEAD = 12;
 
 /**
  * A dialog to add or edit a withdrawal. Nothing reaches the plan until Save, so typing never causes a
@@ -71,19 +67,10 @@ export function openWithdrawalDialog(props: WithdrawalDialogProps): void {
     return true;
   };
 
-  const body = h("div", { class: "modal__body" }, label, amount, month);
-  const dialog = renderModal({
+  openFormDialog({
     title: initial ? "Edit withdrawal" : "Add withdrawal",
-    body,
     primaryLabel: initial ? "Save" : "Add",
-    secondaryLabel: "Cancel",
-    onPrimary: save,
+    fields: [label, amount, month],
+    save,
   });
-  body.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-    if (save()) dialog.close();
-  });
-
-  openModal(dialog);
 }
