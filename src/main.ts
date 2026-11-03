@@ -1,9 +1,11 @@
 import "./styles/app.css";
 import { SAMPLE_SCENARIOS } from "./state/sample-data";
+import { currentRoute } from "./state/route";
 import { createStore } from "./state/store";
 import { loadThemePreference, saveThemePreference, systemPrefersDark } from "./state/theme";
 import type { Actions } from "./ui/actions";
 import { renderApp } from "./ui/app";
+import { renderDesignSystem } from "./ui/design-system";
 import { applyTheme } from "./ui/theme";
 
 const root = document.getElementById("app");
@@ -45,9 +47,11 @@ const actions: Actions = {
 
 const render = (): void => {
   applyTheme(store.get().theme);
-  renderApp(root, { scenarios: SAMPLE_SCENARIOS, state: store.get(), isDark: isDark() }, actions);
+  if (currentRoute() === "design-system") renderDesignSystem(root, isDark(), actions);
+  else renderApp(root, { scenarios: SAMPLE_SCENARIOS, state: store.get(), isDark: isDark() }, actions);
 };
 
 store.subscribe(render);
+window.addEventListener("hashchange", render);
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 render();

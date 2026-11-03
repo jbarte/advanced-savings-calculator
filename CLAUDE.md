@@ -140,10 +140,17 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 
 ## Design
 
-The UI is based on a dashboard design (Geist fonts, rounded cards, dark "solid" accents).
-Light theme = "Sandstone", dark theme = "Midnight". The theme follows the system setting
-until the user picks one with the toggle.
+The UI follows the "Neo-Tactile Soft UI" system (Geist fonts, one warm neutral surface, depth from paired
+light/dark shadows, sage green primary, dusty-rose elevated card, blue glow for focus and selection).
+Light theme = "Linen", dark theme = "Dusk". The theme follows the system setting until the user picks one
+with the toggle.
 
+- Depth has four levels, as tokens: flat (none), `--shadow-inner` (sunken: inputs, tracks, pressed),
+  `--shadow-lift` (raised: cards, buttons), `--shadow-float` (elevated: featured card, tooltip).
+- Radius steps are 4 / 8 / 12px, border thickness 1 / 1.5 / 2px, icon sizes 16 / 20 / 24px and spacing
+  4 / 8 / 16 / 24px, all as tokens.
+- Interactive states: hover lifts 1px, pressed uses `--shadow-inner`, disabled drops shadows and contrast,
+  focus shows `--glow-focus`.
 - All colours are CSS custom properties in `src/styles/tokens.css`. Use the tokens,
   never hard-coded colours.
 - Component styles live in `src/styles/app.css`.

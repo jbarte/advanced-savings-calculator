@@ -1,0 +1,230 @@
+import { h, s } from "./dom";
+
+export const checkIcon = (size?: string): SVGSVGElement =>
+  s(
+    "svg",
+    {
+      class: "icon",
+      viewBox: "0 0 24 24",
+      "aria-hidden": "true",
+      style: size ? `width:${size};height:${size}` : undefined,
+    },
+    s("path", { d: "M5 12.5l4.5 4.5L19 7.5" }),
+  );
+
+const boxIcon = (): SVGSVGElement =>
+  s(
+    "svg",
+    { class: "icon icon--large", viewBox: "0 0 24 24", "aria-hidden": "true" },
+    s("path", { d: "M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 9l8-4.5M12 12v9M12 12L4 7.5" }),
+  );
+
+/* ---------- Button ---------- */
+
+export interface ButtonProps {
+  readonly label: string;
+  readonly variant?: "solid" | "secondary";
+  readonly loading?: boolean;
+  readonly disabled?: boolean;
+  readonly onClick?: () => void;
+}
+
+export function renderButton(props: ButtonProps): HTMLButtonElement {
+  const loading = props.loading === true;
+  return h(
+    "button",
+    {
+      class: props.variant === "secondary" ? "btn-secondary" : "btn-solid",
+      type: "button",
+      disabled: props.disabled === true || loading,
+      "aria-busy": loading ? "true" : undefined,
+      onclick: props.onClick,
+    },
+    loading ? h("span", { class: "spinner", "aria-hidden": "true" }) : null,
+    props.label,
+  );
+}
+
+/* ---------- Toggle switch ---------- */
+
+export interface ToggleProps {
+  readonly label: string;
+  readonly checked: boolean;
+  readonly disabled?: boolean;
+  readonly onChange: (checked: boolean) => void;
+}
+
+export function renderToggle(props: ToggleProps): HTMLElement {
+  const control = h("button", {
+    class: "switch",
+    type: "button",
+    role: "switch",
+    "aria-checked": String(props.checked),
+    "aria-label": props.label,
+    disabled: props.disabled,
+  });
+  control.addEventListener("click", () => {
+    const next = control.getAttribute("aria-checked") !== "true";
+    control.setAttribute("aria-checked", String(next));
+    props.onChange(next);
+  });
+  return h("div", { class: "switch-field" }, h("span", { "aria-hidden": "true" }, props.label), control);
+}
+
+/* ---------- Slider ---------- */
+
+export interface SliderProps {
+  readonly label: string;
+  readonly min: number;
+  readonly max: number;
+  readonly step: number;
+  readonly value: number;
+  readonly format: (value: number) => string;
+  readonly onChange: (value: number) => void;
+}
+
+/** Commits on `change` like every other input; the fill and readout follow the thumb while dragging. */
+export function renderSlider(props: SliderProps): HTMLElement {
+  const input = h("input", {
+    class: "slider",
+    type: "range",
+    min: props.min,
+    max: props.max,
+    step: props.step,
+    value: props.value,
+    "aria-label": props.label,
+  });
+  const readout = h("output", {});
+  const sync = (): void => {
+    const value = Number(input.value);
+    input.style.setProperty("--pct", `${((value - props.min) / (props.max - props.min)) * 100}%`);
+    readout.textContent = props.format(value);
+  };
+  input.addEventListener("input", sync);
+  input.addEventListener("change", () => props.onChange(Number(input.value)));
+  sync();
+  return h("div", { class: "slider-field" }, h("div", { class: "slider-field__head" }, h("span", {}, props.label), readout), input);
+}
+
+/* ---------- Select ---------- */
+
+export interface SelectOption {
+  readonly value: string;
+  readonly label: string;
+}
+
+export interface SelectProps {
+  readonly label: string;
+  readonly options: readonly SelectOption[];
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+}
+
+/** A native <select> keeps keyboard and screen-reader behaviour for free; only the closed control is themed. */
+export function renderSelect(props: SelectProps): HTMLElement {
+  const control = h(
+    "select",
+    { class: "select__control", "aria-label": props.label },
+    ...props.options.map((option) => h("option", { value: option.value, selected: option.value === props.value }, option.label)),
+  );
+  control.addEventListener("change", () => props.onChange(control.value));
+  return h("div", { class: "select" }, control);
+}
+
+/* ---------- Step indicator ---------- */
+
+/** `current` is the zero-based index of the active step; earlier steps are done. */
+export function renderSteps(labels: readonly string[], current: number): HTMLElement {
+  return h(
+    "ol",
+    { class: "steps", "aria-label": "Progress" },
+    ...labels.map((label, index) => {
+      const status = index < current ? "done" : index === current ? "current" : "todo";
+      return h(
+        "li",
+        { class: "steps__item", "data-status": status, "aria-current": status === "current" ? "step" : undefined },
+        h(
+          "span",
+          { class: "steps__marker" },
+          status === "done" ? checkIcon("var(--icon-sm)") : null,
+          h("span", { class: "visually-hidden" }, status === "done" ? `${label} (done)` : label),
+        ),
+        index < labels.length - 1 ? h("span", { class: "steps__line", "aria-hidden": "true" }) : null,
+      );
+    }),
+  );
+}
+
+/* ---------- Toast ---------- */
+
+export function renderToast(message: string, onDismiss?: () => void): HTMLElement {
+  const toast = h(
+    "div",
+    { class: "toast", role: "status" },
+    h("span", { class: "toast__icon" }, checkIcon()),
+    h("span", { class: "toast__text" }, message),
+    h(
+      "button",
+      {
+        class: "toast__close",
+        type: "button",
+        "aria-label": "Dismiss",
+        onclick: () => {
+          toast.remove();
+          onDismiss?.();
+        },
+      },
+      "×",
+    ),
+  );
+  return toast;
+}
+
+/* ---------- Modal dialog ---------- */
+
+export interface ModalProps {
+  readonly title: string;
+  readonly primaryLabel: string;
+  readonly secondaryLabel: string;
+  readonly onPrimary: () => void;
+}
+
+/** Built on <dialog>: the browser handles focus trapping, Escape and the backdrop. Call showModal() after appending. */
+export function renderModal(props: ModalProps): HTMLDialogElement {
+  const dialog = h(
+    "dialog",
+    {
+      class: "modal",
+      "aria-labelledby": "modal-title",
+      onclick: (event: Event) => {
+        if (event.target === dialog) dialog.close();
+      },
+    },
+    h("h2", { id: "modal-title", class: "modal__title" }, props.title),
+    h(
+      "div",
+      { class: "modal__actions" },
+      renderButton({
+        label: props.primaryLabel,
+        onClick: () => {
+          props.onPrimary();
+          dialog.close();
+        },
+      }),
+      renderButton({ label: props.secondaryLabel, variant: "secondary", onClick: () => dialog.close() }),
+    ),
+  );
+  return dialog;
+}
+
+/* ---------- Empty state ---------- */
+
+export function renderEmptyState(title: string, hint: string): HTMLElement {
+  return h(
+    "div",
+    { class: "empty" },
+    boxIcon(),
+    h("strong", { class: "empty__title" }, title),
+    h("span", { class: "empty__hint" }, hint),
+  );
+}

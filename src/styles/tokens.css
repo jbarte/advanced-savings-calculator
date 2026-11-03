@@ -1,83 +1,156 @@
 /*
- * Design tokens. Light = "Sandstone", dark = "Midnight" (from the base design).
+ * Design tokens for the "Neo-Tactile Soft UI" system: surfaces share one warm neutral and get their
+ * depth from paired light/dark shadows instead of borders and colour. Light = "Linen", dark = "Dusk".
  * Dark mode follows the system unless the user picks a theme, which sets
  * data-theme="light" | "dark" on <html>.
+ *
+ * Depth levels: --shadow-inner (sunken: inputs, tracks, pressed), none (flat), --shadow-lift (raised:
+ * cards, buttons), --shadow-float (elevated: modals, featured card).
  */
 :root {
   color-scheme: light;
-  --page: #e9e2d6;
-  --frame: #f7f2ea;
-  --surface: #fffcf7;
-  --fill: #f0e9dd;
-  --fill-hover: #e7decf;
-  --line: #e5dccd;
-  --ink: #2b2118;
-  --ink2: #5a4a3b;
-  --muted: #857563;
-  --solid: #3a2a1e;
-  --solid-hover: #4a3727;
-  --on-solid: #fff8ee;
-  --on-solid-muted: #cdbba6;
-  --solid-track: #54402f;
-  --sel-row: #fbf4e8;
-  --accent: oklch(0.72 0.13 60);
-  --accent-soft: oklch(0.93 0.045 70);
-  --accent-ink: oklch(0.45 0.11 55);
-  --danger: #d6453d;
 
+  --page: #e8e4de;
+  --frame: #ece8e2;
+  --surface: #f2eee8;
+  --fill: #e3ded7;
+  --fill-hover: #dad4cc;
+  --line: #d8d2c9;
+  --sel-row: #e4eff8;
+
+  --ink: #3d3833;
+  --ink2: #5f5850;
+  --muted: #877f75;
+
+  --solid: #5f7f6a;
+  --solid-deep: #4d6b58;
+  --solid-hover: #6d8f78;
+  --on-solid: #ffffff;
+  --on-solid-muted: #f3e8e3;
+  --solid-track: #7d9c86;
+
+  --elevated: #a8786b;
+  --elevated-deep: #94665b;
+
+  --accent: oklch(0.8 0.06 150);
+  --accent-soft: oklch(0.92 0.03 150);
+  --accent-ink: oklch(0.4 0.07 155);
+  --focus: oklch(0.68 0.14 240);
+  --danger: #c0503f;
+
+  --shadow-inner: inset 3px 3px 7px rgb(120 105 88 / 0.28), inset -3px -3px 7px rgb(255 255 255 / 0.75);
+  --shadow-lift: 4px 4px 10px rgb(140 125 108 / 0.3), -4px -4px 10px rgb(255 255 255 / 0.85);
+  --shadow-float: 10px 12px 24px rgb(130 115 98 / 0.35), -8px -8px 20px rgb(255 255 255 / 0.9);
+
+  /* Type */
   --font-sans: "Geist", system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-display: 36px;
 
-  --radius-frame: 28px;
-  --radius-card: 22px;
-  --radius-tile: 14px;
-  --radius-control: 12px;
+  /* Shape: the spec's 4 / 8 / 12 steps, plus derived sizes for large surfaces */
+  --radius-1: 4px;
+  --radius-2: 8px;
+  --radius-3: 12px;
+  --radius-tile: var(--radius-2);
+  --radius-control: var(--radius-3);
+  --radius-card: 16px;
+  --radius-frame: 20px;
+  --radius-pill: 999px;
+
+  /* Border thickness */
+  --border-1: 1px;
+  --border-2: 1.5px;
+  --border-3: 2px;
+
+  /* Space (spec scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+
+  /* Icon sizes */
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+
+  /* Focus: a visible, glowing ring on every interactive element */
+  --glow-focus: 0 0 0 var(--border-3) var(--focus), 0 0 14px 2px color-mix(in oklab, var(--focus) 55%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --page: #0c0d0b;
-    --frame: #141513;
-    --surface: #1a1b18;
-    --fill: #24251f;
-    --fill-hover: #2d2e28;
-    --line: #2a2b26;
-    --ink: #f1f1ea;
-    --ink2: #c9cac3;
-    --muted: #8f908a;
-    --solid: #2b2d27;
-    --solid-hover: #34362f;
-    --on-solid: #f7f7f2;
-    --on-solid-muted: #a3a49d;
-    --solid-track: #3a3c35;
-    --sel-row: #1f2219;
-    --accent: oklch(0.87 0.2 128);
-    --accent-soft: oklch(0.34 0.07 128);
-    --accent-ink: oklch(0.92 0.17 128);
-    --danger: #ff6b63;
+    --page: #1c1a18;
+    --frame: #211f1d;
+    --surface: #2a2725;
+    --fill: #1a1816;
+    --fill-hover: #141210;
+    --line: #36322e;
+    --sel-row: #1f2c38;
+
+    --ink: #ece6de;
+    --ink2: #cbc3b9;
+    --muted: #968d82;
+
+    --solid: #5f8a6c;
+    --solid-deep: #4d7459;
+    --solid-hover: #6c9979;
+    --on-solid: #ffffff;
+    --on-solid-muted: #f0e3dd;
+    --solid-track: #7aa586;
+
+    --elevated: #8d625a;
+    --elevated-deep: #794f48;
+
+    --accent: oklch(0.8 0.07 150);
+    --accent-soft: oklch(0.35 0.04 150);
+    --accent-ink: oklch(0.88 0.07 150);
+    --focus: oklch(0.75 0.13 240);
+    --danger: #ff8a70;
+
+    --shadow-inner: inset 3px 3px 7px rgb(0 0 0 / 0.55), inset -3px -3px 7px rgb(255 255 255 / 0.04);
+    --shadow-lift: 4px 4px 10px rgb(0 0 0 / 0.5), -3px -3px 8px rgb(255 255 255 / 0.04);
+    --shadow-float: 10px 12px 24px rgb(0 0 0 / 0.6), -6px -6px 16px rgb(255 255 255 / 0.05);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #0c0d0b;
-  --frame: #141513;
-  --surface: #1a1b18;
-  --fill: #24251f;
-  --fill-hover: #2d2e28;
-  --line: #2a2b26;
-  --ink: #f1f1ea;
-  --ink2: #c9cac3;
-  --muted: #8f908a;
-  --solid: #2b2d27;
-  --solid-hover: #34362f;
-  --on-solid: #f7f7f2;
-  --on-solid-muted: #a3a49d;
-  --solid-track: #3a3c35;
-  --sel-row: #1f2219;
-  --accent: oklch(0.87 0.2 128);
-  --accent-soft: oklch(0.34 0.07 128);
-  --accent-ink: oklch(0.92 0.17 128);
-  --danger: #ff6b63;
+
+  --page: #1c1a18;
+  --frame: #211f1d;
+  --surface: #2a2725;
+  --fill: #1a1816;
+  --fill-hover: #141210;
+  --line: #36322e;
+  --sel-row: #1f2c38;
+
+  --ink: #ece6de;
+  --ink2: #cbc3b9;
+  --muted: #968d82;
+
+  --solid: #5f8a6c;
+  --solid-deep: #4d7459;
+  --solid-hover: #6c9979;
+  --on-solid: #ffffff;
+  --on-solid-muted: #f0e3dd;
+  --solid-track: #7aa586;
+
+  --elevated: #8d625a;
+  --elevated-deep: #794f48;
+
+  --accent: oklch(0.8 0.07 150);
+  --accent-soft: oklch(0.35 0.04 150);
+  --accent-ink: oklch(0.88 0.07 150);
+  --focus: oklch(0.75 0.13 240);
+  --danger: #ff8a70;
+
+  --shadow-inner: inset 3px 3px 7px rgb(0 0 0 / 0.55), inset -3px -3px 7px rgb(255 255 255 / 0.04);
+  --shadow-lift: 4px 4px 10px rgb(0 0 0 / 0.5), -3px -3px 8px rgb(255 255 255 / 0.04);
+  --shadow-float: 10px 12px 24px rgb(0 0 0 / 0.6), -6px -6px 16px rgb(255 255 255 / 0.05);
 }

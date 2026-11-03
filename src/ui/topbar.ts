@@ -13,6 +13,21 @@ const sunIcon = (): SVGSVGElement =>
 const moonIcon = (): SVGSVGElement =>
   s("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" }, s("path", { d: "M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" }));
 
+export function renderThemeButton(isDark: boolean, actions: Actions): HTMLButtonElement {
+  return h(
+    "button",
+    {
+      class: "btn-round",
+      type: "button",
+      "data-key": "theme",
+      "aria-label": isDark ? "Switch to light mode" : "Switch to dark mode",
+      title: isDark ? "Light mode" : "Dark mode",
+      onclick: () => actions.toggleTheme(),
+    },
+    isDark ? sunIcon() : moonIcon(),
+  );
+}
+
 export function renderTopbar(active: ScenarioView, isDark: boolean, actions: Actions): HTMLElement {
   const shareLabel = h("span", {}, "Share link");
   const share = h(
@@ -30,23 +45,10 @@ export function renderTopbar(active: ScenarioView, isDark: boolean, actions: Act
     shareLabel,
   );
 
-  const theme = h(
-    "button",
-    {
-      class: "btn-round",
-      type: "button",
-      "data-key": "theme",
-      "aria-label": isDark ? "Switch to light mode" : "Switch to dark mode",
-      title: isDark ? "Light mode" : "Dark mode",
-      onclick: () => actions.toggleTheme(),
-    },
-    isDark ? sunIcon() : moonIcon(),
-  );
-
   return h(
     "header",
     { class: "topbar" },
     h("div", { class: "scenario-name" }, h("span", { class: "scenario-name__tag" }, "SCENARIO"), h("span", {}, active.name)),
-    h("div", { class: "topbar__actions" }, share, theme),
+    h("div", { class: "topbar__actions" }, share, renderThemeButton(isDark, actions)),
   );
 }
