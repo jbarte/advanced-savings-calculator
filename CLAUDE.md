@@ -130,7 +130,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     amounts from the digits, not through a float (`src/ui/parse-input.ts`).
   - **Input limits live in `PLAN_LIMITS`** (`src/state/plan-document.ts`). They keep every
     balance below `Number.MAX_SAFE_INTEGER` öre, so money stays exact. `project()` throws a
-    `RangeError` instead of returning an inexact balance.
+    `RangeError` instead of returning an inexact balance. The limits assume a 30-year
+    projection (`PROJECTION_MONTHS`): a longer one needs them rechecked, and a test fails if
+    the largest allowed plan stops fitting.
+  - **No magic 12.** Months per year is `MONTHS_PER_YEAR`, and years become months with
+    `yearsToMonths()` (`src/core/year-month.ts`).
+  - **The chart scale always contains zero.** `niceScale(min, max)` reaches below zero for
+    negative values (for example negative growth at a negative return) and one step above zero
+    when nothing is positive. A zero line is drawn when the scale goes below zero.
   - **Lost growth of a withdrawal** by a month H is the end balance at H without that
     withdrawal, minus the end balance at H with it, minus the amount actually withdrawn, never
     below 0 (`lostGrowth` in `src/core/lost-growth.ts`). It is found by running the projection
@@ -170,6 +177,13 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 - **Explicit error handling.** Every I/O call (`localStorage`, clipboard, URL parsing) is
   wrapped in `try/catch` and has a fallback. Never swallow an error silently: if ignoring
   it is intentional, add a comment saying why (see `src/state/theme.ts`).
+- **Validation lives in `src/state/`.** `validate-plan.ts` is the check that counts: it
+  throws a `RangeError` for any value outside `PLAN_LIMITS`, whether it came from a form, a
+  saved plan or a link. The parsers in `src/ui/parse-input.ts` only give friendlier messages
+  while typing. Every change to the plan goes through `withPlanChange`
+  (`src/state/plan-change.ts`): an invalid change leaves the plan alone and sets
+  `AppState.notice`. Other errors are bugs and are not hidden. If drawing the page throws,
+  `renderErrorState` shows a message instead of a blank page.
 - **Tests are written alongside the code, not after.** Core functions are written test
   first. Every function in `src/core/` has unit tests, including edge cases:
   - a withdrawal larger than the balance
@@ -251,7 +265,10 @@ with the toggle.
     ├── state/                # State, data models, storage
     │   ├── types.ts          # ScenarioView, AppState, HORIZONS, METRICS
     │   ├── plan-document.ts  # PlanDocument, WithdrawalEvent, PLAN_LIMITS, example and blank plans
-    │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals (+ test)
+    │   ├── validate-plan.ts  # Checks plan fields, withdrawals and whole documents (+ test)
+    │   ├── plan-fields.ts    # updatePlanFields: change the plan's single values, validated (+ test)
+    │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
+    │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
@@ -262,9 +279,11 @@ with the toggle.
     │   ├── actions.ts        # Actions interface (UI → state)
     │   ├── dom.ts            # h() / s() element helpers
     │   ├── format.ts         # Money formatting (öre → "1 234 kr")
-    │   ├── parse-input.ts    # Typed text → öre, percent, year-month (+ test)
+    │   ├── parse-input.ts    # Typed text → öre, percent, year-month; errorMessage (+ test)
+    │   ├── dialog-form.ts    # Shared helpers for dialog forms (inputIn, showErrors)
+    │   ├── error-state.ts    # Notice banner and the error view shown instead of a blank page
     │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
-    │   ├── chart-geometry.ts # Chart scaling and SVG paths (+ .test.ts)
+    │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths (+ .test.ts)
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card

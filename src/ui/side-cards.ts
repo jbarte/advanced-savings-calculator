@@ -5,7 +5,7 @@ import type { Actions } from "./actions";
 import { renderTextField } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
-import { monthInputValue, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
+import { errorMessage, monthInputValue, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
 import { lastPoint, monthLabel } from "./view-helpers";
 
@@ -33,10 +33,7 @@ function renderParsedField<T>(props: ParsedFieldProps<T>): HTMLElement {
     ...(props.type ? { type: props.type } : {}),
     ...(props.inputMode ? { inputMode: props.inputMode } : {}),
     ...(props.placeholder ? { placeholder: props.placeholder } : {}),
-    validate: (text) => {
-      const result = props.parse(text);
-      return result.ok ? null : result.message;
-    },
+    validate: errorMessage(props.parse),
     onCommit: (text) => {
       const result = props.parse(text);
       if (result.ok) props.apply(result.value);

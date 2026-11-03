@@ -1,4 +1,5 @@
 import type { Ore } from "./types";
+import { MONTHS_PER_YEAR } from "./year-month";
 
 /**
  * Converts a yearly return in percent to the equivalent monthly rate, so that
@@ -9,7 +10,7 @@ export function monthlyRate(annualReturnPct: number): number {
   if (!Number.isFinite(annualReturnPct) || annualReturnPct < -100) {
     throw new RangeError(`Yearly return must be a finite number of at least -100 %, got ${annualReturnPct}`);
   }
-  return (1 + annualReturnPct / 100) ** (1 / 12) - 1;
+  return (1 + annualReturnPct / 100) ** (1 / MONTHS_PER_YEAR) - 1;
 }
 
 /**

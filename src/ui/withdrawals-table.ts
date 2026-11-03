@@ -1,4 +1,4 @@
-import { formatYearMonth } from "../core/year-month";
+import { formatYearMonth, yearsToMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import type { AppState, PlannedWithdrawal, ScenarioView, WithdrawalStatus } from "../state/types";
 import type { Actions } from "./actions";
@@ -89,7 +89,7 @@ function renderRow(
 
 export function renderWithdrawals(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
   const { withdrawals } = scenario;
-  const endLabel = monthLabel(scenario, state.horizon * 12);
+  const endLabel = monthLabel(scenario, yearsToMonths(state.horizon));
   const maxCost = Math.max(1, ...withdrawals.filter((w) => w.status === "planned").map((w) => w.lostGrowth));
   const atLimit = withdrawals.length >= PLAN_LIMITS.maxWithdrawals;
 

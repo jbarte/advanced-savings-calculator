@@ -13,6 +13,10 @@ Status as of 2026-11-03. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and 
   be added, edited and removed, each with its lost growth. The page opens with an example plan
   (starting this month, with a 150 000 kr car purchase five years in), or an empty plan after
   "Start from scratch".
+- **Foundation fixes are done** (before milestone 3): the chart handles negative values, plan values
+  are validated in `src/state/` (an invalid change shows a notice and leaves the plan alone), a failing
+  render shows an error view instead of a blank page, `MONTHS_PER_YEAR` replaces the magic 12, and the
+  duplicated "parse → error message" logic and the dialog helpers are shared.
 - **Not built yet:** deposit changes, saving, sharing. A reload resets the plan. Hidden until their
   milestones: scenario tabs, the comparison card and the goal card. The Share button is disabled.
 

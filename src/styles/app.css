@@ -523,6 +523,40 @@ button {
   vector-effect: non-scaling-stroke;
 }
 
+/* The zero line, drawn only when the values go below zero. */
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.error-state {
+  align-items: flex-start;
+  max-width: 560px;
+  margin: var(--space-4) auto;
+}
+
+.error-state h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.chart__zero {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: var(--border-1) solid var(--muted);
+  pointer-events: none;
+}
+
 .chart__area {
   fill: url(#chart-fill);
 }

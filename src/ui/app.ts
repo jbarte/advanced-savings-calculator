@@ -1,6 +1,7 @@
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
+import { renderNotice } from "./error-state";
 import { renderChartCard, renderHero } from "./projection-card";
 import { renderComparisonCard, renderGoalCard, renderInputsCard } from "./side-cards";
 import { renderAppBar } from "./topbar";
@@ -27,6 +28,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
     h(
       "main",
       { class: "canvas" },
+      state.notice ? renderNotice(state.notice, actions) : null,
       renderHero(active, state, actions),
       renderChartCard(active, state),
       h(
