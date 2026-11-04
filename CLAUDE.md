@@ -222,6 +222,9 @@ with the toggle.
   `--shadow-lift` (raised: cards, buttons), `--shadow-float` (elevated: featured card, tooltip).
 - Radius steps are 4 / 8 / 12px, border thickness 1 / 1.5 / 2px, icon sizes 16 / 20 / 24px and spacing
   4 / 8 / 16 / 24px, all as tokens.
+- Raised neutral surfaces that sit on the page (cards, tables, tiles, secondary buttons) use
+  `--shadow-raised`: the lift shadow plus a 1px `--edge`. Soft shadows alone gave only about 1.1 : 1
+  against the page. The main action of a section (for example "Add event") is the green `btn-solid`.
 - Interactive states: hover lifts 1px, pressed uses `--shadow-inner`, disabled drops shadows and contrast,
   focus shows `--glow-focus`.
 - All colours are CSS custom properties in `src/styles/tokens.css`. Use the tokens,
