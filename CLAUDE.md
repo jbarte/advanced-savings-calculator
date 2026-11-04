@@ -30,9 +30,10 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1 and 2 are done: the calculation engine runs, the start amount, monthly
-deposit, return and start date are editable, and withdrawals can be added, edited and removed
-with their lost growth shown. Deposit changes, saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+**Status:** milestones 1–3 are done: the calculation engine runs, the start amount, monthly
+deposit, return and start date are editable, withdrawals can be added, edited and removed with
+their lost growth shown, and the monthly deposit can be changed from a month or for a period
+(including a pause). Saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -112,9 +113,10 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 - **The engine has its own types.** `src/core/types.ts` defines the engine's input and
   output (`PlanInput`, `WithdrawalInput`, `DepositChangeInput`, `GoalInput`, `Projection`,
   `ProjectionPoint`, `AppliedWithdrawal`, `Ore`). They describe money and time only, never how things are
-  displayed. `DepositChangeInput` is still to be added (milestone 3).
+  displayed.
 - **The plan is a document.** `src/state/` defines one versioned, JSON-friendly
-  `PlanDocument` (start capital, return, base deposit and a list of events, with real
+  `PlanDocument` (start capital, return, base deposit and two lists of events, withdrawals
+  and deposit changes, numbered apart, with real
   `YearMonth` dates rather than month offsets). It is the only thing that gets saved to
   `localStorage` or put in a share link. A mapper turns it into the engine's `PlanInput`
   (dates become month offsets there). Every document has a `version`, and loading goes
@@ -157,7 +159,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     but a withdrawal can be scheduled in it.
   - **A withdrawal can't take the balance below 0.** It is capped at the available
     balance and the shortfall is reported, never silently dropped.
-  - **Deposit schedule** (proposed, to be built in milestone 3): the plan has a base monthly
+  - **Deposit schedule** (`depositInMonth` in `src/core/deposit-schedule.ts`): the plan has a base monthly
     deposit. A deposit change has a start month, an optional end month (both inclusive) and
     an amount (0 pauses saving). In any month, the deposit is the amount of the change that
     is active and has the latest start month. If none is active, the base deposit applies.
@@ -165,9 +167,18 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     with an end month goes back to whatever applied before it. If two active changes have the
     same start month, the one later in the list wins. A change dated in month 0 first takes
     effect in month 1, since month 0 has no deposit.
+  - **Edge cases of deposit changes:** an end month before the start month is rejected by the
+    dialog and by `validate-plan.ts`, and the engine treats such a change as never active. A
+    change that started before the plan start still applies from month 1 if it has no end or
+    ends later. One that ends before the plan starts is listed as `before-start` and left out
+    of the engine input (as for withdrawals). One that starts after the horizon is
+    `after-horizon` and has no effect within it. Every amount is capped by `maxMonthlyDeposit`,
+    so changes can never raise the worst case behind `PLAN_LIMITS`.
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
   to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
-  types, and nothing reaches the store until Save (`withdrawal-dialog.ts`).
+  types, and nothing reaches the store until Save. `openFormDialog` (`src/ui/dialog-form.ts`)
+  is the shared shell for the form dialogs (`withdrawal-dialog.ts`, `deposit-change-dialog.ts`):
+  the primary button and Enter both call `save`, and it closes only when `save` returns true.
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
   granularity, never raw `Date` objects in the core.
 - **Functions do one thing.** If a function needs a comment to explain what it does,
@@ -237,6 +248,8 @@ with the toggle.
   `vite.config.ts`.
 - Do **not** present results as financial advice. The UI must keep its disclaimer.
 - Do **not** create config files beyond what exists without asking.
+- Do **update `implementation.md`** at the end of every implementation step or PR: add an entry to
+  its "Log" and keep "Current status" true.
 - Do **not** commit or push without being asked. Larger features go in a feature branch;
   `main` deploys to production on every push.
 
@@ -247,6 +260,7 @@ with the toggle.
 ├── CLAUDE.md                 # Instructions for the agent (this file)
 ├── README.md                 # Public project description
 ├── NEXT_STEPS.md             # Status and prioritized to-do list
+├── implementation.md         # Log of what was built, why, and how it was checked
 ├── index.html                # Page shell, loads fonts and src/main.ts
 ├── package.json              # Scripts and dev dependencies
 ├── tsconfig.json             # Strict TypeScript config
@@ -259,6 +273,7 @@ with the toggle.
     │   ├── types.ts          # Engine input/output: PlanInput, Projection, Ore …
     │   ├── project.ts        # project(): the monthly projection (+ project.test.ts)
     │   ├── lost-growth.ts    # lostGrowth(): what a withdrawal costs by a horizon (+ test)
+    │   ├── deposit-schedule.ts # depositInMonth, depositLevelChanges (+ test)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
     │   └── year-month.test.ts
@@ -269,6 +284,7 @@ with the toggle.
     │   ├── plan-fields.ts    # updatePlanFields: change the plan's single values, validated (+ test)
     │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
     │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals, validated (+ test)
+    │   ├── deposit-changes.ts # Pure add/update/remove of deposit changes, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
@@ -280,14 +296,18 @@ with the toggle.
     │   ├── dom.ts            # h() / s() element helpers
     │   ├── format.ts         # Money formatting (öre → "1 234 kr")
     │   ├── parse-input.ts    # Typed text → öre, percent, year-month; errorMessage (+ test)
-    │   ├── dialog-form.ts    # Shared helpers for dialog forms (inputIn, showErrors)
+    │   ├── dialog-form.ts    # Shared dialog shell and helpers (openFormDialog, inputIn, showErrors)
     │   ├── error-state.ts    # Notice banner and the error view shown instead of a blank page
     │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths (+ .test.ts)
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
-    │   ├── withdrawals-table.ts # Planned withdrawals table: add, edit, remove, lost growth
+    │   ├── events-section.ts # "Planned events": Add event button, withdrawals and deposit changes
+    │   ├── event-type-dialog.ts # Asks which kind of event to add
+    │   ├── withdrawals-table.ts # Withdrawals table: edit, remove, lost growth
+    │   ├── deposit-changes-table.ts # Deposit changes table: edit, remove
+    │   ├── deposit-change-dialog.ts # Dialog to add or edit a deposit change
     │   ├── withdrawal-dialog.ts # Dialog to add or edit a withdrawal
     │   ├── side-cards.ts     # Bento cards: plan inputs, goal gauge, scenario comparison
     │   ├── components.ts     # Design-system components (toggle, slider, toast, modal …)

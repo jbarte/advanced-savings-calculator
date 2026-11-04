@@ -11,6 +11,7 @@ const plan: PlanDocument = {
   monthlyDeposit: 300_000,
   annualReturnPct: 7,
   withdrawals: [],
+  depositChanges: [],
 };
 
 const HORIZON_30 = 360;
@@ -30,6 +31,7 @@ describe("toPlanInput", () => {
       monthlyDeposit: 300_000,
       annualReturnPct: 7,
       withdrawals: [],
+      depositChanges: [],
       months: 120,
     });
   });
@@ -169,5 +171,107 @@ describe("buildScenarioView withdrawals", () => {
     const [w] = buildScenarioView(example, "Example", HORIZON_30).withdrawals;
     expect(w).toMatchObject({ month: 60, label: "New car", applied: 15_000_000, shortfall: 0, status: "planned" });
     expect(example.withdrawals[0]?.date).toEqual(addMonths(today, 60));
+  });
+});
+
+describe("deposit changes in the view model", () => {
+  const exampleLike: PlanDocument = { ...plan, start: { year: 2026, month: 1 } };
+  // A 12 month pause: February 2027 is month 13 and January 2028 is month 24.
+  const pause = { id: 1, startDate: { year: 2027, month: 2 }, endDate: { year: 2028, month: 1 }, amount: 0, label: "Parental leave" };
+  const withPause: PlanDocument = { ...exampleLike, depositChanges: [pause] };
+
+  it("turns dates into months, and no end into null", () => {
+    const open = { ...pause, endDate: null };
+    expect(toPlanInput({ ...exampleLike, depositChanges: [pause, open] }, 360).depositChanges).toEqual([
+      { startMonth: 13, endMonth: 24, amount: 0, label: "Parental leave" },
+      { startMonth: 13, endMonth: null, amount: 0, label: "Parental leave" },
+    ]);
+  });
+
+  it("lowers the end balance by the missed deposits and what they would have earned (about 246 944 kr)", () => {
+    const without = buildScenarioView(exampleLike, "P", HORIZON_30).points[360]?.balance ?? 0;
+    const paused = buildScenarioView(withPause, "P", HORIZON_30).points[360]?.balance ?? 0;
+    const m = 1.07 ** (1 / 12) - 1;
+    let missed = 0;
+    for (let t = 13; t <= 24; t++) missed += 300_000 * (1 + m) ** (360 - t);
+    expect(Math.abs(without - paused - missed)).toBeLessThan(2_000);
+    expect(Math.round((without - paused) / 100)).toBeGreaterThan(246_900);
+    expect(Math.round((without - paused) / 100)).toBeLessThan(247_000);
+  });
+
+  it("describes the change, with its status, for the UI", () => {
+    const [c] = buildScenarioView(withPause, "P", HORIZON_30).depositChanges;
+    expect(c).toMatchObject({ id: 1, label: "Parental leave", startMonth: 13, endMonth: 24, amount: 0, status: "planned" });
+  });
+
+  it("lists where the deposit level changes", () => {
+    expect(buildScenarioView(withPause, "P", HORIZON_30).depositLevels).toEqual([
+      { month: 13, amount: 0 },
+      { month: 25, amount: 300_000 },
+    ]);
+  });
+
+  it("marks a change that ends before the plan starts, and leaves it out of the projection", () => {
+    const old = { ...pause, startDate: { year: 2024, month: 1 }, endDate: { year: 2025, month: 12 } };
+    const view = buildScenarioView({ ...exampleLike, depositChanges: [old] }, "P", HORIZON_30);
+    expect(view.depositChanges[0]).toMatchObject({ status: "before-start" });
+    expect(view.depositLevels).toEqual([]);
+    expect(view.points[360]?.balance).toBe(buildScenarioView(exampleLike, "P", HORIZON_30).points[360]?.balance);
+  });
+
+  it("still applies a change that began before the plan and has not ended", () => {
+    const old = { ...pause, startDate: { year: 2024, month: 1 }, endDate: null, amount: 100_000 };
+    const view = buildScenarioView({ ...exampleLike, startAmount: 0, depositChanges: [old] }, "P", HORIZON_30);
+    expect(view.depositChanges[0]).toMatchObject({ status: "planned" });
+    expect(view.depositChanges[0]?.startMonth).toBeLessThan(0);
+    expect(view.depositLevels[0]).toEqual({ month: 1, amount: 100_000 });
+  });
+
+  it("marks a change after the chosen horizon, but keeps it in the projection", () => {
+    const late = { ...pause, startDate: { year: 2040, month: 1 }, endDate: null };
+    const view = buildScenarioView({ ...exampleLike, depositChanges: [late] }, "P", 120);
+    expect(view.depositChanges[0]).toMatchObject({ status: "after-horizon" });
+    expect(view.points[360]?.balance).toBeLessThan(buildScenarioView(exampleLike, "P", 120).points[360]?.balance ?? 0);
+  });
+
+  it("sorts by start, then by id", () => {
+    const view = buildScenarioView(
+      {
+        ...exampleLike,
+        depositChanges: [
+          { ...pause, id: 1, startDate: { year: 2035, month: 1 } },
+          { ...pause, id: 2, startDate: { year: 2030, month: 1 } },
+          { ...pause, id: 3, startDate: { year: 2030, month: 1 } },
+        ],
+      },
+      "P",
+      HORIZON_30,
+    );
+    expect(view.depositChanges.map((c) => c.id)).toEqual([2, 3, 1]);
+  });
+
+  it("the example plan has no deposit changes", () => {
+    const view = buildScenarioView(createExamplePlan({ year: 2026, month: 11 }), "Example", HORIZON_30);
+    expect(view.depositChanges).toEqual([]);
+    expect(view.depositLevels).toEqual([]);
+  });
+
+  it("stays exact for the largest allowed plan with the most changes at the largest amount", () => {
+    const changes = Array.from({ length: PLAN_LIMITS.maxDepositChanges }, (_, i) => ({
+      id: i + 1,
+      startDate: { year: 2026, month: 1 },
+      endDate: null,
+      amount: PLAN_LIMITS.maxMonthlyDeposit,
+      label: `c${i}`,
+    }));
+    const largest: PlanDocument = {
+      ...exampleLike,
+      startAmount: PLAN_LIMITS.maxStartAmount,
+      monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
+      annualReturnPct: PLAN_LIMITS.maxReturnPct,
+      depositChanges: changes,
+    };
+    const end = buildScenarioView(largest, "Largest", HORIZON_30).points[360]?.balance ?? 0;
+    expect(Number.isSafeInteger(end)).toBe(true);
   });
 });

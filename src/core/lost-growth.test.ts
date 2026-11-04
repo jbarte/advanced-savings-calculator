@@ -9,6 +9,7 @@ const base: PlanInput = {
   monthlyDeposit: 300_000,
   annualReturnPct: 7,
   withdrawals: [{ month: 60, amount: 15_000_000, label: "Car" }],
+  depositChanges: [],
   months: 360,
 };
 
@@ -79,6 +80,11 @@ describe("lostGrowth", () => {
       ],
     };
     expect(lostGrowth(squeezed, 0, 12)).toBe(0);
+  });
+
+  it("is not affected by deposit changes, which do not depend on the withdrawal", () => {
+    const paused: PlanInput = { ...base, depositChanges: [{ startMonth: 13, endMonth: 24, amount: 0, label: "Pause" }] };
+    expect(Math.abs(lostGrowth(paused, 0, 360) - expectedLostGrowth(15_000_000, 60, 360))).toBeLessThan(TOLERANCE_ORE);
   });
 
   it("rejects a position that has no withdrawal", () => {

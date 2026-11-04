@@ -1,7 +1,7 @@
-import { MONTHS_PER_YEAR } from "../core/year-month";
+import { MONTHS_PER_YEAR, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "./plan-document";
-import type { PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
+import type { DepositChangeDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
 
 /*
  * Hand-written checks of everything a plan is built from. They throw a RangeError that says what is wrong,
@@ -41,9 +41,32 @@ export function validatePlanFields(fields: PlanFields): void {
 export function validateWithdrawalDraft(draft: WithdrawalDraft): void {
   assertYearMonth(draft.date, "Withdrawal date");
   assertWholeOre(draft.amount, "Withdrawal amount", 1, PLAN_LIMITS.maxStartAmount);
-  const label = draft.label.trim();
-  if (label === "" || label.length > PLAN_LIMITS.maxLabelLength) {
-    fail(`Withdrawal label must be 1 to ${PLAN_LIMITS.maxLabelLength} characters`);
+  assertLabel(draft.label, "Withdrawal");
+}
+
+function assertLabel(label: string, name: string): void {
+  const trimmed = label.trim();
+  if (trimmed === "" || trimmed.length > PLAN_LIMITS.maxLabelLength) {
+    fail(`${name} label must be 1 to ${PLAN_LIMITS.maxLabelLength} characters`);
+  }
+}
+
+export function validateDepositChangeDraft(draft: DepositChangeDraft): void {
+  assertYearMonth(draft.startDate, "Deposit change start");
+  assertWholeOre(draft.amount, "Deposit change amount", 0, PLAN_LIMITS.maxMonthlyDeposit);
+  assertLabel(draft.label, "Deposit change");
+  if (draft.endDate !== null) {
+    assertYearMonth(draft.endDate, "Deposit change end");
+    if (monthsBetween(draft.startDate, draft.endDate) < 0) fail("The end month can't be before the start month");
+  }
+}
+
+function assertUniqueIds(ids: readonly number[], what: string): void {
+  const seen = new Set<number>();
+  for (const id of ids) {
+    if (!Number.isInteger(id) || id < 1) fail(`A ${what} id must be a positive whole number, got ${id}`);
+    if (seen.has(id)) fail(`Two ${what}s have the id ${id}`);
+    seen.add(id);
   }
 }
 
@@ -53,11 +76,12 @@ export function validatePlanDocument(plan: PlanDocument): void {
   if (plan.withdrawals.length > PLAN_LIMITS.maxWithdrawals) {
     fail(`A plan can have at most ${PLAN_LIMITS.maxWithdrawals} withdrawals`);
   }
-  const seen = new Set<number>();
-  for (const withdrawal of plan.withdrawals) {
-    if (!Number.isInteger(withdrawal.id) || withdrawal.id < 1) fail(`Withdrawal id must be a positive whole number, got ${withdrawal.id}`);
-    if (seen.has(withdrawal.id)) fail(`Two withdrawals have the id ${withdrawal.id}`);
-    seen.add(withdrawal.id);
-    validateWithdrawalDraft(withdrawal);
+  assertUniqueIds(plan.withdrawals.map((withdrawal) => withdrawal.id), "withdrawal");
+  plan.withdrawals.forEach(validateWithdrawalDraft);
+
+  if (plan.depositChanges.length > PLAN_LIMITS.maxDepositChanges) {
+    fail(`A plan can have at most ${PLAN_LIMITS.maxDepositChanges} deposit changes`);
   }
+  assertUniqueIds(plan.depositChanges.map((change) => change.id), "deposit change");
+  plan.depositChanges.forEach(validateDepositChangeDraft);
 }

@@ -1,8 +1,9 @@
+import type { DepositLevel } from "../core/deposit-schedule";
 import type { Ore, ProjectionPoint } from "../core/types";
 import type { YearMonth } from "../core/year-month";
 import type { PlanDocument } from "./plan-document";
 
-export type { Ore, ProjectionPoint };
+export type { DepositLevel, Ore, ProjectionPoint };
 
 export const HORIZONS = [10, 20, 30] as const;
 export type HorizonYears = (typeof HORIZONS)[number];
@@ -16,7 +17,7 @@ export type ThemePreference = "system" | "light" | "dark";
  * Where a withdrawal falls: within the chosen horizon, after it, or before the plan starts (such a
  * withdrawal is listed but left out of the projection).
  */
-export type WithdrawalStatus = "planned" | "after-horizon" | "before-start";
+export type EventStatus = "planned" | "after-horizon" | "before-start";
 
 export interface PlannedWithdrawal {
   readonly id: number;
@@ -30,9 +31,21 @@ export interface PlannedWithdrawal {
   /** The part it could not cover. */
   readonly shortfall: Ore;
   readonly label: string;
-  readonly status: WithdrawalStatus;
+  readonly status: EventStatus;
   /** Growth the withdrawn money would have earned by the end of the horizon. 0 unless `planned`. */
   readonly lostGrowth: Ore;
+}
+
+/** A deposit change as the UI shows it. Months are after the plan start, and can be negative. */
+export interface PlannedDepositChange {
+  readonly id: number;
+  readonly label: string;
+  readonly startDate: YearMonth;
+  readonly endDate: YearMonth | null;
+  readonly startMonth: number;
+  readonly endMonth: number | null;
+  readonly amount: Ore;
+  readonly status: EventStatus;
 }
 
 export interface GoalSummary {
@@ -59,6 +72,9 @@ export interface ScenarioView {
   readonly monthlyDeposit: Ore;
   readonly annualReturnPct: number;
   readonly withdrawals: readonly PlannedWithdrawal[];
+  readonly depositChanges: readonly PlannedDepositChange[];
+  /** The months where the monthly deposit changes, with the new amount. */
+  readonly depositLevels: readonly DepositLevel[];
   /** Null until the user has set a goal. */
   readonly goal: GoalSummary | null;
   readonly points: readonly ProjectionPoint[];

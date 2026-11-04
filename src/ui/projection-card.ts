@@ -139,6 +139,16 @@ function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
       ),
     );
 
+  const depositMarkers = scenario.depositLevels
+    .filter((level) => level.month <= totalMonths)
+    .map((level) =>
+      h(
+        "div",
+        { class: "chart__marker chart__marker--deposit", style: `left:${(level.month / totalMonths) * 100}%` },
+        h("span", {}, level.amount === 0 ? "Paused" : `${formatMoneyCompact(level.amount)}/mo`),
+      ),
+    );
+
   const cursor = h("div", { class: "chart__cursor" });
   const dot = h("div", { class: "chart__dot" });
   const tooltipValue = h("strong", {});
@@ -186,6 +196,7 @@ function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
     scale.min < 0 ? h("div", { class: "chart__zero", style: `top:${zeroY}%`, "aria-hidden": "true" }) : null,
     svg,
     ...markers,
+    ...depositMarkers,
     cursor,
     dot,
     tooltip,
