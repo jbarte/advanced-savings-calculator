@@ -6,11 +6,17 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 
 ## Current status
 
-- **Merged:** milestone 1 (PR #1), milestone 2 (PR #2).
-- **Open:** PR #3, foundation fixes (`feature/foundation-fixes`), and PR #4, milestone 3 "Change my saving
-  over time" (`feature/deposit-changes`), stacked on #3. Merge #3 first; #4 then retargets to `main`.
-- **Next:** milestone 4 (overview), 5 (saving), 6 (sharing). See `NEXT_STEPS.md`.
-- **Tests:** 258 (`npm test`), typecheck and build pass on `feature/deposit-changes`.
+- **Merged into `main`:** milestone 1 (PR #1), milestone 2 (PR #2), foundation fixes (PR #3) and
+  milestone 3 "Change my saving over time" (PR #5). PR #4 had been merged into its base
+  `feature/foundation-fixes` after #3 was already in `main`, so it never reached `main`; PR #5 carried the
+  same commits there.
+- **Open:** a small PR for the contrast of raised surfaces (`feature/contrast-fix`).
+- **Lesson:** a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
+  Retarget it (or open a new PR to `main`) before merging, and check that `main` has the commits.
+- **Next:** milestone 4 (overview) is planned in two PRs (timeline list, then chart). The plan waits for
+  confirmation of five decisions (numbered badges, `depositLevels` kept, badges outside the tab order,
+  no automatic scrolling on mobile, two PRs). Then milestone 5 (saving) and 6 (sharing).
+- **Tests:** 258 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -69,7 +75,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** `<input type="month">` untested in Firefox and Safari; a script-only browser run left a
   closed dialog in the DOM when the page had no focus (real clicks remove it).
 
-### Milestone 3: "Change my saving over time" (PR #4, open, stacked on #3)
+### Milestone 3: "Change my saving over time" (PR #4 merged into the old base branch, PR #5 merged to `main`)
 - **Built:**
   - **Engine:** `depositInMonth` / `depositLevelChanges` in `src/core/deposit-schedule.ts`, used by
     `project()`. The active change with the latest start wins, a tie goes to the later one in the list,
@@ -98,3 +104,28 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   marker rule came later in the CSS and won; fixed with a two-class selector.
 - **Known gaps:** `<input type="month">` untested in Firefox and Safari; the "limit reached" state in the
   chooser is only unit tested; labels of events close together overlap on the chart (milestone 4).
+
+### Contrast of raised surfaces (small PR before milestone 4)
+- **Why:** the user found the "Planned events" container and the "Add event" button hard to see. It was not
+  fixed or in the backlog. Measured: a card or button (`--surface` #f2eee8) against the page (`--page`
+  #e8e4de) is only 1.1 : 1 and was told apart by a soft shadow alone. The old `--line` colour would only
+  give 1.19 : 1, so a border in that colour would not have helped.
+- **Built:**
+  - New token `--edge` (light #b8ae9f, about 1.73 : 1 against the page; dark #4f4943, about 1.96 : 1) and
+    `--shadow-raised` (the lift shadow plus a 1 px edge as a spread ring, so layout does not move).
+  - `--shadow-raised` on `.card`, `.table-card`, `.tile`, `.btn-secondary`, `.btn-round`, `.choice` and
+    `.notice`. Hover does not change the shadow, so the edge stays; pressed and focus states are unchanged.
+  - "Add event" is now the green primary button (`btn-solid`, 3.5 : 1 against the page).
+  - **Dialogs** (the user disliked the "Add event" dialog for the same reason): the chooser's options, the
+    Cancel button and the dialog itself were all `--surface`, and the light glow of `--shadow-float` made a
+    halo on the dimmed page. Now `.modal` uses `--frame` as background, a new `--shadow-dialog` (dark drop
+    shadow plus the edge) and a darker `--backdrop` (0.35 to 0.55 in light mode), so the raised options and
+    buttons stand out. The form dialogs get the same treatment.
+- **Decisions (confirmed):** keep the neo-tactile style and add an edge, instead of redesigning it; do it as a
+  separate PR before milestone 4, which then builds on the new style.
+- **Checked:** computed styles show the ring (`0 0 0 1px rgb(184, 174, 159)`) and the green background. Looked
+  at in light and dark mode: the container, the cards and the "Add event" dialog (options, Cancel, the
+  dialog edge) have a clear edge, and the form dialog fields still read well on the new background. 258 tests, typecheck and build pass (CSS only, so no new tests).
+- **Known gaps:** only a visual check in two themes and one width; the edge is about 1.7 : 1, below the
+  3 : 1 that WCAG 1.4.11 asks for on component boundaries. Chosen on purpose to keep the soft look, and open
+  to a darker edge if wanted.

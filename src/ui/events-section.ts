@@ -31,7 +31,7 @@ export function renderEventsSection(scenario: ScenarioView, state: AppState, act
   const addButton = h(
     "button",
     {
-      class: "btn-secondary",
+      class: "btn-solid",
       type: "button",
       "data-key": "event-add",
       disabled: everythingFull,

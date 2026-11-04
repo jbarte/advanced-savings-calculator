@@ -160,7 +160,7 @@ button {
   flex: none;
   border-radius: var(--radius-control);
   background: var(--surface);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-raised);
   display: grid;
   place-items: center;
   transition: transform 120ms, box-shadow 120ms;
@@ -357,7 +357,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-raised);
 }
 
 .card--dark {
@@ -422,7 +422,7 @@ button {
   padding: 12px 14px;
   border-radius: var(--radius-tile);
   background: var(--surface);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-raised);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -532,7 +532,7 @@ button {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-card);
   background: var(--surface);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-raised);
   color: var(--danger);
   font-size: var(--text-sm);
 }
@@ -596,7 +596,7 @@ button {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--surface);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-raised);
   text-align: left;
 }
 
@@ -718,7 +718,7 @@ button {
 .table-card {
   background: var(--surface);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-raised);
   overflow-x: auto;
 }
 
@@ -1134,7 +1134,7 @@ button {
   justify-content: center;
   gap: 8px;
   white-space: nowrap;
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-raised);
   transition: transform 120ms, box-shadow 120ms;
 }
 
@@ -1481,9 +1481,10 @@ button {
   padding: var(--space-4);
   border: 0;
   border-radius: var(--radius-card);
-  background: var(--surface);
+  /* --frame is darker than --surface, so the raised options and buttons inside stand out from the dialog. */
+  background: var(--frame);
   color: var(--ink);
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-dialog);
 }
 
 .modal::backdrop {

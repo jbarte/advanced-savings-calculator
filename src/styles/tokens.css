@@ -5,7 +5,8 @@
  * data-theme="light" | "dark" on <html>.
  *
  * Depth levels: --shadow-inner (sunken: inputs, tracks, pressed), none (flat), --shadow-lift (raised:
- * cards, buttons), --shadow-float (elevated: modals, featured card).
+ * cards, buttons), --shadow-float (elevated: modals, featured card). --shadow-raised is --shadow-lift plus a
+ * thin --edge, for raised neutral surfaces that sit on the page: soft shadows alone gave about 1.1 : 1.
  * Parts under ~32px (thumbs, markers, chips, thin tracks) use the -sm variants, or the blur spills past
  * their edges. Anything on a solid or elevated colour uses --shadow-inner-solid / --shadow-on-color,
  * because the neutral white highlight turns into a grey smear on colour.
@@ -40,6 +41,7 @@
   --accent-ink: oklch(0.4 0.07 155);
   --focus: oklch(0.68 0.14 240);
   --danger: #c0503f;
+  --edge: #b8ae9f; /* thin edge of raised surfaces, about 1.7 : 1 against the page */
 
   --shadow-inner: inset 3px 3px 7px rgb(120 105 88 / 0.28), inset -3px -3px 7px rgb(255 255 255 / 0.75);
   --shadow-lift: 4px 4px 10px rgb(140 125 108 / 0.3), -4px -4px 10px rgb(255 255 255 / 0.85);
@@ -49,11 +51,15 @@
   --shadow-inner-solid: inset 2px 2px 5px rgb(0 0 0 / 0.28), inset -1px -1px 3px rgb(255 255 255 / 0.12);
   --shadow-on-color: 0 2px 6px rgb(0 0 0 / 0.18), inset 0 1px 0 rgb(255 255 255 / 0.22);
 
+  --shadow-raised: var(--shadow-lift), 0 0 0 var(--border-1) var(--edge);
+  /* A dialog sits on a dimmed page, so it gets a dark drop shadow and an edge, not the light glow of --shadow-float. */
+  --shadow-dialog: 0 20px 50px rgb(0 0 0 / 0.5), 0 0 0 var(--border-1) var(--edge);
+
   --thumb: linear-gradient(145deg, #ffffff, #ebe6df);
   --on-color-fill: rgb(255 255 255 / 0.18);
   --on-color-fill-hover: rgb(255 255 255 / 0.26);
   --on-color-track: rgb(0 0 0 / 0.2);
-  --backdrop: rgb(60 50 40 / 0.35);
+  --backdrop: rgb(40 32 24 / 0.55);
 
   /* Type */
   --font-sans: "Geist", system-ui, sans-serif;
@@ -125,6 +131,7 @@
     --accent-ink: oklch(0.88 0.07 150);
     --focus: oklch(0.75 0.13 240);
     --danger: #ff8a70;
+    --edge: #4f4943;
 
     --shadow-inner: inset 3px 3px 7px rgb(0 0 0 / 0.55), inset -3px -3px 7px rgb(255 255 255 / 0.04);
     --shadow-lift: 4px 4px 10px rgb(0 0 0 / 0.5), -3px -3px 8px rgb(255 255 255 / 0.04);
@@ -172,6 +179,7 @@
   --accent-ink: oklch(0.88 0.07 150);
   --focus: oklch(0.75 0.13 240);
   --danger: #ff8a70;
+  --edge: #4f4943;
 
   --shadow-inner: inset 3px 3px 7px rgb(0 0 0 / 0.55), inset -3px -3px 7px rgb(255 255 255 / 0.04);
   --shadow-lift: 4px 4px 10px rgb(0 0 0 / 0.5), -3px -3px 8px rgb(255 255 255 / 0.04);
