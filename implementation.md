@@ -10,9 +10,13 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   milestone 3 "Change my saving over time" (PR #5). PR #4 had been merged into its base
   `feature/foundation-fixes` after #3 was already in `main`, so it never reached `main`; PR #5 carried the
   same commits there.
-- **Open:** a small PR for the contrast of raised surfaces (`feature/contrast-fix`).
-- **Lesson:** a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
-  Retarget it (or open a new PR to `main`) before merging, and check that `main` has the commits.
+- **Merged into `main` as well:** the contrast of raised surfaces and dialogs (PR #6).
+- **Open:** a small PR that removes the white glow from all shadows (PR #7, `feature/contrast-fix`). Its
+  commit was pushed after #6 had been merged, so it did not reach `main` with #6.
+- **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
+  Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
+  check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
+  that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
 - **Next:** milestone 4 (overview) is planned in two PRs (timeline list, then chart). The plan waits for
   confirmation of five decisions (numbered badges, `depositLevels` kept, badges outside the tab order,
   no automatic scrolling on mobile, two PRs). Then milestone 5 (saving) and 6 (sharing).
