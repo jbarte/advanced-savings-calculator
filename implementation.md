@@ -6,9 +6,12 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 
 ## Current status
 
-- **Merged:** milestone 1 (PR #1), milestone 2 (PR #2).
-- **Open:** PR #3, foundation fixes (`feature/foundation-fixes`), and PR #4, milestone 3 "Change my saving
-  over time" (`feature/deposit-changes`), stacked on #3. Merge #3 first; #4 then retargets to `main`.
+- **Merged into `main`:** milestone 1 (PR #1), milestone 2 (PR #2), foundation fixes (PR #3).
+- **Not on `main` yet:** milestone 3 "Change my saving over time". PR #4 was merged into its base
+  `feature/foundation-fixes` after #3 had already gone into `main`, so it never reached `main`. PR #5
+  (`feature/deposit-changes` → `main`) carries the same commits and is **open**.
+- **Lesson:** a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
+  Retarget it (or open a new PR to `main`) before merging, and check that `main` has the commits.
 - **Next:** milestone 4 (overview), 5 (saving), 6 (sharing). See `NEXT_STEPS.md`.
 - **Tests:** 258 (`npm test`), typecheck and build pass on `feature/deposit-changes`.
 
@@ -69,7 +72,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** `<input type="month">` untested in Firefox and Safari; a script-only browser run left a
   closed dialog in the DOM when the page had no focus (real clicks remove it).
 
-### Milestone 3: "Change my saving over time" (PR #4, open, stacked on #3)
+### Milestone 3: "Change my saving over time" (PR #4 merged into the old base branch, PR #5 open to `main`)
 - **Built:**
   - **Engine:** `depositInMonth` / `depositLevelChanges` in `src/core/deposit-schedule.ts`, used by
     `project()`. The active change with the latest start wins, a tie goes to the later one in the list,
