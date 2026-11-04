@@ -116,11 +116,16 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   - `--shadow-raised` on `.card`, `.table-card`, `.tile`, `.btn-secondary`, `.btn-round`, `.choice` and
     `.notice`. Hover does not change the shadow, so the edge stays; pressed and focus states are unchanged.
   - "Add event" is now the green primary button (`btn-solid`, 3.5 : 1 against the page).
+  - **Dialogs** (the user disliked the "Add event" dialog for the same reason): the chooser's options, the
+    Cancel button and the dialog itself were all `--surface`, and the light glow of `--shadow-float` made a
+    halo on the dimmed page. Now `.modal` uses `--frame` as background, a new `--shadow-dialog` (dark drop
+    shadow plus the edge) and a darker `--backdrop` (0.35 to 0.55 in light mode), so the raised options and
+    buttons stand out. The form dialogs get the same treatment.
 - **Decisions (confirmed):** keep the neo-tactile style and add an edge, instead of redesigning it; do it as a
   separate PR before milestone 4, which then builds on the new style.
 - **Checked:** computed styles show the ring (`0 0 0 1px rgb(184, 174, 159)`) and the green background. Looked
-  at in light and dark mode: the container, the secondary buttons in the "Add event" dialog and the cards
-  have a clear edge. 258 tests, typecheck and build pass (CSS only, so no new tests).
+  at in light and dark mode: the container, the cards and the "Add event" dialog (options, Cancel, the
+  dialog edge) have a clear edge, and the form dialog fields still read well on the new background. 258 tests, typecheck and build pass (CSS only, so no new tests).
 - **Known gaps:** only a visual check in two themes and one width; the edge is about 1.7 : 1, below the
   3 : 1 that WCAG 1.4.11 asks for on component boundaries. Chosen on purpose to keep the soft look, and open
   to a darker edge if wanted.

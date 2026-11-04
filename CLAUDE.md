@@ -225,6 +225,9 @@ with the toggle.
 - Raised neutral surfaces that sit on the page (cards, tables, tiles, secondary buttons) use
   `--shadow-raised`: the lift shadow plus a 1px `--edge`. Soft shadows alone gave only about 1.1 : 1
   against the page. The main action of a section (for example "Add event") is the green `btn-solid`.
+- Dialogs use `--frame` (darker than `--surface`) as their background, `--shadow-dialog` (a dark drop
+  shadow plus the edge, not the light glow of `--shadow-float`) and a darker `--backdrop`. That way the
+  raised options and buttons inside a dialog stand out from it.
 - Interactive states: hover lifts 1px, pressed uses `--shadow-inner`, disabled drops shadows and contrast,
   focus shows `--glow-focus`.
 - All colours are CSS custom properties in `src/styles/tokens.css`. Use the tokens,
