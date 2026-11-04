@@ -213,8 +213,8 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 
 ## Design
 
-The UI follows the "Neo-Tactile Soft UI" system (Geist fonts, one warm neutral surface, depth from paired
-light/dark shadows, sage green primary, dusty-rose elevated card, blue glow for focus and selection).
+The UI follows the "Neo-Tactile Soft UI" system (Geist fonts, one warm neutral surface, depth from soft dark
+shadows and a thin edge, sage green primary, dusty-rose elevated card, blue glow for focus and selection).
 Light theme = "Linen", dark theme = "Dusk". The theme follows the system setting until the user picks one
 with the toggle.
 
@@ -222,6 +222,9 @@ with the toggle.
   `--shadow-lift` (raised: cards, buttons), `--shadow-float` (elevated: featured card, tooltip).
 - Radius steps are 4 / 8 / 12px, border thickness 1 / 1.5 / 2px, icon sizes 16 / 20 / 24px and spacing
   4 / 8 / 16 / 24px, all as tokens.
+- **No white highlights or glow.** The `--shadow-*` tokens contain only dark shadows (plus the edge).
+  Do not add `rgb(255 255 255 / …)` to a shadow. Translucent white fills on coloured surfaces
+  (`--on-color-fill`) are fine, since they are fills and not light.
 - Raised neutral surfaces that sit on the page (cards, tables, tiles, secondary buttons) use
   `--shadow-raised`: the lift shadow plus a 1px `--edge`. Soft shadows alone gave only about 1.1 : 1
   against the page. The main action of a section (for example "Add event") is the green `btn-solid`.
