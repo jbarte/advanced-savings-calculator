@@ -1,6 +1,7 @@
 import { eventEffect, lostGrowthOf, totalEffect } from "../core/event-effect";
 import type { EventRef } from "../core/event-effect";
 import { project } from "../core/project";
+import { inflationAdjustedPoints, toInflationAdjusted } from "../core/inflation-adjusted";
 import type { DepositChangeInput, OneTimeDepositInput, Ore, PlanInput, WithdrawalInput } from "../core/types";
 import { monthsBetween, yearsToMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "./plan-document";
@@ -170,11 +171,13 @@ export function buildScenarioView(
     startAmount: plan.startAmount,
     monthlyDeposit: plan.monthlyDeposit,
     annualReturnPct: plan.annualReturnPct,
+    inflationPct: plan.inflationPct,
     withdrawals,
     depositChanges,
     oneTimeDeposits,
     totalEffect: totalEffect(input, horizonMonths, balanceWith),
     horizonMonths,
+    inflationAdjusted: false,
     goal: null,
     points,
   };
@@ -193,5 +196,23 @@ export function createScenarioViewCache(): (plan: PlanDocument, name: string, ho
     const view = buildScenarioView(plan, name, horizonMonths);
     last = { plan, name, horizonMonths, view };
     return view;
+  };
+}
+
+/**
+ * The view with the results inflation adjusted (divided by the price level of their month): the projection, the effect of each event and the total. Effects are
+ * differences of two balances at the same month (the horizon), so they are divided by that month's price level.
+ * What the user entered (event amounts, start amount, monthly deposit) and the engine's lost growth stay nominal.
+ */
+export function applyInflationAdjustment(view: ScenarioView, inflationPct: number): ScenarioView {
+  const real = (effect: Ore): Ore => toInflationAdjusted(effect, view.horizonMonths, inflationPct);
+  return {
+    ...view,
+    inflationAdjusted: true,
+    points: inflationAdjustedPoints(view.points, inflationPct),
+    totalEffect: real(view.totalEffect),
+    withdrawals: view.withdrawals.map((event) => ({ ...event, effect: real(event.effect) })),
+    depositChanges: view.depositChanges.map((event) => ({ ...event, effect: real(event.effect) })),
+    oneTimeDeposits: view.oneTimeDeposits.map((event) => ({ ...event, effect: real(event.effect) })),
   };
 }

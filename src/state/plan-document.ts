@@ -53,7 +53,7 @@ export interface PlanDocument {
   readonly annualReturnPct: number;
   /** How many years the plan looks ahead, from the start month. */
   readonly horizonYears: number;
-  /** Expected yearly inflation in percent, used to show amounts in today's money. */
+  /** Expected yearly inflation in percent, used for the inflation adjusted view. */
   readonly inflationPct: number;
   readonly withdrawals: readonly WithdrawalEvent[];
   readonly depositChanges: readonly DepositChangeEvent[];

@@ -63,7 +63,7 @@ export function renderEventsSection(
       : h(
           "p",
           { class: "events__total" },
-          `All events together change your balance by ${end} by `,
+          `All events together change your balance by ${end}${scenario.inflationAdjusted ? " (inflation adjusted)" : ""} by `,
           h("strong", { class: `events__total-value ${tone}`.trim() }, formatSignedMoney(scenario.totalEffect)),
           ".",
         );

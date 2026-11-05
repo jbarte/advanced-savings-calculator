@@ -10,6 +10,7 @@ export interface Actions {
   selectEvent(key: EventKey | null, month?: number): void;
   /** Remembers where the chart cursor is, after a key press. */
   setChartMonth(month: number): void;
+  setInflationAdjusted(on: boolean): void;
   updatePlan(patch: Partial<PlanFields>): void;
   startFromScratch(): void;
   /** Forgets the saved plan and shows the example again. */
