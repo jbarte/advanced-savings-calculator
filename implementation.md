@@ -10,9 +10,13 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   milestone 3 "Change my saving over time" (PR #5). PR #4 had been merged into its base
   `feature/foundation-fixes` after #3 was already in `main`, so it never reached `main`; PR #5 carried the
   same commits there.
-- **Open:** a small PR for the contrast of raised surfaces (`feature/contrast-fix`).
-- **Lesson:** a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
-  Retarget it (or open a new PR to `main`) before merging, and check that `main` has the commits.
+- **Merged into `main` as well:** the contrast of raised surfaces and dialogs (PR #6).
+- **Open:** a small PR that removes the white glow from all shadows (PR #7, `feature/contrast-fix`). Its
+  commit was pushed after #6 had been merged, so it did not reach `main` with #6.
+- **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
+  Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
+  check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
+  that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
 - **Next:** milestone 4 (overview) is planned in two PRs (timeline list, then chart). The plan waits for
   confirmation of five decisions (numbered badges, `depositLevels` kept, badges outside the tab order,
   no automatic scrolling on mobile, two PRs). Then milestone 5 (saving) and 6 (sharing).
@@ -121,11 +125,18 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     halo on the dimmed page. Now `.modal` uses `--frame` as background, a new `--shadow-dialog` (dark drop
     shadow plus the edge) and a darker `--backdrop` (0.35 to 0.55 in light mode), so the raised options and
     buttons stand out. The form dialogs get the same treatment.
+  - **No white glow anywhere:** the user disliked the white halo around raised elements. The light side of
+    the paired neo-tactile shadows was removed from all `--shadow-*` tokens in the light theme and both dark
+    themes (21 lines): `--shadow-inner`, `-lift`, `-float`, the `-sm` variants, `--shadow-inner-solid` and
+    `--shadow-on-color` (its white top highlight). Only dark shadows, the edge and the dialog shadow remain.
+    Left as they are: the text colour `--on-solid`, the slider thumb gradient and the translucent white fills
+    on coloured surfaces (`--on-color-fill`), since they are fills and not light. Rule added to CLAUDE.md.
 - **Decisions (confirmed):** keep the neo-tactile style and add an edge, instead of redesigning it; do it as a
   separate PR before milestone 4, which then builds on the new style.
 - **Checked:** computed styles show the ring (`0 0 0 1px rgb(184, 174, 159)`) and the green background. Looked
   at in light and dark mode: the container, the cards and the "Add event" dialog (options, Cancel, the
   dialog edge) have a clear edge, and the form dialog fields still read well on the new background. 258 tests, typecheck and build pass (CSS only, so no new tests).
-- **Known gaps:** only a visual check in two themes and one width; the edge is about 1.7 : 1, below the
+- **Known gaps:** without the light side, raised elements have a one-sided (bottom right) shadow, which is
+  flatter than the original neo-tactile look; only a visual check in two themes and one width; the edge is about 1.7 : 1, below the
   3 : 1 that WCAG 1.4.11 asks for on component boundaries. Chosen on purpose to keep the soft look, and open
   to a darker edge if wanted.
