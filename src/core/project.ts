@@ -1,6 +1,6 @@
 import { depositInMonth } from "./deposit-schedule";
 import { monthlyRate, roundToOre } from "./money";
-import type { AppliedWithdrawal, Ore, PlanInput, Projection, ProjectionPoint, WithdrawalInput } from "./types";
+import type { AppliedWithdrawal, OneTimeDepositInput, Ore, PlanInput, Projection, ProjectionPoint, WithdrawalInput } from "./types";
 
 function assertWholeOre(value: number, name: string): void {
   if (!Number.isSafeInteger(value) || value < 0) {
@@ -21,6 +21,12 @@ function assertValidPlan(plan: PlanInput): void {
     }
     if (change.endMonth !== null && !Number.isSafeInteger(change.endMonth)) {
       throw new RangeError(`Deposit change "${change.label}" must end in a whole month, got ${change.endMonth}`);
+    }
+  }
+  for (const deposit of plan.oneTimeDeposits) {
+    assertWholeOre(deposit.amount, `One-time deposit "${deposit.label}"`);
+    if (!Number.isSafeInteger(deposit.month) || deposit.month < 0) {
+      throw new RangeError(`One-time deposit "${deposit.label}" is dated before the start (month ${deposit.month})`);
     }
   }
   for (const withdrawal of plan.withdrawals) {
@@ -65,10 +71,16 @@ function applyWithdrawal(
   };
 }
 
+/** The sum of the one-time deposits dated in `month`. */
+function oneTimeDepositsInMonth(deposits: readonly OneTimeDepositInput[], month: number): Ore {
+  return deposits.reduce((sum, deposit) => (deposit.month === month ? sum + deposit.amount : sum), 0);
+}
+
 /**
- * Projects the balance month by month. Month 0 holds only the start amount. Each later month the
- * balance grows by the monthly rate (rounded to whole öre), then the deposit (see `depositInMonth`) is added, then that
- * month's withdrawals are taken out in list order, each capped at what is left.
+ * Projects the balance month by month. Month 0 holds the start amount (and any one-time deposit dated
+ * there). Each later month the balance grows by the monthly rate (rounded to whole öre), then the deposit
+ * (see `depositInMonth`) is added. Then, in every month, that month's one-time deposits are added and its
+ * withdrawals are taken out in list order, each capped at what is left.
  */
 export function project(plan: PlanInput): Projection {
   assertValidPlan(plan);
@@ -87,6 +99,11 @@ export function project(plan: PlanInput): Projection {
       deposited += deposit;
       assertSafeBalance(balance, month);
     }
+
+    const extra = oneTimeDepositsInMonth(plan.oneTimeDeposits, month);
+    balance += extra;
+    deposited += extra;
+    assertSafeBalance(balance, month);
 
     for (const withdrawal of withdrawalsInMonth(plan.withdrawals, month)) {
       const result = applyWithdrawal(balance, withdrawal);

@@ -9,6 +9,7 @@ const base: PlanInput = {
   annualReturnPct: 0,
   withdrawals: [],
   depositChanges: [],
+  oneTimeDeposits: [],
   months: 12,
 };
 
@@ -262,3 +263,59 @@ describe("project", () => {
     });
   });
 });
+
+describe("project: one-time deposits", () => {
+  it("adds the amount in its month and counts it as deposited", () => {
+    const { points } = project(plan({ oneTimeDeposits: [{ month: 3, amount: 500_000, label: "Bonus" }] }));
+    expect(points[2]?.balance).toBe(10_000_000);
+    expect(points[3]).toMatchObject({ balance: 10_500_000, deposited: 10_500_000, growth: 0 });
+    expect(points[12]?.balance).toBe(10_500_000);
+  });
+
+  it("is added after growth and the monthly deposit, so it earns nothing in its own month", () => {
+    const rate = 1.07 ** (1 / 12) - 1;
+    const month1 = project(
+      plan({ monthlyDeposit: 300_000, annualReturnPct: 7, oneTimeDeposits: [{ month: 1, amount: 500_000, label: "Bonus" }] }),
+    ).points[1];
+    expect(month1?.balance).toBe(Math.round(10_000_000 * (1 + rate)) + 300_000 + 500_000);
+  });
+
+  it("matches the closed form: the deposit grows for the months after its own", () => {
+    const m = 1.07 ** (1 / 12) - 1;
+    const end = project(plan({ startAmount: 0, annualReturnPct: 7, months: 60, oneTimeDeposits: [{ month: 24, amount: 10_000_000, label: "Gift" }] }))
+      .points[60];
+    const expected = 10_000_000 * (1 + m) ** 36;
+    expect(Math.abs((end?.balance ?? 0) - expected)).toBeLessThanOrEqual(40);
+  });
+
+  it("works in month 0 and is available to a withdrawal in the same month", () => {
+    const { points, withdrawals } = project(
+      plan({
+        startAmount: 0,
+        oneTimeDeposits: [{ month: 0, amount: 1_000_000, label: "Inheritance" }],
+        withdrawals: [{ month: 0, amount: 1_500_000, label: "Car" }],
+      }),
+    );
+    expect(points[0]).toMatchObject({ balance: 0, deposited: 1_000_000, withdrawn: 1_000_000 });
+    expect(withdrawals[0]).toMatchObject({ applied: 1_000_000, shortfall: 500_000 });
+  });
+
+  it("adds two deposits in the same month", () => {
+    const { points } = project(
+      plan({ oneTimeDeposits: [{ month: 2, amount: 100, label: "A" }, { month: 2, amount: 250, label: "B" }] }),
+    );
+    expect(points[2]?.balance).toBe(10_000_350);
+  });
+
+  it("has no effect when dated after the projection", () => {
+    const withIt = project(plan({ oneTimeDeposits: [{ month: 99, amount: 500_000, label: "Late" }] }));
+    expect(withIt.points).toEqual(project(plan({})).points);
+  });
+
+  it("rejects a negative amount, a fractional amount and a negative month", () => {
+    expect(() => project(plan({ oneTimeDeposits: [{ month: 1, amount: -1, label: "x" }] }))).toThrow(RangeError);
+    expect(() => project(plan({ oneTimeDeposits: [{ month: 1, amount: 1.5, label: "x" }] }))).toThrow(RangeError);
+    expect(() => project(plan({ oneTimeDeposits: [{ month: -1, amount: 1, label: "x" }] }))).toThrow(RangeError);
+  });
+});
+

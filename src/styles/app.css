@@ -773,7 +773,8 @@ button {
 }
 
 .table__badge--withdrawal,
-.table__badge--deposit-change {
+.table__badge--deposit-change,
+.table__badge--one-time-deposit {
   font-family: var(--font-mono);
   font-weight: 600;
   font-size: var(--text-sm);

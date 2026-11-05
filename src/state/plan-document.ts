@@ -28,6 +28,17 @@ export interface DepositChangeEvent {
 /** A deposit change before it has an id. */
 export type DepositChangeDraft = Omit<DepositChangeEvent, "id">;
 
+/** A single extra deposit in one month. Ids are numbered apart from the other kinds of event. */
+export interface OneTimeDepositEvent {
+  readonly id: number;
+  readonly date: YearMonth;
+  readonly amount: Ore;
+  readonly label: string;
+}
+
+/** A one-time deposit before it has an id. */
+export type OneTimeDepositDraft = Omit<OneTimeDepositEvent, "id">;
+
 /**
  * Everything that defines a plan, in a shape that can be saved and shared. Dates are real
  * year-months (not offsets), so changing the start date never moves an event.
@@ -41,10 +52,11 @@ export interface PlanDocument {
   readonly annualReturnPct: number;
   readonly withdrawals: readonly WithdrawalEvent[];
   readonly depositChanges: readonly DepositChangeEvent[];
+  readonly oneTimeDeposits: readonly OneTimeDepositEvent[];
 }
 
 /** The plan's single-value fields, edited in the Plan card. */
-export type PlanFields = Omit<PlanDocument, "version" | "withdrawals" | "depositChanges">;
+export type PlanFields = Omit<PlanDocument, "version" | "withdrawals" | "depositChanges" | "oneTimeDeposits">;
 
 /*
  * Input limits. Chosen so that even the largest allowed plan (maximum start amount and deposit at the
@@ -59,6 +71,10 @@ export const PLAN_LIMITS = {
   maxStartYear: 2100,
   maxWithdrawals: 50,
   maxDepositChanges: 50,
+  // Smaller than the monthly deposit: a one-time deposit in month 0 compounds for all 30 years, and ten of
+  // them at 5 000 000 kr still fit below Number.MAX_SAFE_INTEGER next to the largest start amount and deposit.
+  maxOneTimeDeposits: 10,
+  maxOneTimeDepositAmount: 500_000_000, // 5 000 000 kr
   maxLabelLength: 40,
 } as const;
 
@@ -74,10 +90,11 @@ export function createExamplePlan(today: YearMonth): PlanDocument {
     annualReturnPct: DEFAULT_RETURN_PCT,
     withdrawals: [{ id: 1, date: addMonths(today, 60), amount: 15_000_000, label: "New car" }],
     depositChanges: [],
+    oneTimeDeposits: [],
   };
 }
 
 /** An empty plan: nothing saved yet, with a typical return so it works as soon as an amount is typed. */
 export function createBlankPlan(today: YearMonth): PlanDocument {
-  return { version: 1, start: today, startAmount: 0, monthlyDeposit: 0, annualReturnPct: DEFAULT_RETURN_PCT, withdrawals: [], depositChanges: [] };
+  return { version: 1, start: today, startAmount: 0, monthlyDeposit: 0, annualReturnPct: DEFAULT_RETURN_PCT, withdrawals: [], depositChanges: [], oneTimeDeposits: [] };
 }

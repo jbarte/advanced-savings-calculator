@@ -7,7 +7,8 @@ import { withPlanChange } from "./state/plan-change";
 import { updatePlanFields } from "./state/plan-fields";
 import { currentRoute } from "./state/route";
 import { createStore } from "./state/store";
-import { depositChangeKey, withdrawalKey } from "./state/timeline";
+import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
+import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
 import { loadThemePreference, saveThemePreference, systemPrefersDark } from "./state/theme";
 import { PLAN_SCENARIO_ID, buildScenarioView } from "./state/view-model";
 import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
@@ -63,6 +64,12 @@ const actions: Actions = {
   removeDepositChange: (id) => {
     commitPlan((plan) => removeDepositChange(plan, id));
     deselectIf(depositChangeKey(id));
+  },
+  addOneTimeDeposit: (draft) => commitPlan((plan) => addOneTimeDeposit(plan, draft)),
+  updateOneTimeDeposit: (id, draft) => commitPlan((plan) => updateOneTimeDeposit(plan, id, draft)),
+  removeOneTimeDeposit: (id) => {
+    commitPlan((plan) => removeOneTimeDeposit(plan, id));
+    deselectIf(oneTimeDepositKey(id));
   },
   dismissNotice: () => store.update({ notice: null }),
   toggleTheme: () => {

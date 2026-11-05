@@ -27,6 +27,13 @@ export interface DepositChangeInput {
   readonly label: string;
 }
 
+/** A single extra deposit in one month (a bonus, an inheritance). Month 0 is the start month. */
+export interface OneTimeDepositInput {
+  readonly month: number;
+  readonly amount: Ore;
+  readonly label: string;
+}
+
 export interface PlanInput {
   readonly start: YearMonth;
   readonly startAmount: Ore;
@@ -35,6 +42,7 @@ export interface PlanInput {
   readonly annualReturnPct: number;
   readonly withdrawals: readonly WithdrawalInput[];
   readonly depositChanges: readonly DepositChangeInput[];
+  readonly oneTimeDeposits: readonly OneTimeDepositInput[];
   /** How many months to project. */
   readonly months: number;
 }

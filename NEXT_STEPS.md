@@ -126,7 +126,8 @@ Each milestone gives a visitor something new they can do.
 
 ### 4. "See everything at a glance" (requirement 4): in progress
 
-Two PRs. **4A (done in its PR):** one numbered timeline list replaces the two tables, rows can be selected.
+Two PRs. **One-time deposit** (requested after 4A, own PR): a third event kind. Its chart marker comes with 4B.
+**4A (done in its PR):** one numbered timeline list replaces the two tables, rows can be selected.
 **4B (next):** chart bands, numbered badges, lanes for overlapping labels, legend, and highlighting the
 selected event on the chart.
 

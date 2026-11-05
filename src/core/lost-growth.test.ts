@@ -10,6 +10,7 @@ const base: PlanInput = {
   annualReturnPct: 7,
   withdrawals: [{ month: 60, amount: 15_000_000, label: "Car" }],
   depositChanges: [],
+  oneTimeDeposits: [],
   months: 360,
 };
 

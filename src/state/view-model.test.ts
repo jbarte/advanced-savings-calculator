@@ -12,6 +12,7 @@ const plan: PlanDocument = {
   annualReturnPct: 7,
   withdrawals: [],
   depositChanges: [],
+  oneTimeDeposits: [],
 };
 
 const HORIZON_30 = 360;
@@ -32,6 +33,7 @@ describe("toPlanInput", () => {
       annualReturnPct: 7,
       withdrawals: [],
       depositChanges: [],
+      oneTimeDeposits: [],
       months: 120,
     });
   });
@@ -270,6 +272,52 @@ describe("deposit changes in the view model", () => {
       monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
       annualReturnPct: PLAN_LIMITS.maxReturnPct,
       depositChanges: changes,
+    };
+    const end = buildScenarioView(largest, "Largest", HORIZON_30).points[360]?.balance ?? 0;
+    expect(Number.isSafeInteger(end)).toBe(true);
+  });
+});
+
+describe("one-time deposits", () => {
+  const bonus = { id: 1, date: { year: 2027, month: 1 }, amount: 10_000_000, label: "Bonus" }; // month 12
+
+  it("turns each date into months after the start and leaves out one before the start", () => {
+    const withBonus: PlanDocument = { ...plan, oneTimeDeposits: [bonus, { ...bonus, id: 2, date: { year: 2025, month: 12 } }] };
+    expect(toPlanInput(withBonus, 360).oneTimeDeposits).toEqual([{ month: 12, amount: 10_000_000, label: "Bonus" }]);
+  });
+
+  it("lists them in date order with a status, and raises the end balance as the closed form says", () => {
+    const later = { ...bonus, id: 2, date: { year: 2060, month: 1 } };
+    const view = buildScenarioView({ ...plan, oneTimeDeposits: [later, bonus, { ...bonus, id: 3, date: { year: 2025, month: 6 } }] }, "P", HORIZON_30);
+    expect(view.oneTimeDeposits.map((d) => [d.id, d.status])).toEqual([[3, "before-start"], [1, "planned"], [2, "after-horizon"]]);
+
+    const m = 1.07 ** (1 / 12) - 1;
+    const base = buildScenarioView(plan, "P", HORIZON_30).points[360]?.balance ?? 0;
+    const withBonus = buildScenarioView({ ...plan, oneTimeDeposits: [bonus] }, "P", HORIZON_30).points[360]?.balance ?? 0;
+    expect(Math.abs(withBonus - base - 10_000_000 * (1 + m) ** 348)).toBeLessThanOrEqual(60);
+  });
+
+  it("stays exact for the largest allowed plan with the most one-time deposits at the largest amount in month 0", () => {
+    const deposits = Array.from({ length: PLAN_LIMITS.maxOneTimeDeposits }, (_, i) => ({
+      id: i + 1,
+      date: plan.start,
+      amount: PLAN_LIMITS.maxOneTimeDepositAmount,
+      label: `d${i}`,
+    }));
+    const changes = Array.from({ length: PLAN_LIMITS.maxDepositChanges }, (_, i) => ({
+      id: i + 1,
+      startDate: plan.start,
+      endDate: null,
+      amount: PLAN_LIMITS.maxMonthlyDeposit,
+      label: `c${i}`,
+    }));
+    const largest: PlanDocument = {
+      ...plan,
+      startAmount: PLAN_LIMITS.maxStartAmount,
+      monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
+      annualReturnPct: PLAN_LIMITS.maxReturnPct,
+      depositChanges: changes,
+      oneTimeDeposits: deposits,
     };
     const end = buildScenarioView(largest, "Largest", HORIZON_30).points[360]?.balance ?? 0;
     expect(Number.isSafeInteger(end)).toBe(true);

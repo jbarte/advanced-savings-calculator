@@ -1,7 +1,7 @@
 import { openModal, renderModal } from "./components";
 import { h } from "./dom";
 
-export type EventType = "withdrawal" | "deposit-change";
+export type EventType = "withdrawal" | "deposit-change" | "one-time-deposit";
 
 export interface EventTypeDialogProps {
   /** Which kinds have reached their limit and can't take another event. */
@@ -34,6 +34,7 @@ export function openEventTypeDialog(props: EventTypeDialogProps): void {
       "div",
       { class: "choices" },
       choice("withdrawal", "Withdrawal", "Take money out in a month"),
+      choice("one-time-deposit", "One-time deposit", "Add a single extra amount in a month"),
       choice("deposit-change", "Change monthly deposit", "Raise, lower or pause saving"),
     ),
     secondaryLabel: "Cancel",

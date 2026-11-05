@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PlannedDepositChange, PlannedWithdrawal } from "./types";
-import { buildTimeline, depositChangeKey, withdrawalKey } from "./timeline";
+import type { PlannedDepositChange, PlannedOneTimeDeposit, PlannedWithdrawal } from "./types";
+import { buildTimeline, depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./timeline";
 
 function withdrawal(id: number, month: number): PlannedWithdrawal {
   return {
@@ -29,35 +29,56 @@ function depositChange(id: number, startMonth: number): PlannedDepositChange {
   };
 }
 
+function oneTime(id: number, month: number): PlannedOneTimeDeposit {
+  return {
+    id,
+    label: `O${id}`,
+    date: { year: 2026 + Math.floor(month / 12), month: (month % 12) + 1 },
+    month,
+    amount: 100,
+    status: "planned",
+  };
+}
+
 describe("buildTimeline", () => {
   it("is empty without events", () => {
-    expect(buildTimeline([], [])).toEqual([]);
+    expect(buildTimeline([], [], [])).toEqual([]);
   });
 
   it("mixes both kinds in date order and numbers them from 1", () => {
-    const entries = buildTimeline([withdrawal(1, 60), withdrawal(2, 12)], [depositChange(1, 24)]);
+    const entries = buildTimeline([withdrawal(1, 60), withdrawal(2, 12)], [depositChange(1, 24)], []);
     expect(entries.map((e) => e.key)).toEqual([withdrawalKey(2), depositChangeKey(1), withdrawalKey(1)]);
     expect(entries.map((e) => e.number)).toEqual([1, 2, 3]);
   });
 
   it("puts a deposit change before a withdrawal in the same month, then orders by id", () => {
-    const entries = buildTimeline([withdrawal(5, 12), withdrawal(3, 12)], [depositChange(9, 12)]);
+    const entries = buildTimeline([withdrawal(5, 12), withdrawal(3, 12)], [depositChange(9, 12)], []);
     expect(entries.map((e) => e.key)).toEqual([depositChangeKey(9), withdrawalKey(3), withdrawalKey(5)]);
   });
 
   it("keeps events before the start first, since their month is negative", () => {
-    const entries = buildTimeline([withdrawal(1, 0)], [depositChange(1, -6)]);
+    const entries = buildTimeline([withdrawal(1, 0)], [depositChange(1, -6)], []);
     expect(entries.map((e) => e.key)).toEqual([depositChangeKey(1), withdrawalKey(1)]);
   });
 
   it("does not change its input", () => {
     const withdrawals = [withdrawal(1, 30), withdrawal(2, 6)];
-    buildTimeline(withdrawals, []);
+    buildTimeline(withdrawals, [], []);
     expect(withdrawals.map((w) => w.id)).toEqual([1, 2]);
   });
 
   it("gives every entry a key that is unique across kinds", () => {
-    const entries = buildTimeline([withdrawal(1, 1)], [depositChange(1, 1)]);
-    expect(new Set(entries.map((e) => e.key)).size).toBe(2);
+    const entries = buildTimeline([withdrawal(1, 1)], [depositChange(1, 1)], [oneTime(1, 1)]);
+    expect(new Set(entries.map((e) => e.key)).size).toBe(3);
+  });
+
+  it("orders one-time deposits between deposit changes and withdrawals in the same month", () => {
+    const entries = buildTimeline([withdrawal(1, 12)], [depositChange(1, 12)], [oneTime(1, 12), oneTime(2, 6)]);
+    expect(entries.map((e) => e.key)).toEqual([
+      oneTimeDepositKey(2),
+      depositChangeKey(1),
+      oneTimeDepositKey(1),
+      withdrawalKey(1),
+    ]);
   });
 });
