@@ -1,11 +1,12 @@
 import { formatYearMonth, yearsToMonths } from "../core/year-month";
 import type { EventKey, TimelineEntry } from "../state/timeline";
-import type { AppState, PlannedDepositChange, PlannedWithdrawal, ScenarioView } from "../state/types";
+import type { EventStatus, Ore } from "../state/types";
+import type { AppState, PlannedDepositChange, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
 import { h } from "./dom";
-import { formatMoney, formatMoneyCompact } from "./format";
+import { formatMoney, formatSignedMoney, formatSignedMoneyCompact } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
 import { openWithdrawalDialog } from "./withdrawal-dialog";
 
@@ -28,17 +29,41 @@ function periodText(change: PlannedDepositChange): string {
   return change.endDate === null ? `From ${from}, no end` : `${from} – ${formatYearMonth(change.endDate)}`;
 }
 
-function impactCell(withdrawal: PlannedWithdrawal, maxCost: number): HTMLElement {
-  const counted = withdrawal.status === "planned";
+/** What is shared by every row's effect cell: where it is measured and how long the longest bar is. */
+interface EffectScale {
+  /** The month the effect is measured at, e.g. "Nov 2056". */
+  readonly end: string;
+  /** The largest effect in the list (as a positive number), which gets a full bar. */
+  readonly max: Ore;
+}
+
+/** "442 743 kr of growth", or "−1 234 kr of growth" when the return is negative. */
+function growthText(growth: Ore): string {
+  return `${growth < 0 ? formatSignedMoney(growth) : formatMoney(growth)} of growth`;
+}
+
+/** Why an event that is not counted has no effect. */
+function noEffectReason(status: EventStatus, end: string): string {
+  return status === "before-start" ? "Before the plan starts, so it has no effect" : `After ${end}, so it has no effect by then`;
+}
+
+/**
+ * The effect of an event on the balance at the end of the horizon: a bar and a signed amount, red for a loss and
+ * green for a gain. `explain` is the full sentence shown on hover.
+ */
+function effectCell(effect: Ore, status: EventStatus, scale: EffectScale, explain: string): HTMLElement {
+  const counted = status === "planned";
+  const tone = !counted || effect === 0 ? "" : effect < 0 ? " impact--loss" : " impact--gain";
   return h(
     "div",
-    { class: "impact", role: "cell" },
-    h("div", { class: "impact__track" }, h("div", { class: "impact__fill", style: `width:${counted ? (withdrawal.lostGrowth / maxCost) * 100 : 0}%` })),
-    h("span", { class: "impact__value", title: counted ? formatMoney(withdrawal.lostGrowth) : undefined }, counted ? formatMoneyCompact(withdrawal.lostGrowth) : "–"),
+    { class: `impact${tone}`, role: "cell", title: counted ? explain : noEffectReason(status, scale.end) },
+    h("span", { class: "impact__label" }, `Effect by ${scale.end}`),
+    h("div", { class: "impact__track" }, h("div", { class: "impact__fill", style: `width:${counted ? (Math.abs(effect) / scale.max) * 100 : 0}%` })),
+    h("span", { class: "impact__value" }, counted ? formatSignedMoneyCompact(effect) : "–"),
   );
 }
 
-function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, maxCost: number, actions: Actions): RowParts {
+function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, scale: EffectScale, actions: Actions): RowParts {
   const { withdrawal } = entry;
   const reduced = withdrawal.status === "planned" && withdrawal.shortfall > 0;
   const when = formatYearMonth(withdrawal.date);
@@ -47,7 +72,13 @@ function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, maxCost
     sub: reduced ? `Withdrawal · ${when} · only ${formatMoney(withdrawal.applied)} was available` : `Withdrawal · ${when}`,
     amount: formatMoney(withdrawal.amount),
     chips: [h("span", { class: "chip" }, STATUS_LABELS[withdrawal.status]), reduced ? h("span", { class: "chip chip--warn" }, "Reduced") : null],
-    impact: impactCell(withdrawal, maxCost),
+    impact: effectCell(
+      withdrawal.effect,
+      withdrawal.status,
+      scale,
+      `${formatSignedMoney(withdrawal.effect)} by ${scale.end}: ${formatMoney(withdrawal.applied)} taken out, and ` +
+        `${formatMoney(withdrawal.lostGrowth)} of growth it would have earned`,
+    ),
     edit: () =>
       openWithdrawalDialog({
         start: scenario.start,
@@ -58,14 +89,19 @@ function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, maxCost
   };
 }
 
-function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, actions: Actions): RowParts {
+function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, scale: EffectScale, actions: Actions): RowParts {
   const { change } = entry;
   return {
     title: change.label,
     sub: `Deposit change · ${periodText(change)}`,
     amount: change.amount === 0 ? "Paused" : `${formatMoney(change.amount)}/mo`,
     chips: [h("span", { class: "chip" }, STATUS_LABELS[change.status])],
-    impact: h("div", { class: "impact impact--empty", role: "cell" }),
+    impact: effectCell(
+      change.effect,
+      change.status,
+      scale,
+      `${formatSignedMoney(change.effect)} by ${scale.end}, compared with keeping the deposit as it was`,
+    ),
     edit: () =>
       openDepositChangeDialog({
         start: scenario.start,
@@ -76,14 +112,20 @@ function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, a
   };
 }
 
-function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry, actions: Actions): RowParts {
+function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry, scale: EffectScale, actions: Actions): RowParts {
   const { deposit } = entry;
   return {
     title: deposit.label,
     sub: `One-time deposit · ${formatYearMonth(deposit.date)}`,
     amount: `+${formatMoney(deposit.amount)}`,
     chips: [h("span", { class: "chip" }, STATUS_LABELS[deposit.status])],
-    impact: h("div", { class: "impact impact--empty", role: "cell" }),
+    impact: effectCell(
+      deposit.effect,
+      deposit.status,
+      scale,
+      `${formatSignedMoney(deposit.effect)} by ${scale.end}: ${formatMoney(deposit.amount)} deposited, and ` +
+        `${growthText(deposit.effect - deposit.amount)} on it`,
+    ),
     edit: () =>
       openOneTimeDepositDialog({
         start: scenario.start,
@@ -94,14 +136,14 @@ function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry,
   };
 }
 
-function rowParts(scenario: ScenarioView, entry: TimelineEntry, maxCost: number, actions: Actions): RowParts {
+function rowParts(scenario: ScenarioView, entry: TimelineEntry, scale: EffectScale, actions: Actions): RowParts {
   switch (entry.kind) {
     case "withdrawal":
-      return withdrawalParts(scenario, entry, maxCost, actions);
+      return withdrawalParts(scenario, entry, scale, actions);
     case "deposit-change":
-      return depositChangeParts(scenario, entry, actions);
+      return depositChangeParts(scenario, entry, scale, actions);
     case "one-time-deposit":
-      return oneTimeDepositParts(scenario, entry, actions);
+      return oneTimeDepositParts(scenario, entry, scale, actions);
   }
 }
 
@@ -109,10 +151,10 @@ function renderRow(
   scenario: ScenarioView,
   entry: TimelineEntry,
   selected: EventKey | null,
-  maxCost: number,
+  scale: EffectScale,
   actions: Actions,
 ): HTMLElement {
-  const parts = rowParts(scenario, entry, maxCost, actions);
+  const parts = rowParts(scenario, entry, scale, actions);
   const isSelected = entry.key === selected;
 
   return h(
@@ -178,7 +220,8 @@ export function renderTimelineList(
   actions: Actions,
 ): HTMLElement {
   const endLabel = monthLabel(scenario, yearsToMonths(state.horizon));
-  const maxCost = Math.max(1, ...scenario.withdrawals.filter((w) => w.status === "planned").map((w) => w.lostGrowth));
+  const effects = [...scenario.withdrawals, ...scenario.depositChanges, ...scenario.oneTimeDeposits].map((event) => Math.abs(event.effect));
+  const scale: EffectScale = { end: endLabel, max: Math.max(1, ...effects) };
 
   const head = h(
     "div",
@@ -186,7 +229,7 @@ export function renderTimelineList(
     h("span", { role: "columnheader" }, "Event"),
     h("span", { role: "columnheader" }, "Amount"),
     h("span", { role: "columnheader" }, "Status"),
-    h("span", { role: "columnheader" }, `Lost growth by ${endLabel}`),
+    h("span", { role: "columnheader" }, `Effect by ${endLabel}`),
     h("span", { class: "visually-hidden", role: "columnheader" }, "Actions"),
   );
 
@@ -197,7 +240,7 @@ export function renderTimelineList(
       "div",
       { class: "table", role: "table", "aria-label": "Planned events in date order" },
       head,
-      ...timeline.map((entry) => renderRow(scenario, entry, state.selectedEvent, maxCost, actions)),
+      ...timeline.map((entry) => renderRow(scenario, entry, state.selectedEvent, scale, actions)),
     ),
   );
 }

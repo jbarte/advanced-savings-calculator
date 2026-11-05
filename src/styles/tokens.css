@@ -62,6 +62,11 @@
   --kind-one-time-deposit: var(--accent-ink);
   --kind-one-time-deposit-fill: var(--accent-soft);
 
+  /* The effect of an event: a loss in the danger colour, a gain in green. */
+  --effect-loss: var(--danger);
+  --effect-gain: var(--accent-ink);
+  --effect-gain-fill: var(--solid);
+
   --thumb: linear-gradient(145deg, #ffffff, #ebe6df);
   --on-color-fill: rgb(255 255 255 / 0.18);
   --on-color-fill-hover: rgb(255 255 255 / 0.26);

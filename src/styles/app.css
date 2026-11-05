@@ -930,6 +930,41 @@ button {
   text-align: right;
 }
 
+/* Shown only on phones, where the column header is hidden. */
+.impact__label {
+  display: none;
+}
+
+/* A loss is red and a gain green, so the effect reads at a glance (bar and amount). */
+.impact--loss .impact__fill {
+  background: var(--effect-loss);
+}
+
+.impact--loss .impact__value,
+.events__total-value--loss {
+  color: var(--effect-loss);
+}
+
+.impact--gain .impact__fill {
+  background: var(--effect-gain-fill);
+}
+
+.impact--gain .impact__value,
+.events__total-value--gain {
+  color: var(--effect-gain);
+}
+
+.events__total {
+  margin: 0 0 var(--space-3);
+  color: var(--ink2);
+  font-size: var(--text-sm);
+}
+
+.events__total-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
 .chip {
   font-size: 12px;
   padding: 4px 10px;
@@ -1883,7 +1918,10 @@ button {
     grid-area: impact;
   }
 
-  .impact--empty {
-    display: none;
+  .impact__label {
+    display: block;
+    flex: none;
+    font-size: var(--text-xs);
+    color: var(--muted);
   }
 }

@@ -225,6 +225,10 @@ All confirmed in the code:
 
 ### Milestone 7: "What is every event worth?" (includes "show lost growth as a loss")
 
+**7A (done):** the effect column for all kinds (total effect on the end balance, decided), red and green,
+the total, the speed-up and cache, the phone label and the wording. **7B (next):** the chart and list
+interplay and the select button's accessible name.
+
 The product promise is to make the cost of a decision visible, but only withdrawals show an effect today:
 the column is empty for a one-time deposit or a pause.
 
@@ -299,7 +303,7 @@ the column is empty for a one-time deposit or a pause.
    Enter. Updating on every keystroke or while dragging needs the form built once and only the results
    re-rendered. Recommendation: keep "on change"; milestone 8 uses a typed end year instead of a slider.
 3. **Scenario tabs:** decided: hidden until milestone 11.
-4. **What does the effect column show (milestone 7)?** Still open. With the example plan: the car
+4. **What does the effect column show (milestone 7)?** Decided: the total effect on the end balance. With the example plan: the car
    (150 000 kr) costs 664 115 kr in growth only, or 814 115 kr as the total effect on the end balance (the
    amount plus its growth); a 12-month pause has a total effect of 246 944 kr. Recommendation: one meaning for
    the whole column, the total effect on the end balance, so all three kinds read the same way.
