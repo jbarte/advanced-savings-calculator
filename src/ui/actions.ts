@@ -1,4 +1,4 @@
-import type { DepositChangeDraft, OneTimeDepositDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
+import type { DepositChangeDraft, GoalPlan, OneTimeDepositDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
 import type { EventKey } from "../state/timeline";
 import type { Metric } from "../state/types";
 
@@ -21,6 +21,8 @@ export interface Actions {
   addDepositChange(draft: DepositChangeDraft): void;
   updateDepositChange(id: number, draft: DepositChangeDraft): void;
   removeDepositChange(id: number): void;
+  setGoal(goal: GoalPlan): void;
+  clearGoal(): void;
   addOneTimeDeposit(draft: OneTimeDepositDraft): void;
   updateOneTimeDeposit(id: number, draft: OneTimeDepositDraft): void;
   removeOneTimeDeposit(id: number): void;

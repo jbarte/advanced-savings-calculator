@@ -4,7 +4,20 @@ import type { AppState, Metric, ScenarioView } from "../state/types";
 import { eventsAtMonth } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
-import { areaPath, axisMonths, axisTicks, cursorAfterKey, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
+import {
+  areaPath,
+  axisMonths,
+  axisTicks,
+  chartGoalLine,
+  cursorAfterKey,
+  isAllZero,
+  linePath,
+  nearestIndex,
+  niceScale,
+  toPoints,
+  valueToPercent,
+  zeroLine,
+} from "./chart-geometry";
 import { renderChartEvents, renderChartLegend } from "./chart-events";
 import { renderEmptyState, renderToggle } from "./components";
 import { h, s } from "./dom";
@@ -120,7 +133,7 @@ export function renderChartCard(
       ),
     ),
     renderChartOrEmptyState(scenario, state, timeline, actions),
-    renderChartLegend(timeline),
+    renderChartLegend(timeline, chartGoalValue(scenario, state) !== null),
   );
 }
 
@@ -151,6 +164,18 @@ function eventLabel(entry: TimelineEntry): string {
   }
 }
 
+/**
+ * Where the goal line goes on the chart, or null for none. It shows for the balance, for a goal inside the
+ * chart's months, and (when the inflation switch is on) at the goal's value in today's money, so it sits at the
+ * same height as the balance it is compared with.
+ */
+function chartGoalValue(scenario: ScenarioView, state: AppState): number | null {
+  const { goal } = scenario;
+  if (state.metric !== "balance" || goal === null || goal.status !== "ok" || !goal.withinHorizon) return null;
+  const highest = Math.max(...visiblePoints(scenario).map((point) => point.balance));
+  return chartGoalLine(scenario.inflationAdjusted ? goal.targetInflationAdjusted : goal.target, highest);
+}
+
 function renderChart(
   scenario: ScenarioView,
   state: AppState,
@@ -159,7 +184,8 @@ function renderChart(
 ): HTMLElement {
   const points = visiblePoints(scenario);
   const values = points.map((p) => p[state.metric]);
-  const scale = niceScale(Math.min(...values), Math.max(...values));
+  const goalValue = chartGoalValue(scenario, state);
+  const scale = niceScale(Math.min(...values), Math.max(Math.max(...values), goalValue ?? 0));
   const ticks = axisTicks(scale);
   const coords = toPoints(values, scale);
   const zeroY = zeroLine(scale);
@@ -246,6 +272,13 @@ function renderChart(
     h("div", { class: "chart__grid", "aria-hidden": "true" }, ...ticks.map(() => h("div"))),
     scale.min < 0 ? h("div", { class: "chart__zero", style: `top:${zeroY}%`, "aria-hidden": "true" }) : null,
     svg,
+    goalValue === null
+      ? null
+      : h(
+          "div",
+          { class: "chart__goal", style: `top:${valueToPercent(goalValue, scale)}%`, "aria-hidden": "true" },
+          h("span", {}, `Goal ${formatMoneyCompact(goalValue)}`),
+        ),
     ...renderChartEvents(timeline, totalMonths, state.selectedEvent, actions),
     cursor,
     dot,

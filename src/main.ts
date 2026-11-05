@@ -14,6 +14,7 @@ import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/time
 import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
 import { loadThemePreference, onSystemThemeChange, saveThemePreference, systemPrefersDark } from "./state/theme";
 import { PLAN_SCENARIO_ID, applyInflationAdjustment, createScenarioViewCache } from "./state/view-model";
+import { clearGoal, setGoal } from "./state/goal";
 import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
 import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
 import type { Actions } from "./ui/actions";
@@ -102,6 +103,8 @@ const actions: Actions = {
     commitPlan((plan) => removeDepositChange(plan, id));
     deselectIf(depositChangeKey(id));
   },
+  setGoal: (goal) => commitPlan((plan) => setGoal(plan, goal)),
+  clearGoal: () => commitPlan((plan) => clearGoal(plan)),
   addOneTimeDeposit: (draft) => commitPlan((plan) => addOneTimeDeposit(plan, draft)),
   updateOneTimeDeposit: (id, draft) => commitPlan((plan) => updateOneTimeDeposit(plan, id, draft)),
   removeOneTimeDeposit: (id) => {

@@ -30,10 +30,10 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–6 are done: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–9 are done: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 the effect of every event shown, and the monthly deposit can be changed from a month or for a period
-(including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+(including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. The horizon can be set freely, results can be shown inflation adjusted, and a savings goal shows the monthly deposit needed. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -181,6 +181,13 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     before the plan start or after the 40-year projection has status `before-start` or `after-projection` and no
     numbers. The solver adds about 20 ms for the worst plan (110 events, 40 years); the view cache hides it on
     re-renders that don't change the plan.
+  - **The goal in the UI:** the goal card (`goal-card.ts`) shows a prompt to set a goal, or the gauge, the balance at
+    the goal date, the deposit needed (with how much more or less than the plan saves now) and when the goal is
+    reached; Edit and Remove sit in its header (`goal-dialog.ts`, `goal-text.ts`). On the chart the goal is a dashed
+    line at the goal amount, drawn only for the balance, only inside the chart's months and only when the goal is at
+    most `GOAL_LINE_MAX_FACTOR` (3) times the highest balance (otherwise it would flatten the curve); the chart's
+    scale includes it. With the inflation switch on, the line sits at the goal's value in today's money so it stays
+    level with the balance it is compared with.
   - **The monthly rate is the effective rate:** `(1 + yearly)^(1/12) − 1`, from
     `monthlyRate()` in `src/core/money.ts`. Twelve months of compounding give exactly
     the yearly return. Never use `yearly / 12`.
@@ -420,7 +427,10 @@ with the toggle.
     │   ├── amount-event-dialog.ts # Dialog for an amount in one month (withdrawal, one-time deposit)
     │   ├── one-time-deposit-dialog.ts # openOneTimeDepositDialog: the amount dialog for one-time deposits
     │   ├── withdrawal-dialog.ts # openWithdrawalDialog: the amount dialog for withdrawals
-    │   ├── side-cards.ts     # Bento cards: plan inputs, goal gauge, scenario comparison
+    │   ├── side-cards.ts     # Bento cards: plan inputs, scenario comparison
+    │   ├── goal-card.ts      # The goal card: set a goal, or the gauge, the deposit needed, edit and remove
+    │   ├── goal-dialog.ts    # Dialog to set or edit the goal
+    │   ├── goal-text.ts      # requiredDepositText: words for the deposit needed next to today's (+ test)
     │   ├── components.ts     # Design-system components (toggle, slider, toast, modal …)
     │   ├── design-system.ts  # Reference page for tokens and components (#design-system)
     │   └── theme.ts          # Applies the theme to <html>

@@ -1,14 +1,14 @@
-import { MONTHS_PER_YEAR, addMonths, formatYearMonth } from "../core/year-month";
+import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
-import type { AppState, GoalSummary, ScenarioView } from "../state/types";
+import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderTextField } from "./components";
-import { h, s } from "./dom";
-import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
+import { h } from "./dom";
+import { formatKronor, formatMoneyCompact } from "./format";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
 import { openStartOverDialog } from "./start-over-dialog";
-import { lastPoint, monthLabel } from "./view-helpers";
+import { lastPoint } from "./view-helpers";
 
 interface ParsedFieldProps<T> {
   readonly id: string;
@@ -157,54 +157,6 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
         parse: (text) => parseEndYear(text, scenario.start.year),
         apply: (horizonYears) => actions.updatePlan({ horizonYears }),
       }),
-    ),
-  );
-}
-
-export function renderGoalCard(scenario: ScenarioView, goal: GoalSummary): HTMLElement {
-  const pct = goal.percentReached;
-  const arc = "M22 104 A78 78 0 0 1 178 104";
-  const arcAttrs = { d: arc, fill: "none", "stroke-width": 22, pathLength: 100 };
-
-  const gauge = h(
-    "div",
-    { class: "gauge" },
-    s(
-      "svg",
-      { viewBox: "0 0 200 116", "aria-hidden": "true" },
-      s("path", { ...arcAttrs, class: "gauge__track" }),
-      s("path", { ...arcAttrs, class: "gauge__value", "stroke-dasharray": `${Math.max(0, pct - 4.5)} 200` }),
-      s("path", { ...arcAttrs, class: "gauge__tip", "stroke-dasharray": `${Math.min(pct, 3.5)} 200`, "stroke-dashoffset": -Math.max(0, pct - 3.5) }),
-    ),
-    h(
-      "div",
-      { class: "gauge__label" },
-      h("div", { class: "gauge__number" }, h("strong", {}, String(pct)), h("span", {}, "%")),
-      h("span", { class: "card__meta" }, `of ${formatMoney(goal.target)}`),
-    ),
-  );
-
-  const reached =
-    goal.reachedMonth === null ? "Not within the horizon" : formatYearMonth(addMonths(scenario.start, goal.reachedMonth));
-  const stat = (label: string, value: string): HTMLElement =>
-    h("div", { class: "stats__row" }, h("dt", {}, label), h("dd", {}, value));
-
-  return h(
-    "section",
-    { class: "card", "aria-labelledby": "goal-heading", role: "group" },
-    h(
-      "div",
-      { class: "card__head" },
-      h("h2", { id: "goal-heading" }, `Goal by ${monthLabel(scenario, goal.month)}`),
-      h("span", { class: "status" }, goal.shortfall === 0 ? "On track" : `Short ${formatMoneyCompact(goal.shortfall)}`),
-    ),
-    gauge,
-    h(
-      "dl",
-      { class: "stats" },
-      stat("Projected balance", formatMoney(goal.balanceAtGoal)),
-      stat("Monthly deposit needed", goal.requiredMonthly === null ? "Not reachable" : `${formatMoney(goal.requiredMonthly)}/mo`),
-      stat("Goal reached", reached),
     ),
   );
 }

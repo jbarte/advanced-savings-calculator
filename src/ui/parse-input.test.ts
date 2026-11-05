@@ -5,6 +5,7 @@ import {
   monthInputValue,
   parseDepositAmount,
   parseEndYear,
+  parseGoalAmount,
   parseInflationPct,
   parseKronor,
   parseLabel,
@@ -277,6 +278,19 @@ describe("parseInflationPct", () => {
     ["-6", "Use -5 % or more"],
   ])("rejects %j with a message", (text, message) => {
     expect(parseInflationPct(text)).toEqual({ ok: false, message });
+  });
+});
+
+describe("parseGoalAmount", () => {
+  it("accepts whole kronor from 1 up to the goal limit", () => {
+    expect(parseGoalAmount("4 000 000")).toEqual({ ok: true, value: 400_000_000 });
+    expect(parseGoalAmount("100 000 000")).toEqual({ ok: true, value: 10_000_000_000 });
+  });
+
+  it("rejects 0, more than the limit, and text", () => {
+    expect(parseGoalAmount("0")).toEqual({ ok: false, message: "Enter an amount above 0" });
+    expect(parseGoalAmount("100 000 001").ok).toBe(false);
+    expect(parseGoalAmount("lots").ok).toBe(false);
   });
 });
 

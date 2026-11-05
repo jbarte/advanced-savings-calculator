@@ -36,6 +36,8 @@ long-term cost of a decision like that visible.
   and when do you get there?
 - **Inflation adjusted view.** A switch shows the results adjusted for inflation (2 % a year by default, you can
   change it), so a balance in 30 years reads in what it would buy today. What you enter stays as entered.
+- **A savings goal.** Say how much you want by when, and see how close the plan gets, the monthly deposit you
+  would need with all your planned events kept, and when you reach it. The goal is a dashed line on the chart.
 - **Your own time horizon**, from 1 to 40 years (with 10, 20 and 30 years one click away), with an interactive
   chart for balance, deposits, growth and withdrawals.
 - **Light and dark mode** that follows the system setting.
