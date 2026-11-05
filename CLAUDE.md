@@ -294,8 +294,10 @@ with the toggle.
 - Build DOM with the `h()` / `s()` helpers in `src/ui/dom.ts`. Never use `innerHTML`
   with user-provided text.
 - The layout must work at phone width (375px) with no horizontal page scroll.
-- Interactive elements are real `<button>`s or inputs with accessible labels. The chart
-  can be used with the keyboard (arrow keys).
+- Interactive elements are real `<button>`s or inputs with accessible labels. The chart is a slider over
+  the months (`role="slider"` with a value text that names the month, the value and its events): arrows move one
+  month, Page Up and Page Down one year, Home and End to the ends (`cursorAfterKey`). The cursor rests at
+  `AppState.chartMonth`, set by the keys and by selecting an event; pointer moves don't change it.
 
 ## Rules
 
@@ -356,7 +358,7 @@ with the toggle.
     │   ├── reference-values.test.ts # Hand- and script-checked results, pinned to the öre
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
-    │   ├── timeline.ts       # buildTimeline: both event kinds in date order, numbered; EventKey (+ test)
+    │   ├── timeline.ts       # buildTimeline, EventKey, eventsAtMonth, chartMonthOf, isPlanned (+ test)
     │   ├── read-plan.ts      # readPlanDocument/readPlanText: untrusted data → PlanDocument; serializePlan (+ test)
     │   ├── plan-storage.ts   # loadSavedPlan, savePlan, clearSavedPlan on localStorage (+ test)
     │   ├── startup-plan.ts   # resolveStartupPlan: what to show when the page opens (+ test)

@@ -11,6 +11,7 @@ const initial: AppState = {
   horizon: 30,
   metric: "balance",
   selectedEvent: null,
+  chartMonth: null,
   theme: "system",
   notice: null,
 };

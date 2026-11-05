@@ -763,6 +763,18 @@ button {
   color: var(--on-solid-muted);
 }
 
+/* The events of the hovered month, by their number in the list. */
+.chart__tooltip-events {
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs);
+}
+
+.chart__tooltip-events:empty {
+  display: none;
+}
+
 .chart__x {
   display: flex;
   justify-content: space-between;

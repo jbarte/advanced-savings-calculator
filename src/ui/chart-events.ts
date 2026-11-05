@@ -1,6 +1,6 @@
 import { formatYearMonth } from "../core/year-month";
-import type { TimelineEntry } from "../state/timeline";
-import type { EventKey } from "../state/timeline";
+import { chartMonthOf, isPlanned } from "../state/timeline";
+import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
 import { assignLanes, bandExtent, monthToPercent } from "./chart-geometry";
 import { h } from "./dom";
@@ -34,20 +34,6 @@ function describe(entry: TimelineEntry): string {
       return `${deposit.label}: add ${formatMoney(deposit.amount)} in ${formatYearMonth(deposit.date)}`;
     }
   }
-}
-
-/** The events that fall inside the chart: not before the plan start and not after the horizon. */
-export function visibleEvents(timeline: readonly TimelineEntry[]): TimelineEntry[] {
-  return timeline.filter((entry) => {
-    switch (entry.kind) {
-      case "withdrawal":
-        return entry.withdrawal.status === "planned";
-      case "deposit-change":
-        return entry.change.status === "planned";
-      case "one-time-deposit":
-        return entry.deposit.status === "planned";
-    }
-  });
 }
 
 function periodBand(entry: TimelineEntry, totalMonths: number, selected: boolean): HTMLElement | null {
@@ -85,7 +71,7 @@ function badge(entry: TimelineEntry, x: number, lane: number, selected: EventKey
       "aria-pressed": String(isSelected),
       "aria-label": `Event ${entry.number}: ${text}`,
       title: text,
-      onclick: () => actions.selectEvent(isSelected ? null : entry.key),
+      onclick: () => actions.selectEvent(isSelected ? null : entry.key, chartMonthOf(entry)),
     },
     String(entry.number),
   );
@@ -101,7 +87,7 @@ export function renderChartEvents(
   selected: EventKey | null,
   actions: Actions,
 ): HTMLElement[] {
-  const events = visibleEvents(timeline);
+  const events = timeline.filter(isPlanned);
   const xs = events.map((entry) => monthToPercent(entry.month, totalMonths));
   const lanes = assignLanes(xs, MIN_BADGE_GAP, MAX_LANES);
 
@@ -113,7 +99,7 @@ export function renderChartEvents(
 
 /** A key to the kinds of event on the chart. Only kinds that are drawn are listed. Null when nothing is drawn. */
 export function renderChartLegend(timeline: readonly TimelineEntry[]): HTMLElement | null {
-  const kinds = new Set(visibleEvents(timeline).map((entry) => entry.kind));
+  const kinds = new Set(timeline.filter(isPlanned).map((entry) => entry.kind));
   if (kinds.size === 0) return null;
   const items = (Object.keys(KIND_LABELS) as TimelineEntry["kind"][])
     .filter((kind) => kinds.has(kind))
