@@ -1,8 +1,15 @@
 import type { ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h, s } from "./dom";
+import { renderLogo } from "./logo";
 import { openShareDialog } from "./share-dialog";
 import { messages } from "./i18n";
+
+function renderBrandLogo(): SVGSVGElement {
+  const logo = renderLogo();
+  logo.classList.add("brand__logo");
+  return logo;
+}
 
 const sunIcon = (): SVGSVGElement =>
   s(
@@ -77,7 +84,7 @@ export function renderAppBar(
     h(
       "div",
       { class: "brand appbar__brand" },
-      h("div", { class: "brand__mark", "aria-hidden": "true" }),
+      renderBrandLogo(),
       h("div", { class: "brand__name" }, messages.app.brandName, h("span", {}, messages.app.brandSuffix)),
     ),
     scenarios.length > 1 ? renderScenarioTabs(scenarios, active, actions) : null,

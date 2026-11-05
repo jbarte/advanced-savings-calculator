@@ -21,6 +21,8 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Open:** milestone 8B, inflation adjusted (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
+- **Rebrand:** the app is now called **Life Ledger** and is described as a long-term financial planner (branch
+  `feature/rebrand-life-ledger`). The repo, URL and storage keys keep the old name.
 - **Tests:** 494 (`npm test`), typecheck and build pass.
 
 ## Working rules
@@ -553,3 +555,36 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** the typing guarantees the shape of a translation but not that it is a good one; texts in `src/state`
   and `src/main.ts` notices are still English literals (10B).
 
+### Rebrand: "Life Ledger", a long-term financial planner (branch `feature/rebrand-life-ledger`)
+- **Why:** "Savings calc" undersold a tool that already plans withdrawals, deposit changes, one-time deposits, goals
+  and inflation, and the green tile with a white dot was generic.
+- **Built:**
+  - `src/ui/logo.ts`: `renderLogo()`, an SVG made with `s()`: rising ledger bars on the green tile, one bar cut
+    down to a stub in the withdrawal colour and the next one restarting lower (the later cost of one decision).
+    Decorative (`aria-hidden`); the wordmark carries the name. It replaces `.brand__mark` in the app bar, and the
+    design-system page shows it at 16–48 px.
+  - Token `--logo-gap` (the withdrawal colour in Linen, lightened to `#c08a7e` in Dusk, where `--elevated` was too
+    dark on the green tile). Classes `.brand__logo`, `.logo__tile`, `.logo__bar`, `.logo__gap`.
+  - `public/favicon.svg` with the same shape and a `prefers-color-scheme` block for dark browser chrome.
+  - `index.html`: the title "Life Ledger: long-term financial planner", a broader description, `og:title`,
+    `og:description` and `og:type`, `theme-color` for light and dark, the icon link (Vite adds the base path).
+  - Texts: wordmark "Life" + " Ledger" (bold + muted, as before); hero subtitle "How your money grows" instead
+    of "How your savings grow".
+- **Decisions:**
+  - The name was picked by the user from several rounds: brand-like names were declined, plain descriptive ones were
+    too dull.
+  - The logo was picked from a concept sheet with three directions (notch, LL monogram, ledger bars), three variants
+    each, in both themes at 16–48 px.
+  - Visible brand only: the repo, the Pages URL, Vite `base`, `package.json` and the storage keys
+    (`advanced-savings-calculator:plan` / `:theme`) keep the old name, so saved plans and share links keep working.
+  - No tagline.
+  - The favicon, `theme-color` and Open Graph text are pulled forward from milestone 12 ("page basics"). An Open
+    Graph image is still left out.
+- **Checked:**
+  - Typecheck, build and 494 tests pass. `dist/index.html` links `/advanced-savings-calculator/favicon.svg`, and the
+    file is served as `image/svg+xml`.
+  - Browser: the app bar in Linen and Dusk, the computed fills of the tile and the stub in each theme, 375 px with no
+    horizontal scroll, `document.title`, and 5 new metas. The mark has no accessible name, and the brand reads
+    "Life Ledger".
+  - Text changes: only the wordmark and the hero subtitle (`git diff src/ui/i18n/en.ts`). The 49-state comparison
+    from 10A was not rerun.

@@ -11,6 +11,7 @@ import {
   renderToggle,
 } from "./components";
 import { h } from "./dom";
+import { renderLogo } from "./logo";
 import { renderThemeButton } from "./topbar";
 
 const section = (title: string, ...children: Array<Node | null>): HTMLElement =>
@@ -31,6 +32,20 @@ const field = (id: string, label: string, placeholder: string): HTMLElement =>
     h("label", { for: id }, label),
     h("div", { class: "field__control" }, h("input", { id, type: "text", placeholder })),
   );
+
+function renderBrand(): HTMLElement {
+  const sized = (size: number): SVGSVGElement => {
+    const logo = renderLogo();
+    logo.setAttribute("width", String(size));
+    logo.setAttribute("height", String(size));
+    return logo;
+  };
+  return section(
+    "Logo",
+    h("div", { class: "ds__row" }, ...[16, 24, 32, 48].map((size) => item(sized(size), `${size}px`))),
+    h("span", { class: "ds__caption" }, "Ledger bars with one cut down to a stub: the later cost of one decision."),
+  );
+}
 
 function renderCards(): HTMLElement {
   return section(
@@ -228,6 +243,7 @@ export function renderDesignSystem(root: HTMLElement, isDark: boolean, actions: 
             h("div", {}, h("h1", {}, "Neo-Tactile Soft UI"), h("p", {}, "Tokens and components. "), h("a", { class: "ds__back", href: "#" }, "← Back to calculator")),
             renderThemeButton(isDark, actions),
           ),
+          renderBrand(),
           renderCards(),
           renderButtons(),
           renderForms(),

@@ -38,8 +38,8 @@ export const en = {
     oneTimeDeposit: "One-time deposit",
   },
   app: {
-    brandName: "Savings",
-    brandSuffix: "calc",
+    brandName: "Life",
+    brandSuffix: " Ledger",
     scenarios: "Scenarios",
     newScenarioSoon: "New scenario (coming soon)",
     disclaimer: "Projections assume a constant return and are estimates only. This is not financial advice.",
@@ -160,7 +160,7 @@ export const en = {
     withdrawn: "No withdrawals yet",
   },
   hero: {
-    subtitle: (name: string): string => `${name} · How your savings grow, and what each event adds or costs.`,
+    subtitle: (name: string): string => `${name} · How your money grows, and what each event adds or costs.`,
     subtitleAdjusted: (name: string, inflationPct: number): string =>
       `${name} · Inflation adjusted at ${inflationPct} % a year. What you enter stays as entered.`,
     eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>

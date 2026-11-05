@@ -277,9 +277,14 @@ event; the goal amount is nominal; the goal lives in the plan (version 3).
 - The goal in the plan (version 3), a goal line on the chart, and the existing goal card wired up (it uses
   `GoalInput` and `GoalSummary`, which exist but are unused today).
 
+### Rebrand: Life Ledger (in its branch)
+
+The app is now **Life Ledger**, described as a long-term financial planner, with a new logo (ledger bars, one cut
+down to a stub) and a matching favicon. The visible brand changed; the repo, the URL and the storage keys did not.
+
 ### Milestone 10: strings out (prepares Swedish, no visible change)
 
-**10A (in its PR):** all text in `src/ui` (about 180 texts) moved into the typed `src/ui/i18n/en.ts`, and the
+**10A (merged, PR #24):** all text in `src/ui` (about 180 texts) moved into the typed `src/ui/i18n/en.ts`, and the
 scenario names in `main.ts`. **10B (next):** `formatYearMonth` out of the core, error codes for the validators, and
 the notices built in `main.ts` and `state/`.
 
@@ -302,8 +307,8 @@ the notices built in `main.ts` and `state/`.
   `apr. 2031`, `1.7M kr` / `1,7 mn kr`), a language switch remembered in `localStorage`, and `<html lang>`.
 - **Privacy:** self-hosted Geist fonts. Loading them from Google sends every visitor's IP address to Google,
   which contradicts "no tracking". Then a Content-Security-Policy meta tag (`default-src 'self'`).
-- **Page basics:** a favicon, `theme-color` for both themes, Open Graph tags so a shared link shows a title in
-  chats, and a `<noscript>` message.
+- **Page basics:** an Open Graph image for shared links, and a `<noscript>` message (the favicon, `theme-color`
+  and Open Graph text came with the rebrand).
 - **Accessibility:** `--muted` text is about 3.1–3.4 : 1 against its backgrounds and white on the rose badge
   about 3.8 : 1 (4.5 : 1 is needed for small text); reduced motion misses some transitions; some explanations
   are only in `title` on disabled buttons; a hidden table of yearly values as an alternative to the chart; the

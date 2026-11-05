@@ -2,8 +2,9 @@
 
 ## Project
 
-**Advanced Savings Calculator** is a free, browser-based tool that anyone can use to plan
-long-term savings. Most online savings calculators only answer "what will I have if I save
+**Life Ledger** is a free, browser-based long-term financial planner. It started as the "Advanced Savings
+Calculator", and the repo, the Pages URL, the Vite `base` and the storage keys keep that name, so saved plans and share
+links keep working. Most online savings calculators only answer "what will I have if I save
 X per month at Y% for Z years?". Real savings plans are messier than that, so this tool also
 covers:
 
@@ -369,7 +370,8 @@ with the toggle.
 ├── README.md                 # Public project description
 ├── NEXT_STEPS.md             # Status and prioritized to-do list
 ├── implementation.md         # Log of what was built, why, and how it was checked
-├── index.html                # Page shell, loads fonts and src/main.ts
+├── index.html                # Page shell: title, metas, favicon link; loads fonts and src/main.ts
+├── public/favicon.svg        # The logo as favicon, with its own dark-mode colours
 ├── package.json              # Scripts and dev dependencies
 ├── tsconfig.json             # Strict TypeScript config
 ├── vite.config.ts            # Vite + Vitest config, GitHub Pages base path
@@ -425,6 +427,7 @@ with the toggle.
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
+    │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
     │   ├── share-dialog.ts   # "Share this plan": the link, a copy button and the privacy note
