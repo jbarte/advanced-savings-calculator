@@ -6,24 +6,18 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 
 ## Current status
 
-- **Merged into `main`:** milestone 1 (PR #1), milestone 2 (PR #2), foundation fixes (PR #3) and
-  milestone 3 "Change my saving over time" (PR #5). PR #4 had been merged into its base
-  `feature/foundation-fixes` after #3 was already in `main`, so it never reached `main`; PR #5 carried the
-  same commits there.
-- **Merged into `main` as well:** the contrast of raised surfaces and dialogs (PR #6).
-- **Open:** a small PR that removes the white glow from all shadows (PR #7, `feature/contrast-fix`). Its
-  commit was pushed after #6 had been merged, so it did not reach `main` with #6.
+- **Merged into `main`:** milestone 1 (PR #1), milestone 2 (PR #2), foundation fixes (PR #3), milestone 3
+  "Change my saving over time" (PR #5), the contrast of raised surfaces and dialogs (PR #6), the removal of the
+  white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8) and one-time deposits (PR #9). PR #4 had
+  been merged into its base `feature/foundation-fixes` after #3 was already in `main`, so it never reached
+  `main`; PR #5 carried the same commits there.
 - **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** 4A is [PR #8](https://github.com/jbarte/advanced-savings-calculator/pull/8). One-time deposit is on
-  `feature/one-time-deposit`, based on the 4A branch (PR targets `main`).
-- **In progress:** milestone 4 in two PRs. The five decisions were confirmed ("go ahead"): numbered
-  badges, `depositLevels` kept, badges outside the tab order, no automatic scrolling on mobile, two PRs.
-  4A (timeline list, branch `feature/m4-timeline`, based on `feature/contrast-fix` because #7 was still
-  open; its PR targets `main`) is done. 4B (chart) is next. Then milestone 5 (saving) and 6 (sharing).
-- **Tests:** 283 (`npm test`), typecheck and build pass.
+- **In progress:** milestone 4B (chart: numbered badges, bands, lanes, legend, selection, phone layout) on
+  `feature/m4-chart`. Then milestone 5 (saving) and 6 (sharing).
+- **Tests:** 293 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -185,3 +179,28 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   numbered before the car (same month), and the amount limit message shows in the dialog.
   Edit (20 000 to 30 000 kr) and remove were clicked through too.
 - **Known gaps:** no marker on the chart yet (4B).
+
+### Milestone 4B: events on the chart (branch `feature/m4-chart`)
+- **Built:**
+  - `chart-geometry.ts`: `monthToPercent`, `bandExtent` (the part of a period inside the horizon) and
+    `assignLanes` (first-fit rows so badges closer than 8 % of the width don't overlap; at most 6 lanes).
+  - `src/ui/chart-events.ts`: for each event inside the chart, a line, a numbered badge on top (the same number as
+    in the list), and a shaded band for a deposit change that has an end. A deposit change without an end is a
+    dotted line (a step). Badges are buttons with `tabindex="-1"`, `aria-pressed`, a hover text and an accessible
+    name; the list rows stay the keyboard path. Selecting a badge or a row selects the same event: the badge gets
+    the focus glow, the line goes solid and the band darker (`aria-current`).
+  - A legend lists only the kinds that are drawn. One-time deposits now have a marker too.
+  - The old amount labels on the chart ("−150K", "Paused", "3K/mo") are gone; the hover text has the details.
+    `depositLevels` stays in the view model but the chart no longer uses it.
+  - Phone layout: below 760 px each list row becomes a small card (title and actions, then amount and status,
+    then lost growth), so the list no longer scrolls sideways. List and chart badges share colours: rose for
+    withdrawals, green for deposit changes, outlined for one-time deposits.
+- **Checked:** 10 new tests (month mapping, band clipping, lanes). 293 tests, typecheck and build pass. In the
+  browser a plan with ten mixed events (4 withdrawals, 2 one-time deposits, 3 deposit changes of which two end,
+  plus the example car): ten badges and two bands on the chart, no horizontal scroll at 375 px (page and list
+  both 343 to 375 px wide), badges in separate lanes, selecting a badge selects its list row and the reverse,
+  light and dark theme, no console errors.
+- **Known gaps:** a cluster of more than six events within about 8 % of the width still overlaps a little
+  (lanes run out); the first badge at the far left or right edge can reach past the plot by half its width;
+  badges are not reachable with Tab by design; no automated test for the DOM (no jsdom), so the chart layer was
+  checked by hand.

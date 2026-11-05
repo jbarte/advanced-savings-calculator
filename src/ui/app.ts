@@ -30,7 +30,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
       { class: "canvas" },
       state.notice ? renderNotice(state.notice, actions) : null,
       renderHero(active, state, actions),
-      renderChartCard(active, state),
+      renderChartCard(active, state, actions),
       h(
         "div",
         { class: "bento" },

@@ -126,10 +126,10 @@ Each milestone gives a visitor something new they can do.
 
 ### 4. "See everything at a glance" (requirement 4): in progress
 
-Two PRs. **One-time deposit** (requested after 4A, own PR): a third event kind. Its chart marker comes with 4B.
-**4A (done in its PR):** one numbered timeline list replaces the two tables, rows can be selected.
-**4B (next):** chart bands, numbered badges, lanes for overlapping labels, legend, and highlighting the
-selected event on the chart.
+Two PRs, plus the one-time deposit that was requested in between. **4A (done):** one numbered timeline list
+replaces the two tables, rows can be selected. **One-time deposit (done):** a third event kind. **4B (in
+progress):** numbered badges, bands, lanes for overlapping badges, a legend, selection on the chart and the
+phone layout of the list.
 
 - Every event is visible on the graph: withdrawals as drops with labels, deposit changes as shaded
   periods or step markers, each with a hover or focus description.
@@ -226,8 +226,8 @@ selected event on the chart.
 - `actions/deploy-pages@v4` gives a warning that it targets an outdated Node version. Bump it when a
   new major version comes out.
 - The Share button is disabled until milestone 6, and "+ New scenario" does not exist until milestone 8.
-- Events close together have overlapping labels on the chart (withdrawals, and the "Paused" and "per
-  month" labels of a short pause). Milestone 4 (overview) covers it.
+- More than six events within about 8 % of the chart width still overlap a little (4B staggers badges in up
+  to six lanes).
 - After "Remove" the focused row is gone, so keyboard focus falls back to the page. For the
   accessibility pass in milestone 10.
 - The start date and the dialog's month use `<input type="month">`. It was checked in a Chromium-based browser only. Firefox

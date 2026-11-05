@@ -30,10 +30,10 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–3 are done: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–4 are done: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 their lost growth shown, and the monthly deposit can be changed from a month or for a period
-(including a pause); one-time deposits are being added. Saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+(including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. Saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -185,7 +185,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   deposit changes and one-time deposits in date order (same month: deposit change, then one-time deposit,
   then withdrawal, then by id) and numbers them from 1. `AppState.selectedEvent` holds the selected
   `EventKey` (`withdrawal-<id>`, `deposit-change-<id>` or `one-time-deposit-<id>`; the id series are
-  numbered apart). The list rows select through a real button with `aria-pressed`.
+  numbered apart). The list rows select through a real button with `aria-pressed`. The chart draws each event as a line with a
+  numbered badge (same number as the list), plus a band for a deposit change with an end. Badges are buttons
+  outside the tab order (`tabindex="-1"`), since the list rows are the keyboard path.
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
   to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
   types, and nothing reaches the store until Save. `openFormDialog` (`src/ui/dialog-form.ts`)
@@ -322,7 +324,8 @@ with the toggle.
     │   ├── dialog-form.ts    # Shared dialog shell and helpers (openFormDialog, inputIn, showErrors)
     │   ├── error-state.ts    # Notice banner and the error view shown instead of a blank page
     │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
-    │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths (+ .test.ts)
+    │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
+    │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
