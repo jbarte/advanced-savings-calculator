@@ -30,7 +30,7 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–9 are done: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–9 are done, and milestone 10 (strings out) is under way: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 the effect of every event shown, and the monthly deposit can be changed from a month or for a period
 (including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. The horizon can be set freely, results can be shown inflation adjusted, and a savings goal shows the monthly deposit needed. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
@@ -229,6 +229,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   numbered apart). The list rows select through a real button with `aria-pressed`. The chart draws each event as a line with a
   numbered badge (same number as the list), plus a band for a deposit change with an end. Badges are buttons
   outside the tab order (`tabindex="-1"`), since the list rows are the keyboard path.
+- **Interface text lives in `src/ui/i18n/en.ts`.** Every text a user can read (labels, buttons, headings, hover
+  texts, accessible names, input messages, empty states) is a string or a function in `en.ts`, grouped by area and
+  read as `messages.<group>.<key>` (`import { messages } from "./i18n"`; the name is `messages` because `text` is a
+  common local name for typed input). A text with parts to fill in is a function, and the caller formats the parts
+  (amounts and dates), so a language can order them as it needs. `Messages` (`messages.ts`) is *derived from* `en`,
+  so another language is a file that is typed `Messages`: a missing text or a wrong shape is a compile error
+  (`messages.test.ts` checks that). `i18n/index.ts` is the one place that picks the language. Not in `en.ts`: the
+  developer-only design-system page, and the notices built outside `src/ui/` (milestone 10B moves them).
 - **Focus and announcements across re-renders.** Focus is restored by `data-key`. When the focused element
   disappears (a removed row, a swapped button, a dismissed notice), its `data-focus-next` names the element that
   gets focus instead. Notices are read out once through the `#announcer` live region in `index.html`
@@ -403,6 +411,7 @@ with the toggle.
     │   ├── route.ts          # Reads and clears the URL hash (#design-system, #plan=)
     │   └── theme.ts          # Theme preference in localStorage
     ├── ui/                   # DOM rendering and events
+    │   ├── i18n/             # All interface text: en.ts (the source), messages.ts (derived type), index.ts (picks the language)
     │   ├── app.ts            # Page layout (app bar, hero, chart, bento, table), focus restore
     │   ├── actions.ts        # Actions interface (UI → state)
     │   ├── dom.ts            # h() / s() element helpers

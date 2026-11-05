@@ -1,6 +1,6 @@
 import { MONTHS_PER_YEAR, addMonths, yearsToMonths } from "../core/year-month";
 import { HORIZON_PRESETS, METRICS } from "../state/types";
-import type { AppState, Metric, ScenarioView } from "../state/types";
+import type { AppState, ScenarioView } from "../state/types";
 import { eventsAtMonth } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
@@ -23,20 +23,7 @@ import { renderEmptyState, renderToggle } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
-
-const METRIC_LABELS: Record<Metric, string> = {
-  balance: "Balance",
-  deposited: "Deposited",
-  growth: "Growth",
-  withdrawn: "Withdrawn",
-};
-
-const EMPTY_METRIC_TITLES: Record<Metric, string> = {
-  balance: "No balance yet",
-  deposited: "No deposits yet",
-  growth: "No growth yet",
-  withdrawn: "No withdrawals yet",
-};
+import { messages } from "./i18n";
 
 /** Ten or more digits (1 000 000 000 kr and up) don't fit a phone at the normal headline size. */
 const LONG_AMOUNT_DIGITS = 10;
@@ -46,8 +33,9 @@ function isLongAmount(ore: number): boolean {
 }
 
 function heroSubtitle(scenario: ScenarioView): string {
-  if (!scenario.inflationAdjusted) return `${scenario.name} · How your savings grow, and what each event adds or costs.`;
-  return `${scenario.name} · Inflation adjusted at ${scenario.inflationPct} % a year. What you enter stays as entered.`;
+  return scenario.inflationAdjusted
+    ? messages.hero.subtitleAdjusted(scenario.name, scenario.inflationPct)
+    : messages.hero.subtitle(scenario.name);
 }
 
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
@@ -64,7 +52,7 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
         "aria-pressed": yearsToMonths(years) === scenario.horizonMonths ? "true" : "false",
         onclick: () => actions.updatePlan({ horizonYears: years }),
       },
-      `${years} yrs`,
+      messages.units.yearsShort(years),
     ),
   );
 
@@ -79,7 +67,7 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
         title: formatMoney(end[metric]),
         onclick: () => actions.selectMetric(metric),
       },
-      h("span", { class: "tile__label" }, METRIC_LABELS[metric]),
+      h("span", { class: "tile__label" }, messages.metrics[metric]),
       h("span", { class: "tile__value" }, formatMoneyCompact(end[metric])),
     ),
   );
@@ -93,20 +81,20 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
       h(
         "div",
         {},
-        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}${scenario.inflationAdjusted ? " · inflation adjusted" : ""}`),
+        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(scenario, end.month), scenario.inflationAdjusted)),
         h(
           "p",
           { class: isLongAmount(end[state.metric]) ? "hero__value hero__value--long" : "hero__value" },
           formatKronor(end[state.metric]),
-          h("span", { class: "hero__unit" }, "kr"),
+          h("span", { class: "hero__unit" }, messages.units.currency),
         ),
         h("p", { class: "hero__sub" }, heroSubtitle(scenario)),
       ),
       h(
         "div",
         { class: "hero__controls" },
-        h("div", { class: "tabs", role: "group", "aria-label": "Time horizon" }, ...horizons),
-        renderToggle({ label: "Inflation adjusted", checked: scenario.inflationAdjusted, onChange: (on) => actions.setInflationAdjusted(on) }),
+        h("div", { class: "tabs", role: "group", "aria-label": messages.hero.timeHorizon }, ...horizons),
+        renderToggle({ label: messages.hero.inflationAdjusted, checked: scenario.inflationAdjusted, onChange: (on) => actions.setInflationAdjusted(on) }),
       ),
     ),
     h("div", { class: "kpis" }, ...tiles),
@@ -125,11 +113,11 @@ export function renderChartCard(
     h(
       "div",
       { class: "card__head" },
-      h("h2", { id: "chart-heading" }, `${METRIC_LABELS[state.metric]} over time`),
+      h("h2", { id: "chart-heading" }, messages.chart.title(messages.metrics[state.metric])),
       h(
         "span",
         { class: "card__meta" },
-        `${scenario.start.year}–${addMonths(scenario.start, scenario.horizonMonths).year}${scenario.inflationAdjusted ? " · inflation adjusted" : ""}`,
+        messages.chart.period(scenario.start.year, addMonths(scenario.start, scenario.horizonMonths).year, scenario.inflationAdjusted),
       ),
     ),
     renderChartOrEmptyState(scenario, state, timeline, actions),
@@ -144,10 +132,10 @@ function renderChartOrEmptyState(
   actions: Actions,
 ): HTMLElement {
   if (!scenario.points.some((p) => p.balance > 0)) {
-    return renderEmptyState("Nothing to show yet", "Enter a start amount or a monthly deposit to see your projection.");
+    return renderEmptyState(messages.chart.nothingTitle, messages.chart.nothingHint);
   }
   if (isAllZero(visiblePoints(scenario).map((p) => p[state.metric]))) {
-    return renderEmptyState(EMPTY_METRIC_TITLES[state.metric], "This shows up here once your plan includes it.");
+    return renderEmptyState(messages.emptyMetric[state.metric], messages.chart.metricEmptyHint);
   }
   return renderChart(scenario, state, timeline, actions);
 }
@@ -238,10 +226,9 @@ function renderChart(
     tooltip.style.transform = `translate(-${x}%, calc(-100% - 14px))`;
     tooltipValue.textContent = value;
     tooltipLabel.textContent = when;
-    tooltipEvents.replaceChildren(...events.map((entry) => h("li", {}, `${entry.number} · ${eventLabel(entry)}`)));
-    const eventText = events.length === 0 ? "" : `. Events: ${events.map(eventLabel).join(", ")}`;
+    tooltipEvents.replaceChildren(...events.map((entry) => h("li", {}, messages.chart.tooltipEvent(entry.number, eventLabel(entry)))));
     plot.setAttribute("aria-valuenow", String(index));
-    plot.setAttribute("aria-valuetext", `${when}: ${value}${eventText}`);
+    plot.setAttribute("aria-valuetext", messages.chart.valueText(when, value, events.map(eventLabel)));
   };
 
   const plot = h(
@@ -252,7 +239,7 @@ function renderChart(
       "data-key": "chart",
       // A slider over the months: screen readers read the value text, and the keys follow the slider pattern.
       role: "slider",
-      "aria-label": `${METRIC_LABELS[state.metric]} over time`,
+      "aria-label": messages.chart.title(messages.metrics[state.metric]),
       "aria-describedby": "chart-keys",
       "aria-valuemin": 0,
       "aria-valuemax": last,
@@ -277,7 +264,7 @@ function renderChart(
       : h(
           "div",
           { class: "chart__goal", style: `top:${valueToPercent(goalValue, scale)}%`, "aria-hidden": "true" },
-          h("span", {}, `Goal ${formatMoneyCompact(goalValue)}`),
+          h("span", {}, messages.chart.goalLabel(formatMoneyCompact(goalValue))),
         ),
     ...renderChartEvents(timeline, totalMonths, state.selectedEvent, actions),
     cursor,
@@ -285,11 +272,7 @@ function renderChart(
     tooltip,
   );
   show(current);
-  const keysHint = h(
-    "p",
-    { id: "chart-keys", class: "visually-hidden" },
-    "Arrow keys move one month, Page Up and Page Down one year, Home and End to the start and the end.",
-  );
+  const keysHint = h("p", { id: "chart-keys", class: "visually-hidden" }, messages.chart.keysHint);
 
   const yLabels = ticks.map((tick) => h("span", {}, formatMoneyCompact(tick)));
   const xLabels = axisMonths(totalMonths).map((month) => h("span", {}, String(addMonths(scenario.start, month).year)));

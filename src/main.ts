@@ -23,6 +23,7 @@ import { renderDesignSystem } from "./ui/design-system";
 import { renderErrorState } from "./ui/error-state";
 import { createRenderScheduler } from "./ui/render-scheduler";
 import { applyTheme } from "./ui/theme";
+import { messages } from "./ui/i18n";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app element");
@@ -169,7 +170,7 @@ const render = (): void => {
       renderDesignSystem(root, isDark(), actions);
       return;
     }
-    const name = { example: "Example plan", own: "My plan", shared: "Shared plan" }[state.planOrigin];
+    const name = messages.planCard.names[state.planOrigin];
     const nominal = scenarioView(state.plan, name, yearsToMonths(state.plan.horizonYears));
     const scenarios = [state.inflationAdjusted ? applyInflationAdjustment(nominal, state.plan.inflationPct) : nominal];
     renderApp(root, { scenarios, state, isDark: isDark() }, actions);

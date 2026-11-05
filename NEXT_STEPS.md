@@ -279,6 +279,10 @@ event; the goal amount is nominal; the goal lives in the plan (version 3).
 
 ### Milestone 10: strings out (prepares Swedish, no visible change)
 
+**10A (in its PR):** all text in `src/ui` (about 180 texts) moved into the typed `src/ui/i18n/en.ts`, and the
+scenario names in `main.ts`. **10B (next):** `formatYearMonth` out of the core, error codes for the validators, and
+the notices built in `main.ts` and `state/`.
+
 - All UI text in a typed `src/ui/i18n/en.ts`, so a missing translation will be a type error.
 - `formatYearMonth` moves out of the core into `ui/format.ts` and uses `Intl` (month names are display text).
 - Validation errors get codes, so the notices can be translated. Today a broken save or link shows the raw

@@ -5,6 +5,7 @@ import { renderTextField } from "./components";
 import { earliestMonth, inputIn, openFormDialog, showErrors } from "./dialog-form";
 import { formatKronor } from "./format";
 import { errorMessage, monthInputValue, parseGoalAmount, parseMonthOnOrAfter } from "./parse-input";
+import { messages } from "./i18n";
 
 export interface GoalDialogProps {
   /** The plan's start month. A new goal can't be earlier; an edited one may keep its own earlier date. */
@@ -24,8 +25,8 @@ export function openGoalDialog(props: GoalDialogProps): void {
 
   const amount = renderTextField({
     id: "goal-amount",
-    label: "I want to have",
-    unit: "KR",
+    label: messages.dialogs.goal.amount,
+    unit: messages.units.currencyField,
     value: initial ? formatKronor(initial.amount) : "",
     dataKey: "goal-amount",
     inputMode: "numeric",
@@ -34,12 +35,12 @@ export function openGoalDialog(props: GoalDialogProps): void {
   });
   const month = renderTextField({
     id: "goal-month",
-    label: "By",
+    label: messages.dialogs.goal.by,
     unit: "",
     type: "month",
     value: monthInputValue(initial?.date ?? props.horizonEnd),
     dataKey: "goal-month",
-    placeholder: "YYYY-MM",
+    placeholder: messages.common.yearMonthPlaceholder,
     validate: errorMessage((text) => parseMonthOnOrAfter(text, earliest)),
     onCommit: nothing,
   });
@@ -56,8 +57,8 @@ export function openGoalDialog(props: GoalDialogProps): void {
   };
 
   openFormDialog({
-    title: initial ? "Edit goal" : "Set a goal",
-    primaryLabel: initial ? "Save" : "Set goal",
+    title: initial ? messages.dialogs.goal.edit : messages.dialogs.goal.add,
+    primaryLabel: initial ? messages.common.save : messages.dialogs.goal.addConfirm,
     fields: [amount, month],
     save,
   });

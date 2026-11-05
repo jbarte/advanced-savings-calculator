@@ -1,5 +1,6 @@
 import { openModal, renderModal } from "./components";
 import { h } from "./dom";
+import { messages } from "./i18n";
 
 export type EventType = "withdrawal" | "deposit-change" | "one-time-deposit";
 
@@ -25,19 +26,19 @@ export function openEventTypeDialog(props: EventTypeDialogProps): void {
         },
       },
       h("strong", {}, title),
-      h("span", { class: "choice__hint" }, props.full[type] ? "Limit reached" : hint),
+      h("span", { class: "choice__hint" }, props.full[type] ? messages.eventTypes.limitReached : hint),
     );
 
   const dialog = renderModal({
-    title: "Add event",
+    title: messages.eventTypes.dialogTitle,
     body: h(
       "div",
       { class: "choices" },
-      choice("withdrawal", "Withdrawal", "Take money out in a month"),
-      choice("one-time-deposit", "One-time deposit", "Add a single extra amount in a month"),
-      choice("deposit-change", "Change monthly deposit", "Raise, lower or pause saving"),
+      choice("withdrawal", messages.kinds.withdrawal, messages.eventTypes.withdrawalHint),
+      choice("one-time-deposit", messages.kinds.oneTimeDeposit, messages.eventTypes.oneTimeDepositHint),
+      choice("deposit-change", messages.eventTypes.depositChangeTitle, messages.eventTypes.depositChangeHint),
     ),
-    secondaryLabel: "Cancel",
+    secondaryLabel: messages.common.cancel,
   });
   openModal(dialog);
 }

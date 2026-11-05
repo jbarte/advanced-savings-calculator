@@ -2,6 +2,7 @@ import type { ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h, s } from "./dom";
 import { openShareDialog } from "./share-dialog";
+import { messages } from "./i18n";
 
 const sunIcon = (): SVGSVGElement =>
   s(
@@ -21,8 +22,8 @@ export function renderThemeButton(isDark: boolean, actions: Actions): HTMLButton
       class: "btn-round",
       type: "button",
       "data-key": "theme",
-      "aria-label": isDark ? "Switch to light mode" : "Switch to dark mode",
-      title: isDark ? "Light mode" : "Dark mode",
+      "aria-label": isDark ? messages.theme.switchToLight : messages.theme.switchToDark,
+      title: isDark ? messages.theme.lightMode : messages.theme.darkMode,
       onclick: () => actions.toggleTheme(),
     },
     isDark ? sunIcon() : moonIcon(),
@@ -45,10 +46,10 @@ function renderScenarioTabs(scenarios: readonly ScenarioView[], active: Scenario
   );
   const add = h(
     "button",
-    { class: "tabs__item tabs__item--add", type: "button", disabled: true, title: "New scenario (coming soon)", "aria-label": "New scenario (coming soon)" },
+    { class: "tabs__item tabs__item--add", type: "button", disabled: true, title: messages.app.newScenarioSoon, "aria-label": messages.app.newScenarioSoon },
     "+",
   );
-  return h("nav", { class: "tabs appbar__tabs", "aria-label": "Scenarios" }, ...tabs, add);
+  return h("nav", { class: "tabs appbar__tabs", "aria-label": messages.app.scenarios }, ...tabs, add);
 }
 
 export function renderAppBar(
@@ -63,11 +64,11 @@ export function renderAppBar(
       class: "btn-solid",
       type: "button",
       "data-key": "share",
-      "aria-label": "Share this plan",
+      "aria-label": messages.share.title,
       onclick: () => void openShareDialog(actions),
     },
     h("span", { class: "btn-solid__icon", "aria-hidden": "true" }, "↗"),
-    h("span", { class: "appbar__share-label" }, "Share"),
+    h("span", { class: "appbar__share-label" }, messages.share.button),
   );
 
   return h(
@@ -77,7 +78,7 @@ export function renderAppBar(
       "div",
       { class: "brand appbar__brand" },
       h("div", { class: "brand__mark", "aria-hidden": "true" }),
-      h("div", { class: "brand__name" }, "Savings", h("span", {}, "calc")),
+      h("div", { class: "brand__name" }, messages.app.brandName, h("span", {}, messages.app.brandSuffix)),
     ),
     scenarios.length > 1 ? renderScenarioTabs(scenarios, active, actions) : null,
     h("div", { class: "appbar__actions" }, share, renderThemeButton(isDark, actions)),

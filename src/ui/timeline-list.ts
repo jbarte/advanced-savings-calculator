@@ -10,6 +10,7 @@ import { h } from "./dom";
 import { formatMoney, formatSignedMoney, formatSignedMoneyCompact } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
 import { openWithdrawalDialog } from "./withdrawal-dialog";
+import { messages } from "./i18n";
 
 type WithdrawalEntry = Extract<TimelineEntry, { kind: "withdrawal" }>;
 type DepositChangeEntry = Extract<TimelineEntry, { kind: "deposit-change" }>;
@@ -27,7 +28,7 @@ interface RowParts {
 
 function periodText(change: PlannedDepositChange): string {
   const from = formatYearMonth(change.startDate);
-  return change.endDate === null ? `From ${from}, no end` : `${from} – ${formatYearMonth(change.endDate)}`;
+  return change.endDate === null ? messages.list.periodOpen(from) : messages.list.period(from, formatYearMonth(change.endDate));
 }
 
 /** What is shared by every row's effect cell: where it is measured and how long the longest bar is. */
@@ -42,12 +43,12 @@ interface EffectScale {
 
 /** "442 743 kr of growth", or "−1 234 kr of growth" when the return is negative. */
 function growthText(growth: Ore): string {
-  return `${growth < 0 ? formatSignedMoney(growth) : formatMoney(growth)} of growth`;
+  return messages.list.growth(growth < 0 ? formatSignedMoney(growth) : formatMoney(growth));
 }
 
 /** Why an event that is not counted has no effect. */
 function noEffectReason(status: EventStatus, end: string): string {
-  return status === "before-start" ? "Before the plan starts, so it has no effect" : `After ${end}, so it has no effect by then`;
+  return status === "before-start" ? messages.list.noEffectBefore : messages.list.noEffectAfter(end);
 }
 
 /**
@@ -57,12 +58,12 @@ function noEffectReason(status: EventStatus, end: string): string {
 function effectCell(effect: Ore, status: EventStatus, scale: EffectScale, explain: string): HTMLElement {
   const counted = status === "planned";
   // The nominal breakdown (money in, growth) no longer adds up once the effect is divided by the price level.
-  const hover = scale.inflationAdjusted ? `${formatSignedMoney(effect)} inflation adjusted by ${scale.end}` : explain;
+  const hover = scale.inflationAdjusted ? messages.list.adjustedHover(formatSignedMoney(effect), scale.end) : explain;
   const tone = !counted || effect === 0 ? "" : effect < 0 ? " impact--loss" : " impact--gain";
   return h(
     "div",
     { class: `impact${tone}`, role: "cell", title: counted ? hover : noEffectReason(status, scale.end) },
-    h("span", { class: "impact__label" }, `Effect by ${scale.end}`),
+    h("span", { class: "impact__label" }, messages.list.effectLabel(scale.end)),
     h("div", { class: "impact__track" }, h("div", { class: "impact__fill", style: `width:${counted ? (Math.abs(effect) / scale.max) * 100 : 0}%` })),
     h("span", { class: "impact__value" }, counted ? formatSignedMoneyCompact(effect) : "–"),
   );
@@ -74,15 +75,19 @@ function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, scale: 
   const when = formatYearMonth(withdrawal.date);
   return {
     title: withdrawal.label,
-    sub: reduced ? `Withdrawal · ${when} · only ${formatMoney(withdrawal.applied)} was available` : `Withdrawal · ${when}`,
+    sub: reduced ? messages.list.withdrawalSubReduced(when, formatMoney(withdrawal.applied)) : messages.list.withdrawalSub(when),
     amount: formatMoney(withdrawal.amount),
-    chips: [h("span", { class: "chip" }, STATUS_LABELS[withdrawal.status]), reduced ? h("span", { class: "chip chip--warn" }, "Reduced") : null],
+    chips: [h("span", { class: "chip" }, STATUS_LABELS[withdrawal.status]), reduced ? h("span", { class: "chip chip--warn" }, messages.list.reduced) : null],
     impact: effectCell(
       withdrawal.effect,
       withdrawal.status,
       scale,
-      `${formatSignedMoney(withdrawal.effect)} by ${scale.end}: ${formatMoney(withdrawal.applied)} taken out, and ` +
-        `${formatMoney(withdrawal.lostGrowth)} of growth it would have earned`,
+      messages.list.withdrawalExplain(
+        formatSignedMoney(withdrawal.effect),
+        scale.end,
+        formatMoney(withdrawal.applied),
+        formatMoney(withdrawal.lostGrowth),
+      ),
     ),
     edit: () =>
       openWithdrawalDialog({
@@ -98,14 +103,14 @@ function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, s
   const { change } = entry;
   return {
     title: change.label,
-    sub: `Deposit change · ${periodText(change)}`,
-    amount: change.amount === 0 ? "Paused" : `${formatMoney(change.amount)}/mo`,
+    sub: messages.list.depositChangeSub(periodText(change)),
+    amount: change.amount === 0 ? messages.list.paused : `${formatMoney(change.amount)}${messages.units.perMonth}`,
     chips: [h("span", { class: "chip" }, STATUS_LABELS[change.status])],
     impact: effectCell(
       change.effect,
       change.status,
       scale,
-      `${formatSignedMoney(change.effect)} by ${scale.end}, compared with keeping the deposit as it was`,
+      messages.list.depositChangeExplain(formatSignedMoney(change.effect), scale.end),
     ),
     edit: () =>
       openDepositChangeDialog({
@@ -121,15 +126,19 @@ function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry,
   const { deposit } = entry;
   return {
     title: deposit.label,
-    sub: `One-time deposit · ${formatYearMonth(deposit.date)}`,
+    sub: messages.list.oneTimeSub(formatYearMonth(deposit.date)),
     amount: `+${formatMoney(deposit.amount)}`,
     chips: [h("span", { class: "chip" }, STATUS_LABELS[deposit.status])],
     impact: effectCell(
       deposit.effect,
       deposit.status,
       scale,
-      `${formatSignedMoney(deposit.effect)} by ${scale.end}: ${formatMoney(deposit.amount)} deposited, and ` +
-        `${growthText(deposit.effect - deposit.amount)} on it`,
+      messages.list.oneTimeExplain(
+        formatSignedMoney(deposit.effect),
+        scale.end,
+        formatMoney(deposit.amount),
+        growthText(deposit.effect - deposit.amount),
+      ),
     ),
     edit: () =>
       openOneTimeDepositDialog({
@@ -180,9 +189,9 @@ function renderRow(
           onclick: () => actions.selectEvent(isSelected ? null : entry.key, chartMonthOf(entry)),
         },
         // The name read out is "Event 2: New car, Withdrawal · Nov 2031": number, title, kind and date.
-        h("span", { class: "visually-hidden" }, `Event ${entry.number}: `),
+        h("span", { class: "visually-hidden" }, messages.list.eventNumber(entry.number)),
         h("span", { class: "table__title" }, parts.title),
-        h("span", { class: "visually-hidden" }, ", "),
+        h("span", { class: "visually-hidden" }, messages.list.nameSeparator),
         h("span", { class: "table__sub" }, parts.sub),
       ),
     ),
@@ -198,10 +207,10 @@ function renderRow(
           class: "btn-text",
           type: "button",
           "data-key": `event-edit-${entry.key}`,
-          "aria-label": `Edit ${parts.title}`,
+          "aria-label": messages.list.editAria(parts.title),
           onclick: parts.edit,
         },
-        "Edit",
+        messages.common.edit,
       ),
       h(
         "button",
@@ -210,10 +219,10 @@ function renderRow(
           type: "button",
           "data-key": `event-remove-${entry.key}`,
           "data-focus-next": "event-add",
-          "aria-label": `Remove ${parts.title}`,
+          "aria-label": messages.list.removeAria(parts.title),
           onclick: parts.remove,
         },
-        "Remove",
+        messages.common.remove,
       ),
     ),
   );
@@ -233,11 +242,11 @@ export function renderTimelineList(
   const head = h(
     "div",
     { class: "table__row table__row--head", role: "row" },
-    h("span", { role: "columnheader" }, "Event"),
-    h("span", { role: "columnheader" }, "Amount"),
-    h("span", { role: "columnheader" }, "Status"),
-    h("span", { role: "columnheader" }, `Effect by ${endLabel}${scenario.inflationAdjusted ? " (inflation adjusted)" : ""}`),
-    h("span", { class: "visually-hidden", role: "columnheader" }, "Actions"),
+    h("span", { role: "columnheader" }, messages.list.eventHeader),
+    h("span", { role: "columnheader" }, messages.list.amountHeader),
+    h("span", { role: "columnheader" }, messages.list.statusHeader),
+    h("span", { role: "columnheader" }, messages.list.effectHeader(endLabel, scenario.inflationAdjusted)),
+    h("span", { class: "visually-hidden", role: "columnheader" }, messages.list.actionsHeader),
   );
 
   return h(
@@ -245,7 +254,7 @@ export function renderTimelineList(
     { class: "table-card" },
     h(
       "div",
-      { class: "table", role: "table", "aria-label": "Planned events in date order" },
+      { class: "table", role: "table", "aria-label": messages.list.ariaTable },
       head,
       ...timeline.map((entry) => renderRow(scenario, entry, state.selectedEvent, scale, actions)),
     ),

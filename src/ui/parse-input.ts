@@ -3,6 +3,7 @@ import { MONTHS_PER_YEAR, formatYearMonth, monthsBetween } from "../core/year-mo
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import { formatKronor } from "./format";
+import { messages } from "./i18n";
 
 export type ParseResult<T> =
   | { readonly ok: true; readonly value: T }
@@ -27,16 +28,16 @@ const MAX_DIGITS = 12;
  */
 export function parseKronor(text: string, maxOre: Ore): ParseResult<Ore> {
   const cleaned = text.replace(/[\s  ]/g, "").replace(/kr$/i, "");
-  if (cleaned === "") return fail("Enter an amount");
-  if (cleaned.startsWith("-")) return /^-\d/.test(cleaned) ? fail("Enter 0 or more") : fail("Enter a number, for example 50 000");
+  if (cleaned === "") return fail(messages.inputErrors.enterAmount);
+  if (cleaned.startsWith("-")) return /^-\d/.test(cleaned) ? fail(messages.inputErrors.enterZeroOrMore) : fail(messages.inputErrors.enterNumber);
 
   const match = /^(\d+)(?:[.,](\d*))?$/.exec(cleaned);
-  if (!match) return fail("Enter a number, for example 50 000");
+  if (!match) return fail(messages.inputErrors.enterNumber);
   const whole = (match[1] ?? "").replace(/^0+(?=\d)/, "");
   const fraction = match[2] ?? "";
-  if (/[1-9]/.test(fraction)) return fail("Use whole kronor, for example 1 500");
+  if (/[1-9]/.test(fraction)) return fail(messages.inputErrors.wholeKronor);
 
-  const maxMessage = `Use ${formatKronor(maxOre)} kr or less`;
+  const maxMessage = messages.inputErrors.amountMax(formatKronor(maxOre));
   if (whole.length > MAX_DIGITS) return fail(maxMessage);
   const ore = Number(whole) * 100;
   return ore > maxOre ? fail(maxMessage) : { ok: true, value: ore };
@@ -45,10 +46,10 @@ export function parseKronor(text: string, maxOre: Ore): ParseResult<Ore> {
 /** Reads a yearly return like "7", "6,5" or "7 %". */
 export function parseReturnPct(text: string): ParseResult<number> {
   const cleaned = text.replace(/\s/g, "").replace(/%$/, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail("Enter a percentage, for example 7 or 6,5");
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail(messages.inputErrors.percentReturn);
   const value = Number(cleaned) || 0; // turns -0 into 0
-  if (value < PLAN_LIMITS.minReturnPct) return fail(`Use ${PLAN_LIMITS.minReturnPct} % or more`);
-  if (value > PLAN_LIMITS.maxReturnPct) return fail(`Use ${PLAN_LIMITS.maxReturnPct} % or less`);
+  if (value < PLAN_LIMITS.minReturnPct) return fail(messages.inputErrors.percentMin(PLAN_LIMITS.minReturnPct));
+  if (value > PLAN_LIMITS.maxReturnPct) return fail(messages.inputErrors.percentMax(PLAN_LIMITS.maxReturnPct));
   return { ok: true, value };
 }
 
@@ -57,31 +58,31 @@ export function parseEndYear(text: string, startYear: number): ParseResult<numbe
   const first = startYear + PLAN_LIMITS.minHorizonYears;
   const last = startYear + PLAN_LIMITS.maxHorizonYears;
   const cleaned = text.trim();
-  if (!/^\d{4}$/.test(cleaned)) return fail(`Enter a year, for example ${startYear + 30}`);
+  if (!/^\d{4}$/.test(cleaned)) return fail(messages.inputErrors.enterYear(startYear + 30));
   const year = Number(cleaned);
-  if (year < first || year > last) return fail(`Pick a year from ${first} to ${last}`);
+  if (year < first || year > last) return fail(messages.inputErrors.pickYear(first, last));
   return { ok: true, value: year - startYear };
 }
 
 /** Reads a yearly inflation like "2", "2,5" or "-1 %". */
 export function parseInflationPct(text: string): ParseResult<number> {
   const cleaned = text.replace(/\s/g, "").replace(/%$/, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail("Enter a percentage, for example 2 or 2,5");
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail(messages.inputErrors.percentInflation);
   const value = Number(cleaned) || 0; // turns -0 into 0
-  if (value < PLAN_LIMITS.minInflationPct) return fail(`Use ${PLAN_LIMITS.minInflationPct} % or more`);
-  if (value > PLAN_LIMITS.maxInflationPct) return fail(`Use ${PLAN_LIMITS.maxInflationPct} % or less`);
+  if (value < PLAN_LIMITS.minInflationPct) return fail(messages.inputErrors.percentMin(PLAN_LIMITS.minInflationPct));
+  if (value > PLAN_LIMITS.maxInflationPct) return fail(messages.inputErrors.percentMax(PLAN_LIMITS.maxInflationPct));
   return { ok: true, value };
 }
 
 /** Reads "YYYY-MM", the value of <input type="month"> and the fallback text box. Events may reach `maxYear`. */
 export function parseYearMonth(text: string, maxYear: number = PLAN_LIMITS.maxStartYear): ParseResult<YearMonth> {
   const match = /^(\d{4})-(\d{2})$/.exec(text.trim());
-  if (!match) return fail("Use the format YYYY-MM, for example 2026-01");
+  if (!match) return fail(messages.inputErrors.monthFormat);
   const year = Number(match[1]);
   const month = Number(match[2]);
-  if (month < 1 || month > MONTHS_PER_YEAR) return fail("The month must be between 01 and 12");
+  if (month < 1 || month > MONTHS_PER_YEAR) return fail(messages.inputErrors.monthRange);
   if (year < PLAN_LIMITS.minStartYear || year > maxYear) {
-    return fail(`Use a year between ${PLAN_LIMITS.minStartYear} and ${maxYear}`);
+    return fail(messages.inputErrors.yearBetween(PLAN_LIMITS.minStartYear, maxYear));
   }
   return { ok: true, value: { year, month } };
 }
@@ -94,26 +95,26 @@ export function monthInputValue(ym: YearMonth): string {
 /** A withdrawal amount: whole kronor, above 0. */
 export function parseWithdrawalAmount(text: string): ParseResult<Ore> {
   const result = parseKronor(text, PLAN_LIMITS.maxStartAmount);
-  return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
+  return result.ok && result.value === 0 ? fail(messages.inputErrors.amountAboveZero) : result;
 }
 
 /** A one-time deposit amount: whole kronor, above 0, up to the one-time deposit limit. */
 export function parseOneTimeDepositAmount(text: string): ParseResult<Ore> {
   const result = parseKronor(text, PLAN_LIMITS.maxOneTimeDepositAmount);
-  return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
+  return result.ok && result.value === 0 ? fail(messages.inputErrors.amountAboveZero) : result;
 }
 
 /** A goal amount: whole kronor, above 0, up to the goal limit. */
 export function parseGoalAmount(text: string): ParseResult<Ore> {
   const result = parseKronor(text, PLAN_LIMITS.maxGoalAmount);
-  return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
+  return result.ok && result.value === 0 ? fail(messages.inputErrors.amountAboveZero) : result;
 }
 
 /** A short name for an event. Empty text becomes `fallback`. */
 export function parseLabel(text: string, fallback: string): ParseResult<string> {
   const label = text.trim();
   if (label === "") return { ok: true, value: fallback };
-  if (label.length > PLAN_LIMITS.maxLabelLength) return fail(`Use ${PLAN_LIMITS.maxLabelLength} characters or fewer`);
+  if (label.length > PLAN_LIMITS.maxLabelLength) return fail(messages.inputErrors.labelLength(PLAN_LIMITS.maxLabelLength));
   return { ok: true, value: label };
 }
 
@@ -121,7 +122,7 @@ export function parseLabel(text: string, fallback: string): ParseResult<string> 
 export function parseMonthOnOrAfter(text: string, start: YearMonth): ParseResult<YearMonth> {
   const result = parseYearMonth(text, PLAN_LIMITS.maxEventYear);
   if (!result.ok) return result;
-  return monthsBetween(start, result.value) < 0 ? fail(`Pick ${formatYearMonth(start)} or later`) : result;
+  return monthsBetween(start, result.value) < 0 ? fail(messages.inputErrors.pickOrLater(formatYearMonth(start))) : result;
 }
 
 /** A monthly deposit: whole kronor from 0 (which pauses saving) up to the monthly limit. */
@@ -134,5 +135,5 @@ export function parseOptionalMonthNotBefore(text: string, start: YearMonth | nul
   if (text.trim() === "") return { ok: true, value: null };
   const result = parseYearMonth(text, PLAN_LIMITS.maxEventYear);
   if (!result.ok) return result;
-  return start !== null && monthsBetween(start, result.value) < 0 ? fail("The end month can't be before the start month") : result;
+  return start !== null && monthsBetween(start, result.value) < 0 ? fail(messages.inputErrors.endBeforeStart) : result;
 }

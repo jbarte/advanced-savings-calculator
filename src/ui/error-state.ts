@@ -1,6 +1,7 @@
 import type { Actions } from "./actions";
 import { renderButton } from "./components";
 import { h } from "./dom";
+import { messages } from "./i18n";
 
 /** A dismissible message about a change that was not applied. */
 export function renderNotice(message: string, actions: Actions): HTMLElement {
@@ -12,7 +13,7 @@ export function renderNotice(message: string, actions: Actions): HTMLElement {
     h(
       "button",
       { class: "btn-text", type: "button", "data-key": "notice-dismiss", "data-focus-next": "hero-heading", onclick: () => actions.dismissNotice() },
-      "Dismiss",
+      messages.common.dismiss,
     ),
   );
 }
@@ -27,9 +28,9 @@ export function renderErrorState(root: HTMLElement, error: unknown, actions: Act
       h(
         "section",
         { class: "card error-state", role: "alert" },
-        h("h1", {}, "Something went wrong"),
+        h("h1", {}, messages.errorState.title),
         h("p", { class: "card__meta" }, message),
-        renderButton({ label: "Start from scratch", onClick: () => actions.startFromScratch() }),
+        renderButton({ label: messages.plan.startFromScratch, onClick: () => actions.startFromScratch() }),
       ),
     ),
   );

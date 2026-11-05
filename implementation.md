@@ -21,7 +21,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Open:** milestone 8B, inflation adjusted (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 489 (`npm test`), typecheck and build pass.
+- **Tests:** 494 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -524,4 +524,32 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   a month before the start; Remove clears the saved goal. 375 px: no sideways scroll.
 - **Known gaps:** the goal shown in the card is always nominal (only the "inflation adjusted" row converts it); the
   chart's goal line has no keyboard or screen reader equivalent beyond the card (it is decorative, `aria-hidden`).
+
+### Milestone 10A: the interface text in one typed file (branch `feature/m10a-strings`)
+- **Built:**
+  - `src/ui/i18n/en.ts`: every text in `src/ui` (about 180 strings and functions), grouped by area (`common`, `units`,
+    `status`, `kinds`, `app`, `theme`, `plan` and `planCard`, `startOver`, `sharedPlan`, `share`, `eventTypes`, `events`,
+    `dialogs`, `metrics`, `hero`, `chart`, `list`, `goalCard`, `goalDeposit`, `inputErrors`, `compare`, `errorState`).
+    Texts with parts to fill in are functions; amounts and dates are formatted by the caller.
+  - `messages.ts`: `Messages` is derived from `en` (a `Widen` type keeps the shape and the parameter lists and widens
+    the literals), so there is one list of texts to maintain. `index.ts` exports `messages` and is the one place that
+    picks the language. Another language later is a file typed `Messages`.
+  - Every file in `src/ui` reads its text from `messages`; `main.ts` takes the scenario names from it. The export is
+    called `messages` because `text` is a common local name (a lambda parameter shadowed it in four files).
+  - `AmountEventKind` got `titles` ("Add withdrawal", "Edit one-time deposit") instead of building the titles by
+    lowercasing a name, which would not work in other languages. Money suffixes ("kr", "/mo", "yrs", "KR/MO") are texts too.
+- **Left for 10B and later:** `formatYearMonth` (English month names in the core), the validators' English error
+  messages, the notices built in `main.ts` and `state/` (storage blocked, bad link, unreadable save), number and date
+  locales in `format.ts` (`sv-SE` thousands separator, English compact form), the "kr" suffix the parser accepts, and the
+  developer-only design-system page.
+- **Checked:** a baseline of all visible text, labels, hover texts, placeholders, value texts and error messages in 49
+  states of the app was captured before the change (example plan, inflation on, the three event dialogs and their
+  errors, a plan with every kind of event, selected event, edit dialog, events before the start and after the horizon,
+  goal prompt, dialog, errors and four goal states, 14 field errors in the Plan card, start-over, share and copy
+  results, blocked storage, shared plan, keep dialog, four bad links, chart keys, the metrics, start over, blank plan and
+  empty states) and compared with the same run after the change: **0 differences in 49 states**. 494 tests (5 new:
+  no empty text, parts are put into the text, an incomplete or wrongly shaped translation is a type error, a complete
+  one is accepted), typecheck and build.
+- **Known gaps:** the typing guarantees the shape of a translation but not that it is a good one; texts in `src/state`
+  and `src/main.ts` notices are still English literals (10B).
 
