@@ -58,7 +58,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   about 120 characters. No formatter is installed yet, so match the existing code.
 - **Naming:**
   - `camelCase` for functions and variables, `PascalCase` for types and interfaces,
-    `UPPER_SNAKE_CASE` for module-level constants (`HORIZONS`, `METRICS`).
+    `UPPER_SNAKE_CASE` for module-level constants (`HORIZON_PRESETS`, `METRICS`).
   - Files are `kebab-case.ts` (`chart-geometry.ts`), and each test sits next to its file
     as `*.test.ts`.
   - UI render functions are named `renderX` and return an element.
@@ -118,16 +118,20 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   `ProjectionPoint`, `AppliedWithdrawal`, `Ore`). They describe money and time only, never how things are
   displayed.
 - **The plan is a document.** `src/state/` defines one versioned, JSON-friendly
-  `PlanDocument` (start capital, return, base deposit and two lists of events, withdrawals
-  and deposit changes and one-time deposits, numbered apart, with real
+  `PlanDocument` (start capital, return, base deposit, horizon in whole years, inflation, and three lists of
+  events: withdrawals, deposit changes and one-time deposits, numbered apart, with real
   `YearMonth` dates rather than month offsets). It is the only thing that gets saved to
   `localStorage` or put in a share link. A mapper turns it into the engine's `PlanInput`
   (dates become month offsets there). Every document has a `version`, and loading goes
-  through a hand-written validator and migrations, so old saves and old links keep working.
+  through a hand-written validator and migrations, so old saves and old links keep working. Version 2 added
+  `horizonYears` (1–40) and `inflationPct` (default 2, the Riksbank target); a version 1 plan is upgraded with
+  30 years (what the page showed then) and 2 %. The horizon is part of the plan, so changing it is a plan change:
+  it is saved and shared, and it makes the example the user's own plan.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
-  (`project`) for 360 months and shapes the result, including display-oriented fields. It
-  takes the horizon in months, which is where the effect of each event is measured. `createScenarioViewCache`
+  (`project`) for 480 months (`PROJECTION_MONTHS`, the longest horizon) and shapes the result, including
+  display-oriented fields. It takes the horizon in months (by default the plan's), which is where the effect of
+  each event is measured and where the chart ends (`ScenarioView.horizonMonths`). `createScenarioViewCache`
   returns the same view while plan, name and horizon are unchanged, so selection, theme and notice changes don't
   run the engine.
   Features that don't exist yet are empty: `goal` is `null`, and the UI hides that card.
@@ -135,9 +139,10 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - **Money is stored as integers in minor units (öre).** Never use floats for stored
     amounts. Convert to kronor only when formatting (`src/ui/format.ts`), and parse typed
     amounts from the digits, not through a float (`src/ui/parse-input.ts`).
-  - **Input limits live in `PLAN_LIMITS`** (`src/state/plan-document.ts`). They keep every
+  - **Input limits live in `PLAN_LIMITS`** (`src/state/plan-document.ts`). The maximum return is 30 % a year (it
+    was 50 % before the 40-year horizon; 1.5^40 would not fit). They keep every
     balance below `Number.MAX_SAFE_INTEGER` öre, so money stays exact. `project()` throws a
-    `RangeError` instead of returning an inexact balance. The limits assume a 30-year
+    `RangeError` instead of returning an inexact balance. The limits assume a 40-year
     projection (`PROJECTION_MONTHS`): a longer one needs them rechecked, and a test fails if
     the largest allowed plan stops fitting.
   - **No magic 12.** Months per year is `MONTHS_PER_YEAR`, and years become months with
@@ -181,7 +186,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     same month. It counts as deposited. It can be dated in month 0. One dated before the plan start is
     `before-start` and left out of the engine input; one after the horizon is `after-horizon`. Its limits are
     smaller than the monthly deposit's (`maxOneTimeDepositAmount` 5 000 000 kr, `maxOneTimeDeposits` 10),
-    because one in month 0 compounds for all 30 years and the largest plan must stay below
+    because one in month 0 compounds for the whole horizon and the largest plan must stay below
     `Number.MAX_SAFE_INTEGER` (a test checks this).
   - **Edge cases of deposit changes:** an end month before the start month is rejected by the
     dialog and by `validate-plan.ts`, and the engine treats such a change as never active. A
@@ -238,7 +243,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - a withdrawal before the start date
   - zero return
   - a goal that cannot be reached
-- **The plan is saved in `localStorage`, nothing else is.** Key `asc-plan`, value `JSON.stringify(PlanDocument)`
+- **The plan is saved in `localStorage`.** Key `advanced-savings-calculator:plan` (the earlier `asc-plan` is still
+  read and removed on the next save, since `jbarte.github.io` storage is shared by all the account's Pages sites),
+  value `JSON.stringify(PlanDocument)`
   (`src/state/plan-storage.ts`). After every change that replaces the plan, `main.ts` saves it (`persist`); the
   untouched example plan is never written. At startup `loadSavedPlan` reads it, and `readPlanDocument`
   (`src/state/read-plan.ts`) checks the shape field by field and then runs `validatePlanDocument`, so saved text is
@@ -345,7 +352,7 @@ with the toggle.
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
     │   └── year-month.test.ts
     ├── state/                # State, data models, storage
-    │   ├── types.ts          # ScenarioView, AppState, HORIZONS, METRICS
+    │   ├── types.ts          # ScenarioView, AppState, HORIZON_PRESETS, METRICS
     │   ├── plan-document.ts  # PlanDocument, WithdrawalEvent, PLAN_LIMITS, example and blank plans
     │   ├── validate-plan.ts  # Checks plan fields, withdrawals and whole documents (+ test)
     │   ├── plan-fields.ts    # updatePlanFields: change the plan's single values, validated (+ test)

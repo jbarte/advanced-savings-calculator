@@ -9,7 +9,6 @@ const state: AppState = {
   plan: createBlankPlan({ year: 2026, month: 1 }),
   planOrigin: "example",
   storage: "idle",
-  horizon: 30,
   metric: "balance",
   selectedEvent: null,
   chartMonth: null,
@@ -27,7 +26,7 @@ describe("withPlanChange", () => {
 
   it("keeps everything else in the state", () => {
     const next = withPlanChange(state, (plan) => plan);
-    expect(next).toMatchObject({ scenarioId: "plan", horizon: 30, metric: "balance", theme: "system" });
+    expect(next).toMatchObject({ scenarioId: "plan", metric: "balance", theme: "system" });
   });
 
   it("leaves the plan alone and says why when the change is invalid", () => {

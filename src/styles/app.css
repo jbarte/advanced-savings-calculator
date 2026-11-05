@@ -989,9 +989,10 @@ button {
 
 /* ---------- Inputs card ---------- */
 
+/* 160 px keeps the month field ("November 2026") readable; five fields wrap instead of squeezing. */
 .fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
 }
 

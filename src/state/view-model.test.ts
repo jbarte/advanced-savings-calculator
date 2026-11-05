@@ -6,11 +6,13 @@ import type { ScenarioView } from "./types";
 import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
 
 const plan: PlanDocument = {
-  version: 1,
+  version: 2,
   start: { year: 2026, month: 1 },
   startAmount: 5_000_000,
   monthlyDeposit: 300_000,
   annualReturnPct: 7,
+  horizonYears: 30,
+  inflationPct: 2,
   withdrawals: [],
   depositChanges: [],
   oneTimeDeposits: [],
@@ -46,10 +48,10 @@ describe("toPlanInput", () => {
 });
 
 describe("buildScenarioView", () => {
-  it("covers 30 years with one point per month", () => {
+  it("projects 40 years with one point per month, the longest horizon", () => {
     const view = buildScenarioView(plan, "My plan", HORIZON_30);
-    expect(PROJECTION_MONTHS).toBe(360);
-    expect(view.points).toHaveLength(361);
+    expect(PROJECTION_MONTHS).toBe(480);
+    expect(view.points).toHaveLength(481);
     expect(view.points[0]?.month).toBe(0);
   });
 
@@ -87,7 +89,9 @@ describe("buildScenarioView", () => {
       monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
       annualReturnPct: PLAN_LIMITS.maxReturnPct,
     };
-    const end = buildScenarioView(largest, "Largest", HORIZON_30).points[360]?.balance ?? 0;
+    const view = buildScenarioView({ ...largest, horizonYears: PLAN_LIMITS.maxHorizonYears }, "Largest");
+    const end = view.points[PROJECTION_MONTHS]?.balance ?? 0;
+    expect(view.horizonMonths).toBe(PROJECTION_MONTHS);
     expect(Number.isSafeInteger(end)).toBe(true);
   });
 
@@ -276,7 +280,9 @@ describe("deposit changes in the view model", () => {
       annualReturnPct: PLAN_LIMITS.maxReturnPct,
       depositChanges: changes,
     };
-    const end = buildScenarioView(largest, "Largest", HORIZON_30).points[360]?.balance ?? 0;
+    const view = buildScenarioView({ ...largest, horizonYears: PLAN_LIMITS.maxHorizonYears }, "Largest");
+    const end = view.points[PROJECTION_MONTHS]?.balance ?? 0;
+    expect(view.horizonMonths).toBe(PROJECTION_MONTHS);
     expect(Number.isSafeInteger(end)).toBe(true);
   });
 });
@@ -322,7 +328,9 @@ describe("one-time deposits", () => {
       depositChanges: changes,
       oneTimeDeposits: deposits,
     };
-    const end = buildScenarioView(largest, "Largest", HORIZON_30).points[360]?.balance ?? 0;
+    const view = buildScenarioView({ ...largest, horizonYears: PLAN_LIMITS.maxHorizonYears }, "Largest");
+    const end = view.points[PROJECTION_MONTHS]?.balance ?? 0;
+    expect(view.horizonMonths).toBe(PROJECTION_MONTHS);
     expect(Number.isSafeInteger(end)).toBe(true);
   });
 });
@@ -344,6 +352,21 @@ describe("createScenarioViewCache", () => {
 
   it("gives the same numbers as building the view directly", () => {
     expect(createScenarioViewCache()(plan, "P", 120)).toEqual(buildScenarioView(plan, "P", 120));
+  });
+});
+
+describe("the horizon in the plan", () => {
+  it("is used when no horizon is given, and cuts the effects there", () => {
+    const withCar: PlanDocument = { ...plan, withdrawals: [{ id: 1, date: { year: 2031, month: 1 }, amount: 15_000_000, label: "Car" }] };
+    const at10 = buildScenarioView({ ...withCar, horizonYears: 10 }, "P");
+    expect(at10.horizonMonths).toBe(120);
+    expect(at10.withdrawals[0]?.effect).toBe(buildScenarioView(withCar, "P", 120).withdrawals[0]?.effect);
+  });
+
+  it("goes up to 40 years", () => {
+    const view = buildScenarioView({ ...plan, horizonYears: 40 }, "P");
+    expect(view.horizonMonths).toBe(480);
+    expect(view.points[480]?.balance).toBeGreaterThan(view.points[360]?.balance ?? 0);
   });
 });
 

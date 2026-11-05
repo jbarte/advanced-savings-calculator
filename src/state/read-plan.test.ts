@@ -32,7 +32,7 @@ describe("readPlanDocument", () => {
   });
 
   it("says when a plan comes from a newer version, and rejects other versions", () => {
-    expect(() => readPlanDocument({ ...asJson(full), version: 2 })).toThrow(/newer version/);
+    expect(() => readPlanDocument({ ...asJson(full), version: 3 })).toThrow(/newer version/);
     expect(() => readPlanDocument({ ...asJson(full), version: "1" })).toThrow(RangeError);
     const { version: _version, ...noVersion } = asJson(full);
     expect(() => readPlanDocument(noVersion)).toThrow(RangeError);
@@ -103,3 +103,36 @@ describe("step 0a", () => {
     expect(() => readPlanDocument(raw)).toThrow(RangeError);
   });
 });
+
+describe("upgrading a version 1 plan", () => {
+  /** A plan as version 1 wrote it: no horizon and no inflation. */
+  function versionOne(plan: PlanDocument): Record<string, unknown> {
+    const { horizonYears: _horizon, inflationPct: _inflation, ...rest } = asJson(plan);
+    return { ...rest, version: 1 };
+  }
+
+  it("opens with a 30-year horizon and 2 % inflation, as the page showed before", () => {
+    const upgraded = readPlanDocument(versionOne(full));
+    expect(upgraded).toEqual({ ...full, version: 2, horizonYears: 30, inflationPct: 2 });
+  });
+
+  it("still checks everything else", () => {
+    expect(() => readPlanDocument({ ...versionOne(full), startAmount: -1 })).toThrow(RangeError);
+  });
+
+  it("is rejected with a reason when its return is above the new 30 % limit", () => {
+    expect(() => readPlanDocument({ ...versionOne(full), annualReturnPct: 45 })).toThrow(/Expected return/);
+  });
+
+  it("requires the new fields in a version 2 plan", () => {
+    const { horizonYears: _horizon, ...noHorizon } = asJson(full);
+    expect(() => readPlanDocument(noHorizon)).toThrow(RangeError);
+  });
+
+  it("rejects a horizon or inflation outside the limits", () => {
+    expect(() => readPlanDocument({ ...asJson(full), horizonYears: 41 })).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...asJson(full), horizonYears: 2.5 })).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...asJson(full), inflationPct: 25 })).toThrow(RangeError);
+  });
+});
+

@@ -18,11 +18,13 @@ function largestPlan(): PlanDocument {
   const date = { year: 2099, month: 12 };
   const many = <T>(n: number, make: (id: number) => T): T[] => Array.from({ length: n }, (_, i) => make(i + 1));
   return {
-    version: 1,
+    version: 2,
     start: { year: 2000, month: 1 },
     startAmount: PLAN_LIMITS.maxStartAmount,
     monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
     annualReturnPct: -99.99,
+    horizonYears: PLAN_LIMITS.maxHorizonYears,
+    inflationPct: -4.75,
     withdrawals: many(PLAN_LIMITS.maxWithdrawals, (id) => ({ id, date, amount: 9_999_999_999 - id, label })),
     depositChanges: many(PLAN_LIMITS.maxDepositChanges, (id) => ({
       id,
@@ -144,3 +146,12 @@ describe("buildShareUrl", () => {
     expect(buildShareUrl("https://x.example/app/?a=1#design-system", "z.abc")).toBe("https://x.example/app/?a=1#plan=z.abc");
   });
 });
+
+describe("links made before the horizon was part of the plan", () => {
+  it("opens a version 1 link as a version 2 plan with a 30-year horizon and 2 % inflation", async () => {
+    const { horizonYears: _h, inflationPct: _i, ...rest } = withEvents;
+    const oldToken = "z." + base64Url(await deflate(text(JSON.stringify({ ...rest, version: 1 }))));
+    expect(await decodePlan(oldToken)).toEqual({ ...withEvents, horizonYears: 30, inflationPct: 2 });
+  });
+});
+

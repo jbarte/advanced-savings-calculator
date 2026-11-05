@@ -33,7 +33,6 @@ const store = createStore({
   plan: startup.plan,
   planOrigin: startup.planOrigin,
   storage: startup.storage,
-  horizon: 30,
   metric: "balance",
   selectedEvent: null,
   chartMonth: null,
@@ -69,7 +68,6 @@ const isDark = (): boolean => {
 const actions: Actions = {
   selectScenario: (scenarioId) => store.update({ scenarioId }),
   selectMetric: (metric) => store.update({ metric }),
-  setHorizon: (horizon) => store.update({ horizon }),
   selectEvent: (selectedEvent, month) => store.update({ selectedEvent, ...(month === undefined ? {} : { chartMonth: month }) }),
   setChartMonth: (chartMonth) => store.update({ chartMonth }),
   updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
@@ -167,7 +165,7 @@ const render = (): void => {
       return;
     }
     const name = { example: "Example plan", own: "My plan", shared: "Shared plan" }[state.planOrigin];
-    const scenarios = [scenarioView(state.plan, name, yearsToMonths(state.horizon))];
+    const scenarios = [scenarioView(state.plan, name, yearsToMonths(state.plan.horizonYears))];
     renderApp(root, { scenarios, state, isDark: isDark() }, actions);
   } catch (error) {
     console.error(error);

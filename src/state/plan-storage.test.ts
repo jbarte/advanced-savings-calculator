@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBlankPlan, createExamplePlan } from "./plan-document";
-import { PLAN_STORAGE_KEY, clearSavedPlan, loadSavedPlan, savePlan } from "./plan-storage";
+import { LEGACY_PLAN_STORAGE_KEY, PLAN_STORAGE_KEY, clearSavedPlan, loadSavedPlan, savePlan } from "./plan-storage";
 import type { StorageLike } from "./plan-storage";
 import { serializePlan } from "./read-plan";
 
@@ -78,3 +78,27 @@ describe("savePlan and clearSavedPlan", () => {
     expect(loadSavedPlan(storage)).toEqual({ kind: "none" });
   });
 });
+
+describe("the earlier storage key", () => {
+  it("still reads a plan saved under the short key, including a version 1 plan", () => {
+    const { horizonYears: _h, inflationPct: _i, ...v1 } = plan;
+    const storage = fakeStorage({ [LEGACY_PLAN_STORAGE_KEY]: JSON.stringify({ ...v1, version: 1 }) });
+    expect(loadSavedPlan(storage)).toEqual({ kind: "loaded", plan });
+  });
+
+  it("moves the plan to the new key on the next save, and clears both on start over", () => {
+    const storage = fakeStorage({ [LEGACY_PLAN_STORAGE_KEY]: serializePlan(plan) });
+    savePlan(plan, storage);
+    expect([...storage.data.keys()]).toEqual([PLAN_STORAGE_KEY]);
+    storage.data.set(LEGACY_PLAN_STORAGE_KEY, "old");
+    clearSavedPlan(storage);
+    expect(storage.data.size).toBe(0);
+  });
+
+  it("prefers the new key when both exist", () => {
+    const other = { ...plan, startAmount: 1 };
+    const storage = fakeStorage({ [PLAN_STORAGE_KEY]: serializePlan(plan), [LEGACY_PLAN_STORAGE_KEY]: serializePlan(other) });
+    expect(loadSavedPlan(storage)).toEqual({ kind: "loaded", plan });
+  });
+});
+

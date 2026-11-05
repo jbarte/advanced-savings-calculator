@@ -28,7 +28,7 @@ function assertYearMonth(date: YearMonth, name: string, maxYear: number = PLAN_L
   }
 }
 
-/** Checks the plan's single values (start date, amounts, return). Throws a RangeError for the first problem. */
+/** Checks the plan's single values (start, amounts, return, horizon, inflation). Throws a RangeError for the first problem. */
 export function validatePlanFields(fields: PlanFields): void {
   assertYearMonth(fields.start, "Start date");
   assertWholeOre(fields.startAmount, "Start amount", 0, PLAN_LIMITS.maxStartAmount);
@@ -36,6 +36,13 @@ export function validatePlanFields(fields: PlanFields): void {
   const { annualReturnPct } = fields;
   if (!Number.isFinite(annualReturnPct) || annualReturnPct < PLAN_LIMITS.minReturnPct || annualReturnPct > PLAN_LIMITS.maxReturnPct) {
     fail(`Expected return must be from ${PLAN_LIMITS.minReturnPct} % to ${PLAN_LIMITS.maxReturnPct} %, got ${annualReturnPct}`);
+  }
+  const { horizonYears, inflationPct } = fields;
+  if (!Number.isInteger(horizonYears) || horizonYears < PLAN_LIMITS.minHorizonYears || horizonYears > PLAN_LIMITS.maxHorizonYears) {
+    fail(`The horizon must be ${PLAN_LIMITS.minHorizonYears} to ${PLAN_LIMITS.maxHorizonYears} whole years, got ${horizonYears}`);
+  }
+  if (!Number.isFinite(inflationPct) || inflationPct < PLAN_LIMITS.minInflationPct || inflationPct > PLAN_LIMITS.maxInflationPct) {
+    fail(`Inflation must be from ${PLAN_LIMITS.minInflationPct} % to ${PLAN_LIMITS.maxInflationPct} %, got ${inflationPct}`);
   }
 }
 
@@ -97,7 +104,7 @@ function assertEventList<T extends { readonly id: number }>(
 
 /** Checks a whole plan, for example one read from a save or a link. Throws a RangeError for the first problem. */
 export function validatePlanDocument(plan: PlanDocument): void {
-  if (plan.version !== 1) fail(`Unknown plan version ${String(plan.version)}`);
+  if (plan.version !== 2) fail(`Unknown plan version ${String(plan.version)}`);
   validatePlanFields(plan);
   assertEventList(plan.withdrawals, PLAN_LIMITS.maxWithdrawals, { one: "withdrawal", many: "withdrawals" }, validateWithdrawalDraft);
   assertEventList(

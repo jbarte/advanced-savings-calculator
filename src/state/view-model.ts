@@ -3,15 +3,15 @@ import type { EventRef } from "../core/event-effect";
 import { project } from "../core/project";
 import type { DepositChangeInput, OneTimeDepositInput, Ore, PlanInput, WithdrawalInput } from "../core/types";
 import { monthsBetween, yearsToMonths } from "../core/year-month";
+import { PLAN_LIMITS } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
-import { HORIZONS } from "./types";
 import type { EventStatus, PlannedDepositChange, PlannedOneTimeDeposit, PlannedWithdrawal, ScenarioView } from "./types";
 
 /** The id of the single plan shown today. Scenario comparison will add more. */
 export const PLAN_SCENARIO_ID = "plan";
 
-/** Always project as far as the longest horizon the UI can show. */
-export const PROJECTION_MONTHS = yearsToMonths(Math.max(...HORIZONS));
+/** Always project as far as the longest allowed horizon, so changing the horizon never needs a new projection. */
+export const PROJECTION_MONTHS = yearsToMonths(PLAN_LIMITS.maxHorizonYears);
 
 /** The engine input, plus the plan id behind each entry of each event list (events left out have no entry). */
 interface MappedPlan {
@@ -89,7 +89,11 @@ function statusOf(month: number, horizonMonths: number): EventStatus {
  * Runs the engine and shapes the result for the UI. `horizonMonths` is where the effect of each event is
  * measured: the balance at that month with the event minus the balance without it.
  */
-export function buildScenarioView(plan: PlanDocument, name: string, horizonMonths: number): ScenarioView {
+export function buildScenarioView(
+  plan: PlanDocument,
+  name: string,
+  horizonMonths: number = yearsToMonths(plan.horizonYears),
+): ScenarioView {
   const { input, ids } = mapPlan(plan, PROJECTION_MONTHS);
   const { points, withdrawals: applied } = project(input);
   const balanceWith = points[horizonMonths]?.balance ?? 0;
@@ -170,6 +174,7 @@ export function buildScenarioView(plan: PlanDocument, name: string, horizonMonth
     depositChanges,
     oneTimeDeposits,
     totalEffect: totalEffect(input, horizonMonths, balanceWith),
+    horizonMonths,
     goal: null,
     points,
   };

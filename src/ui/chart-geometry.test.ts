@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   areaPath,
+  axisMonths,
   assignLanes,
   axisTicks,
   cursorAfterKey,
@@ -226,6 +227,22 @@ describe("cursorAfterKey", () => {
   it("ignores other keys, so they keep their normal use", () => {
     expect(cursorAfterKey("Tab", 5, 360, 12)).toBeNull();
     expect(cursorAfterKey("a", 5, 360, 12)).toBeNull();
+  });
+});
+
+describe("axisMonths", () => {
+  it("spreads five gaps over a long horizon", () => {
+    expect(axisMonths(360)).toEqual([0, 72, 144, 216, 288, 360]);
+    expect(axisMonths(480)).toEqual([0, 96, 192, 288, 384, 480]);
+  });
+
+  it("uses one gap per year for short horizons", () => {
+    expect(axisMonths(12)).toEqual([0, 12]);
+    expect(axisMonths(36)).toEqual([0, 12, 24, 36]);
+  });
+
+  it("rounds to whole months when the years don't divide evenly", () => {
+    expect(axisMonths(84)).toEqual([0, 17, 34, 50, 67, 84]);
   });
 });
 

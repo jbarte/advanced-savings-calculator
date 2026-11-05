@@ -246,6 +246,10 @@ the column is empty for a one-time deposit or a pause.
 
 ### Milestone 8: "My own time horizon" (backlog request)
 
+**8A (in its PR):** horizon 1–40 years in the plan (format version 2 with the upgrade of version 1), end year in
+the Plan card next to the presets, 40-year projection, maximum return 30 % (decided), namespaced storage keys.
+**8B (next):** the "today's money" switch (2 %, not saved, decided), using `inflationPct` from version 2.
+
 - Set the end of the projection freely: a typed or picked end year next to the 10, 20 and 30 year presets. No
   live slider, so open decision 2 stays as it is.
 - The horizon becomes part of the plan, so a shared link opens with the same end date. That makes

@@ -1,4 +1,3 @@
-import { yearsToMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import type { TimelineEntry } from "../state/timeline";
 import type { AppState, ScenarioView } from "../state/types";
@@ -55,7 +54,7 @@ export function renderEventsSection(
       ? h("div", { class: "table-card" }, renderEmptyState("No events yet", "Add a withdrawal, a one-time deposit or a change to your monthly deposit to see what it does."))
       : renderTimelineList(scenario, timeline, state, actions);
 
-  const end = monthLabel(scenario, yearsToMonths(state.horizon));
+  const end = monthLabel(scenario, scenario.horizonMonths);
   const tone = scenario.totalEffect < 0 ? "events__total-value--loss" : scenario.totalEffect > 0 ? "events__total-value--gain" : "";
   // The combined effect is not the sum of the rows: events change each other (a withdrawal can be capped).
   const totalLine =

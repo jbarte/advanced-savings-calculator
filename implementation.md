@@ -18,10 +18,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** milestone 7B, chart and list interplay (branch `feature/m7b-chart-list`). 7A is merged (PR #18).
+- **Open:** milestone 8A, the custom horizon (branch `feature/m8a-horizon`). Milestone 7 is merged (PR #18, #19).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 399 (`npm test`), typecheck and build pass.
+- **Tests:** 421 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -413,4 +413,30 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** the list row and the chart badge are separate controls, so a screen reader reaches the event
   through the list (as decided in milestone 4); held arrow keys redraw the page on each step (cheap now, since the
   view model is cached, but not free).
+
+### Milestone 8A: my own time horizon (branch `feature/m8a-horizon`)
+- **Decisions (user):** horizon up to 40 years; maximum return lowered from 50 % to 30 % so money stays exact
+  over 40 years (1.5^40 ≈ 11 million would not fit); inflation 2 % by default, its on/off switch not saved (8B).
+- **Built:**
+  - `PlanDocument` version 2 with `horizonYears` (1–40, whole years) and `inflationPct` (−5 to 20 %). The first real
+    migration: `readPlanDocument` upgrades a version 1 plan (saved or in a link) with 30 years and 2 %; a version 1
+    plan with a return above 30 % is rejected with the reason. Version 3 and up: "made by a newer version".
+  - `PLAN_LIMITS`: `maxReturnPct` 30, `minHorizonYears` 1, `maxHorizonYears` 40, `maxEventYear` 2140, inflation
+    limits. `PROJECTION_MONTHS` is 480; the three largest-plan tests now run at 480 months and stay exact.
+  - The horizon moved from `AppState` into the plan: the 10/20/30 buttons call `updatePlan`, and a new "End year"
+    field in the Plan card (after Start, unit "N YRS") sets any length (`parseEndYear`). `ScenarioView.horizonMonths`
+    drives the headline, the chart, the effects and the list. X-axis labels come from real dates (`axisMonths`:
+    at most five gaps, no more than one per year). "After horizon" reads "After the end year".
+  - Storage keys named after the app (`advanced-savings-calculator:plan` and `:theme`); the old `asc-*` keys are
+    still read and removed on the next save.
+  - The Plan card fields have a 160 px minimum, so five fields wrap instead of squeezing the month field.
+- **Checked:** 421 tests (22 new: migration and limits in reading, validation of the new fields, end-year parser,
+  axis months, old storage key, an old version 1 share link, the horizon in the view), typecheck and build. In the
+  browser: a version 1 plan saved under the old key opened with 30 years ("Saved in this browser", 4 000 kr a month)
+  and was moved to the new key as version 2 after the next change; end year +40 gave "Balance by Nov 2066",
+  10 634 891 kr, axis 2026–2066 in steps of 8 years; +2 years gave 159 754 kr with labels 2026 2027 2028; the
+  "10 yrs" button gave 782 565 kr. All four balances equal the independent script. A year 41 years ahead is refused
+  with "Pick a year from 2027 to 2066". No sideways scroll at 375 px.
+- **Known gaps:** changing the horizon of the untouched example now saves it as the user's own plan (the horizon is
+  part of the plan); a plan or link with a return above 30 % made before this version no longer opens (decided).
 

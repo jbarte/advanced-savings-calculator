@@ -1,18 +1,19 @@
-import { addMonths, formatYearMonth, yearsToMonths } from "../core/year-month";
-import type { EventStatus, HorizonYears, ProjectionPoint, ScenarioView } from "../state/types";
+import { addMonths, formatYearMonth } from "../core/year-month";
+import type { EventStatus, ProjectionPoint, ScenarioView } from "../state/types";
 
 export const STATUS_LABELS: Record<EventStatus, string> = {
   planned: "Planned",
-  "after-horizon": "After horizon",
+  "after-horizon": "After the end year",
   "before-start": "Before start",
 };
 
-export function visiblePoints(scenario: ScenarioView, horizon: HorizonYears): readonly ProjectionPoint[] {
-  return scenario.points.filter((p) => p.month <= yearsToMonths(horizon));
+/** The points up to the plan's horizon, which is where the chart and the headline end. */
+export function visiblePoints(scenario: ScenarioView): readonly ProjectionPoint[] {
+  return scenario.points.filter((p) => p.month <= scenario.horizonMonths);
 }
 
-export function lastPoint(scenario: ScenarioView, horizon: HorizonYears): ProjectionPoint {
-  const points = visiblePoints(scenario, horizon);
+export function lastPoint(scenario: ScenarioView): ProjectionPoint {
+  const points = visiblePoints(scenario);
   const last = points[points.length - 1];
   if (!last) throw new Error(`Scenario "${scenario.id}" has no projection points`);
   return last;

@@ -52,6 +52,17 @@ export function parseReturnPct(text: string): ParseResult<number> {
   return { ok: true, value };
 }
 
+/** Reads an end year typed in the Plan card and returns the horizon in whole years after `startYear`. */
+export function parseEndYear(text: string, startYear: number): ParseResult<number> {
+  const first = startYear + PLAN_LIMITS.minHorizonYears;
+  const last = startYear + PLAN_LIMITS.maxHorizonYears;
+  const cleaned = text.trim();
+  if (!/^\d{4}$/.test(cleaned)) return fail(`Enter a year, for example ${startYear + 30}`);
+  const year = Number(cleaned);
+  if (year < first || year > last) return fail(`Pick a year from ${first} to ${last}`);
+  return { ok: true, value: year - startYear };
+}
+
 /** Reads "YYYY-MM", the value of <input type="month"> and the fallback text box. Events may reach `maxYear`. */
 export function parseYearMonth(text: string, maxYear: number = PLAN_LIMITS.maxStartYear): ParseResult<YearMonth> {
   const match = /^(\d{4})-(\d{2})$/.exec(text.trim());

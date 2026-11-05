@@ -1,11 +1,11 @@
-import { addMonths, formatYearMonth } from "../core/year-month";
+import { MONTHS_PER_YEAR, addMonths, formatYearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import type { AppState, GoalSummary, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderTextField } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
-import { errorMessage, monthInputValue, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
+import { errorMessage, monthInputValue, parseEndYear, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
 import { openStartOverDialog } from "./start-over-dialog";
 import { lastPoint, monthLabel } from "./view-helpers";
@@ -137,6 +137,16 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
         parse: parseYearMonth,
         apply: (start) => actions.updatePlan({ start }),
       }),
+      renderParsedField({
+        id: "end-year",
+        label: "End year",
+        unit: `${scenario.horizonMonths / MONTHS_PER_YEAR} YRS`,
+        value: String(addMonths(scenario.start, scenario.horizonMonths).year),
+        dataKey: "plan-end-year",
+        inputMode: "numeric",
+        parse: (text) => parseEndYear(text, scenario.start.year),
+        apply: (horizonYears) => actions.updatePlan({ horizonYears }),
+      }),
     ),
   );
 }
@@ -165,7 +175,7 @@ export function renderGoalCard(scenario: ScenarioView, goal: GoalSummary): HTMLE
   );
 
   const reached =
-    goal.reachedMonth === null ? "Not within 30 years" : formatYearMonth(addMonths(scenario.start, goal.reachedMonth));
+    goal.reachedMonth === null ? "Not within the horizon" : formatYearMonth(addMonths(scenario.start, goal.reachedMonth));
   const stat = (label: string, value: string): HTMLElement =>
     h("div", { class: "stats__row" }, h("dt", {}, label), h("dd", {}, value));
 
@@ -192,10 +202,9 @@ export function renderGoalCard(scenario: ScenarioView, goal: GoalSummary): HTMLE
 export function renderComparisonCard(
   scenarios: readonly ScenarioView[],
   active: ScenarioView,
-  state: AppState,
   actions: Actions,
 ): HTMLElement {
-  const balances = scenarios.map((scenario) => lastPoint(scenario, state.horizon).balance);
+  const balances = scenarios.map((scenario) => lastPoint(scenario).balance);
   const top = Math.max(1, ...balances);
 
   const rows = scenarios.map((scenario, i) => {
@@ -221,7 +230,7 @@ export function renderComparisonCard(
       "div",
       { class: "card__head" },
       h("h2", { id: "compare-heading" }, "Compare"),
-      h("span", { class: "card__meta" }, `End balance · ${state.horizon} yrs`),
+      h("span", { class: "card__meta" }, `End balance · ${active.horizonMonths / MONTHS_PER_YEAR} yrs`),
     ),
     ...rows,
   );
