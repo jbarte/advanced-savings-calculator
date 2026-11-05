@@ -28,6 +28,7 @@ function assertYearMonth(date: YearMonth, name: string, maxYear: number = PLAN_L
   }
 }
 
+/** Checks the plan's single values (start date, amounts, return). Throws a RangeError for the first problem. */
 export function validatePlanFields(fields: PlanFields): void {
   assertYearMonth(fields.start, "Start date");
   assertWholeOre(fields.startAmount, "Start amount", 0, PLAN_LIMITS.maxStartAmount);
@@ -38,6 +39,7 @@ export function validatePlanFields(fields: PlanFields): void {
   }
 }
 
+/** Checks a withdrawal. Its amount is capped like the start amount, since it can't take out more than there is. */
 export function validateWithdrawalDraft(draft: WithdrawalDraft): void {
   assertYearMonth(draft.date, "Withdrawal date", PLAN_LIMITS.maxEventYear);
   assertWholeOre(draft.amount, "Withdrawal amount", 1, PLAN_LIMITS.maxStartAmount);
@@ -51,6 +53,7 @@ function assertLabel(label: string, name: string): void {
   }
 }
 
+/** Checks a deposit change, including that it doesn't end before it starts. */
 export function validateDepositChangeDraft(draft: DepositChangeDraft): void {
   assertYearMonth(draft.startDate, "Deposit change start", PLAN_LIMITS.maxEventYear);
   assertWholeOre(draft.amount, "Deposit change amount", 0, PLAN_LIMITS.maxMonthlyDeposit);
@@ -61,6 +64,7 @@ export function validateDepositChangeDraft(draft: DepositChangeDraft): void {
   }
 }
 
+/** Checks a one-time deposit against its own, smaller limits (see `PLAN_LIMITS`). */
 export function validateOneTimeDepositDraft(draft: OneTimeDepositDraft): void {
   assertYearMonth(draft.date, "One-time deposit date", PLAN_LIMITS.maxEventYear);
   assertWholeOre(draft.amount, "One-time deposit amount", 1, PLAN_LIMITS.maxOneTimeDepositAmount);
@@ -79,24 +83,33 @@ function assertUniqueIds(ids: readonly number[], what: string): void {
   }
 }
 
+/** Checks one event list of a whole document: its length, its ids and every event in it. */
+function assertEventList<T extends { readonly id: number }>(
+  list: readonly T[],
+  max: number,
+  names: { readonly one: string; readonly many: string },
+  validate: (event: T) => void,
+): void {
+  if (list.length > max) fail(`A plan can have at most ${max} ${names.many}`);
+  assertUniqueIds(list.map((event) => event.id), names.one);
+  list.forEach(validate);
+}
+
+/** Checks a whole plan, for example one read from a save or a link. Throws a RangeError for the first problem. */
 export function validatePlanDocument(plan: PlanDocument): void {
   if (plan.version !== 1) fail(`Unknown plan version ${String(plan.version)}`);
   validatePlanFields(plan);
-  if (plan.withdrawals.length > PLAN_LIMITS.maxWithdrawals) {
-    fail(`A plan can have at most ${PLAN_LIMITS.maxWithdrawals} withdrawals`);
-  }
-  assertUniqueIds(plan.withdrawals.map((withdrawal) => withdrawal.id), "withdrawal");
-  plan.withdrawals.forEach(validateWithdrawalDraft);
-
-  if (plan.depositChanges.length > PLAN_LIMITS.maxDepositChanges) {
-    fail(`A plan can have at most ${PLAN_LIMITS.maxDepositChanges} deposit changes`);
-  }
-  assertUniqueIds(plan.depositChanges.map((change) => change.id), "deposit change");
-  plan.depositChanges.forEach(validateDepositChangeDraft);
-
-  if (plan.oneTimeDeposits.length > PLAN_LIMITS.maxOneTimeDeposits) {
-    fail(`A plan can have at most ${PLAN_LIMITS.maxOneTimeDeposits} one-time deposits`);
-  }
-  assertUniqueIds(plan.oneTimeDeposits.map((deposit) => deposit.id), "one-time deposit");
-  plan.oneTimeDeposits.forEach(validateOneTimeDepositDraft);
+  assertEventList(plan.withdrawals, PLAN_LIMITS.maxWithdrawals, { one: "withdrawal", many: "withdrawals" }, validateWithdrawalDraft);
+  assertEventList(
+    plan.depositChanges,
+    PLAN_LIMITS.maxDepositChanges,
+    { one: "deposit change", many: "deposit changes" },
+    validateDepositChangeDraft,
+  );
+  assertEventList(
+    plan.oneTimeDeposits,
+    PLAN_LIMITS.maxOneTimeDeposits,
+    { one: "one-time deposit", many: "one-time deposits" },
+    validateOneTimeDepositDraft,
+  );
 }

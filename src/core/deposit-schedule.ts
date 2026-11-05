@@ -17,20 +17,3 @@ export function depositInMonth(base: Ore, changes: readonly DepositChangeInput[]
   }
   return chosen === undefined ? base : chosen.amount;
 }
-
-export interface DepositLevel {
-  readonly month: number;
-  readonly amount: Ore;
-}
-
-/** The months from 1 to `months` where the deposit differs from the month before (month 1 against the base). */
-export function depositLevelChanges(base: Ore, changes: readonly DepositChangeInput[], months: number): DepositLevel[] {
-  const levels: DepositLevel[] = [];
-  let previous = base;
-  for (let month = 1; month <= months; month++) {
-    const amount = depositInMonth(base, changes, month);
-    if (amount !== previous) levels.push({ month, amount });
-    previous = amount;
-  }
-  return levels;
-}

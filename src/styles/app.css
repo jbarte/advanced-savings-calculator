@@ -33,14 +33,6 @@ button {
   outline-offset: 3px;
 }
 
-.mono {
-  font-family: var(--font-mono);
-}
-
-.muted {
-  color: var(--muted);
-}
-
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -98,7 +90,7 @@ button {
 }
 
 .brand__name {
-  font-size: 20px;
+  font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -337,7 +329,7 @@ button {
 
 .hero__sub {
   margin: 14px 0 0;
-  font-size: 15px;
+  font-size: var(--text-md);
   color: var(--ink2);
 }
 
@@ -383,13 +375,13 @@ button {
 .card__head h2,
 .section-head h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .card__meta {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 
@@ -417,12 +409,6 @@ button {
 
 /* ---------- KPI tiles ---------- */
 
-.tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 8px;
-}
-
 .tile {
   padding: 12px 14px;
   border-radius: var(--radius-tile);
@@ -440,12 +426,12 @@ button {
 }
 
 .tile__label {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 
 .tile__value {
-  font-size: 20px;
+  font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -463,21 +449,25 @@ button {
 
 /* ---------- Chart ---------- */
 
+/* Chart sizes, shared with the badge layout in chart-events.ts (which sets --lane per badge). */
 .chart {
+  --chart-height: 280px;
+  --badge-size: 22px;
+  --badge-lane: 26px;
   display: grid;
   grid-template-columns: 60px minmax(0, 1fr);
   gap: 8px;
 }
 
 .chart__y {
-  height: 280px;
+  height: var(--chart-height);
   margin: -6px 0;
   padding-right: 6px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
   text-align: right;
   white-space: nowrap;
@@ -492,7 +482,7 @@ button {
 
 .chart__plot {
   position: relative;
-  height: 280px;
+  height: var(--chart-height);
   touch-action: pan-y;
 }
 
@@ -650,16 +640,16 @@ button {
   top: 0;
   bottom: 0;
   width: 0;
-  border-left: var(--border-1) dashed var(--elevated);
+  border-left: var(--border-1) dashed var(--kind-withdrawal);
   pointer-events: none;
 }
 
 .chart__marker--deposit-change {
-  border-left: var(--border-1) dotted var(--solid);
+  border-left: var(--border-1) dotted var(--kind-deposit-change);
 }
 
 .chart__marker--one-time-deposit {
-  border-left: var(--border-1) dotted var(--accent-ink);
+  border-left: var(--border-1) dotted var(--kind-one-time-deposit);
 }
 
 .chart__marker[aria-current="true"] {
@@ -683,8 +673,9 @@ button {
 /* Numbered badges. The colours match the badges in the list. */
 .chart__badge {
   position: absolute;
-  min-width: 22px;
-  height: 22px;
+  top: calc(var(--lane, 0) * var(--badge-lane) + var(--space-1));
+  min-width: var(--badge-size);
+  height: var(--badge-size);
   padding: 0 6px;
   transform: translateX(-50%);
   border: 0;
@@ -692,7 +683,7 @@ button {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: 600;
-  line-height: 22px;
+  line-height: var(--badge-size);
   text-align: center;
   cursor: pointer;
   box-shadow: var(--shadow-on-color);
@@ -700,26 +691,6 @@ button {
 
 .chart__badge[aria-pressed="true"] {
   box-shadow: var(--glow-focus);
-}
-
-.chart__badge--withdrawal {
-  background: var(--elevated);
-  color: var(--on-solid);
-}
-
-.chart__badge--deposit-change {
-  background: var(--solid);
-  color: var(--on-solid);
-}
-
-.chart__badge--one-time-deposit {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink);
-}
-
-.chart__badge--one-time-deposit[aria-pressed="true"] {
-  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink), var(--glow-focus);
 }
 
 .legend {
@@ -743,19 +714,6 @@ button {
   width: 14px;
   height: 14px;
   border-radius: var(--radius-pill);
-}
-
-.legend__swatch--withdrawal {
-  background: var(--elevated);
-}
-
-.legend__swatch--deposit-change {
-  background: var(--solid);
-}
-
-.legend__swatch--one-time-deposit {
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink);
 }
 
 .chart__cursor {
@@ -796,12 +754,12 @@ button {
 }
 
 .chart__tooltip strong {
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 
 .chart__tooltip span {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--on-solid-muted);
 }
 
@@ -902,35 +860,46 @@ button {
   font-size: var(--text-sm);
 }
 
-/* The same colours as the badges on the chart. */
-.table__badge--withdrawal {
-  background: var(--elevated);
+/* Event kinds share one set of colours on the chart, in the list and in the legend (the --kind-* tokens). It
+   comes after the base badge rules so it wins over their neutral background. */
+.chart__badge--withdrawal,
+.table__badge--withdrawal,
+.legend__swatch--withdrawal {
+  background: var(--kind-withdrawal);
   color: var(--on-solid);
 }
 
-.table__badge--deposit-change {
-  background: var(--solid);
+.chart__badge--deposit-change,
+.table__badge--deposit-change,
+.legend__swatch--deposit-change {
+  background: var(--kind-deposit-change);
   color: var(--on-solid);
 }
 
-.table__badge--one-time-deposit {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink);
+.chart__badge--one-time-deposit,
+.table__badge--one-time-deposit,
+.legend__swatch--one-time-deposit {
+  background: var(--kind-one-time-deposit-fill);
+  color: var(--kind-one-time-deposit);
+  box-shadow: inset 0 0 0 var(--border-2) var(--kind-one-time-deposit);
+}
+
+.chart__badge--one-time-deposit[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 var(--border-2) var(--kind-one-time-deposit), var(--glow-focus);
 }
 
 .table__title {
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 500;
 }
 
 .table__sub {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 
 .table__amount {
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .impact {
@@ -971,13 +940,6 @@ button {
   white-space: nowrap;
 }
 
-.table__empty {
-  padding: 28px 20px;
-  color: var(--muted);
-  font-size: 14px;
-  text-align: center;
-}
-
 /* ---------- Inputs card ---------- */
 
 .fields {
@@ -1014,7 +976,7 @@ button {
   border: 0;
   background: none;
   outline: none;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 500;
 }
 
@@ -1024,7 +986,7 @@ button {
 
 .field__unit {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 
@@ -1156,7 +1118,7 @@ button {
 .gauge__number span {
   margin-top: 6px;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 
@@ -1192,7 +1154,7 @@ button {
 
 .status {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-xs);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
@@ -1218,7 +1180,7 @@ button {
 
 .compare__amount {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--on-solid-muted);
 }
 
@@ -1413,7 +1375,7 @@ button {
 .slider-field__head {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 
@@ -1480,7 +1442,7 @@ button {
   border-radius: var(--radius-control);
   background: var(--surface);
   box-shadow: var(--shadow-lift);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 500;
   cursor: pointer;
 }
@@ -1754,7 +1716,7 @@ button {
 
 .ds__section h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 
@@ -1921,7 +1883,7 @@ button {
     grid-area: impact;
   }
 
-  .impact-empty {
+  .impact--empty {
     display: none;
   }
 }

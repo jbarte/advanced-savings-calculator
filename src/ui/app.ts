@@ -1,3 +1,4 @@
+import { buildTimeline } from "../state/timeline";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
@@ -26,6 +27,8 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   const focusKey = focused?.getAttribute("data-key");
   const fallbackKey = focused?.getAttribute("data-focus-next");
 
+  const timeline = buildTimeline(active.withdrawals, active.depositChanges, active.oneTimeDeposits);
+
   const shell = h(
     "div",
     { class: "shell" },
@@ -36,7 +39,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
       state.notice ? renderNotice(state.notice, actions) : null,
       state.planOrigin === "shared" ? renderSharedBanner(actions) : null,
       renderHero(active, state, actions),
-      renderChartCard(active, state, actions),
+      renderChartCard(active, timeline, state, actions),
       h(
         "div",
         { class: "bento" },
@@ -44,7 +47,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
         active.goal ? renderGoalCard(active, active.goal) : null,
         scenarios.length > 1 ? renderComparisonCard(scenarios, active, state, actions) : null,
       ),
-      renderEventsSection(active, state, actions),
+      renderEventsSection(active, timeline, state, actions),
       h(
         "p",
         { class: "disclaimer" },

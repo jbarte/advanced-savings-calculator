@@ -1,10 +1,9 @@
-import type { DepositLevel } from "../core/deposit-schedule";
 import type { Ore, ProjectionPoint } from "../core/types";
 import type { YearMonth } from "../core/year-month";
 import type { PlanDocument } from "./plan-document";
 import type { EventKey } from "./timeline";
 
-export type { DepositLevel, Ore, ProjectionPoint };
+export type { Ore, ProjectionPoint };
 
 export const HORIZONS = [10, 20, 30] as const;
 export type HorizonYears = (typeof HORIZONS)[number];
@@ -15,8 +14,8 @@ export type Metric = (typeof METRICS)[number];
 export type ThemePreference = "system" | "light" | "dark";
 
 /**
- * Where a withdrawal falls: within the chosen horizon, after it, or before the plan starts (such a
- * withdrawal is listed but left out of the projection).
+ * Where an event falls: within the chosen horizon, after it, or before the plan starts (such an event is
+ * listed but left out of the projection).
  */
 export type EventStatus = "planned" | "after-horizon" | "before-start";
 
@@ -66,15 +65,11 @@ export interface GoalSummary {
   readonly percentReached: number;
   readonly shortfall: Ore;
   readonly requiredMonthly: Ore;
-  /** First month the balance reaches the target, or null if never within 30 years. */
+  /** First month the balance reaches the target, or null if it never does within the projection. */
   readonly reachedMonth: number | null;
 }
 
-/**
- * Everything the UI needs to render one scenario. Today this comes from static
- * sample data. Later, src/state/view-model.ts will build it from the engine's
- * output (the types in src/core/types.ts).
- */
+/** Everything the UI needs to render one scenario, built from the engine's output by `buildScenarioView`. */
 export interface ScenarioView {
   readonly id: string;
   readonly name: string;
@@ -85,8 +80,6 @@ export interface ScenarioView {
   readonly withdrawals: readonly PlannedWithdrawal[];
   readonly depositChanges: readonly PlannedDepositChange[];
   readonly oneTimeDeposits: readonly PlannedOneTimeDeposit[];
-  /** The months where the monthly deposit changes, with the new amount. */
-  readonly depositLevels: readonly DepositLevel[];
   /** Null until the user has set a goal. */
   readonly goal: GoalSummary | null;
   readonly points: readonly ProjectionPoint[];
@@ -108,7 +101,7 @@ export interface AppState {
   readonly storage: StorageStatus;
   readonly horizon: HorizonYears;
   readonly metric: Metric;
-  /** The event highlighted in the list (and later on the chart), or null. */
+  /** The event highlighted in the list and on the chart, or null. */
   readonly selectedEvent: EventKey | null;
   readonly theme: ThemePreference;
   /** Why the last change was not applied, shown until the next change or until dismissed. */

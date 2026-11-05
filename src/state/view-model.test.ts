@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { addMonths } from "../core/year-month";
 import { PLAN_LIMITS, createBlankPlan, createExamplePlan } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
+import type { ScenarioView } from "./types";
 import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, buildScenarioView, toPlanInput } from "./view-model";
 
 const plan: PlanDocument = {
@@ -16,6 +17,11 @@ const plan: PlanDocument = {
 };
 
 const HORIZON_30 = 360;
+
+/** What was deposited in `month`, read from the running total of the projection. */
+function depositIn(view: ScenarioView, month: number): number {
+  return (view.points[month]?.deposited ?? 0) - (view.points[month - 1]?.deposited ?? 0);
+}
 
 /** End balance in öre by closed form: S(1+m)^n + D((1+m)^n − 1)/m. Independent of project(). */
 function expectedEndBalance(p: PlanDocument, months: number): number {
@@ -206,18 +212,16 @@ describe("deposit changes in the view model", () => {
     expect(c).toMatchObject({ id: 1, label: "Parental leave", startMonth: 13, endMonth: 24, amount: 0, status: "planned" });
   });
 
-  it("lists where the deposit level changes", () => {
-    expect(buildScenarioView(withPause, "P", HORIZON_30).depositLevels).toEqual([
-      { month: 13, amount: 0 },
-      { month: 25, amount: 300_000 },
-    ]);
+  it("deposits nothing during the pause and the base amount again after it", () => {
+    const view = buildScenarioView(withPause, "P", HORIZON_30);
+    expect([12, 13, 24, 25].map((month) => depositIn(view, month))).toEqual([300_000, 0, 0, 300_000]);
   });
 
   it("marks a change that ends before the plan starts, and leaves it out of the projection", () => {
     const old = { ...pause, startDate: { year: 2024, month: 1 }, endDate: { year: 2025, month: 12 } };
     const view = buildScenarioView({ ...exampleLike, depositChanges: [old] }, "P", HORIZON_30);
     expect(view.depositChanges[0]).toMatchObject({ status: "before-start" });
-    expect(view.depositLevels).toEqual([]);
+    expect(depositIn(view, 1)).toBe(300_000);
     expect(view.points[360]?.balance).toBe(buildScenarioView(exampleLike, "P", HORIZON_30).points[360]?.balance);
   });
 
@@ -226,7 +230,7 @@ describe("deposit changes in the view model", () => {
     const view = buildScenarioView({ ...exampleLike, startAmount: 0, depositChanges: [old] }, "P", HORIZON_30);
     expect(view.depositChanges[0]).toMatchObject({ status: "planned" });
     expect(view.depositChanges[0]?.startMonth).toBeLessThan(0);
-    expect(view.depositLevels[0]).toEqual({ month: 1, amount: 100_000 });
+    expect(depositIn(view, 1)).toBe(100_000);
   });
 
   it("marks a change after the chosen horizon, but keeps it in the projection", () => {
@@ -255,7 +259,6 @@ describe("deposit changes in the view model", () => {
   it("the example plan has no deposit changes", () => {
     const view = buildScenarioView(createExamplePlan({ year: 2026, month: 11 }), "Example", HORIZON_30);
     expect(view.depositChanges).toEqual([]);
-    expect(view.depositLevels).toEqual([]);
   });
 
   it("stays exact for the largest allowed plan with the most changes at the largest amount", () => {

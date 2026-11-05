@@ -1,31 +1,31 @@
+import { appendEvent, removeEvent, replaceEvent } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
-import type { DepositChangeDraft, PlanDocument } from "./plan-document";
+import type { DepositChangeDraft, DepositChangeEvent, PlanDocument } from "./plan-document";
 import { validateDepositChangeDraft } from "./validate-plan";
 
-function toEvent(id: number, draft: DepositChangeDraft): PlanDocument["depositChanges"][number] {
-  return { id, startDate: draft.startDate, endDate: draft.endDate, amount: draft.amount, label: draft.label.trim() };
-}
+const NAMES = { one: "deposit change", many: "deposit changes" };
+
+const toEvent = (draft: DepositChangeDraft) => (id: number): DepositChangeEvent => ({
+  id,
+  startDate: draft.startDate,
+  endDate: draft.endDate,
+  amount: draft.amount,
+  label: draft.label.trim(),
+});
 
 /** Adds a deposit change. Its id is one above the highest deposit change id. Throws a RangeError if it is invalid. */
 export function addDepositChange(plan: PlanDocument, draft: DepositChangeDraft): PlanDocument {
   validateDepositChangeDraft(draft);
-  if (plan.depositChanges.length >= PLAN_LIMITS.maxDepositChanges) {
-    throw new RangeError(`A plan can have at most ${PLAN_LIMITS.maxDepositChanges} deposit changes`);
-  }
-  const id = Math.max(0, ...plan.depositChanges.map((change) => change.id)) + 1;
-  return { ...plan, depositChanges: [...plan.depositChanges, toEvent(id, draft)] };
+  return { ...plan, depositChanges: appendEvent(plan.depositChanges, PLAN_LIMITS.maxDepositChanges, NAMES, toEvent(draft)) };
 }
 
 /** Replaces a deposit change's fields. It keeps its id and its place in the list. */
 export function updateDepositChange(plan: PlanDocument, id: number, draft: DepositChangeDraft): PlanDocument {
   validateDepositChangeDraft(draft);
-  if (!plan.depositChanges.some((change) => change.id === id)) {
-    throw new RangeError(`There is no deposit change with id ${id}`);
-  }
-  return { ...plan, depositChanges: plan.depositChanges.map((change) => (change.id === id ? toEvent(id, draft) : change)) };
+  return { ...plan, depositChanges: replaceEvent(plan.depositChanges, id, NAMES, toEvent(draft)) };
 }
 
 /** Removes a deposit change. Does nothing if it is already gone. */
 export function removeDepositChange(plan: PlanDocument, id: number): PlanDocument {
-  return { ...plan, depositChanges: plan.depositChanges.filter((change) => change.id !== id) };
+  return { ...plan, depositChanges: removeEvent(plan.depositChanges, id) };
 }

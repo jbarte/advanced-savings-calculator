@@ -81,7 +81,7 @@ function badge(entry: TimelineEntry, x: number, lane: number, selected: EventKey
       class: `chart__badge chart__badge--${entry.kind}`,
       type: "button",
       tabindex: -1,
-      style: `left:${x}%;top:${lane * 26 + 4}px`,
+      style: `left:${x}%;--lane:${lane}`,
       "aria-pressed": String(isSelected),
       "aria-label": `Event ${entry.number}: ${text}`,
       title: text,

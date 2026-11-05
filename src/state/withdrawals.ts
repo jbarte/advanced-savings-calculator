@@ -1,31 +1,30 @@
+import { appendEvent, removeEvent, replaceEvent } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
-import type { PlanDocument, WithdrawalDraft } from "./plan-document";
+import type { PlanDocument, WithdrawalDraft, WithdrawalEvent } from "./plan-document";
 import { validateWithdrawalDraft } from "./validate-plan";
 
-function toEvent(id: number, draft: WithdrawalDraft): PlanDocument["withdrawals"][number] {
-  return { id, date: draft.date, amount: draft.amount, label: draft.label.trim() };
-}
+const NAMES = { one: "withdrawal", many: "withdrawals" };
+
+const toEvent = (draft: WithdrawalDraft) => (id: number): WithdrawalEvent => ({
+  id,
+  date: draft.date,
+  amount: draft.amount,
+  label: draft.label.trim(),
+});
 
 /** Adds a withdrawal. Its id is one above the highest id in the plan. Throws a RangeError if it is invalid. */
 export function addWithdrawal(plan: PlanDocument, draft: WithdrawalDraft): PlanDocument {
   validateWithdrawalDraft(draft);
-  if (plan.withdrawals.length >= PLAN_LIMITS.maxWithdrawals) {
-    throw new RangeError(`A plan can have at most ${PLAN_LIMITS.maxWithdrawals} withdrawals`);
-  }
-  const id = Math.max(0, ...plan.withdrawals.map((withdrawal) => withdrawal.id)) + 1;
-  return { ...plan, withdrawals: [...plan.withdrawals, toEvent(id, draft)] };
+  return { ...plan, withdrawals: appendEvent(plan.withdrawals, PLAN_LIMITS.maxWithdrawals, NAMES, toEvent(draft)) };
 }
 
 /** Replaces a withdrawal's fields. It keeps its id and its place in the list. */
 export function updateWithdrawal(plan: PlanDocument, id: number, draft: WithdrawalDraft): PlanDocument {
   validateWithdrawalDraft(draft);
-  if (!plan.withdrawals.some((withdrawal) => withdrawal.id === id)) {
-    throw new RangeError(`There is no withdrawal with id ${id}`);
-  }
-  return { ...plan, withdrawals: plan.withdrawals.map((withdrawal) => (withdrawal.id === id ? toEvent(id, draft) : withdrawal)) };
+  return { ...plan, withdrawals: replaceEvent(plan.withdrawals, id, NAMES, toEvent(draft)) };
 }
 
 /** Removes a withdrawal. Does nothing if it is already gone. */
 export function removeWithdrawal(plan: PlanDocument, id: number): PlanDocument {
-  return { ...plan, withdrawals: plan.withdrawals.filter((withdrawal) => withdrawal.id !== id) };
+  return { ...plan, withdrawals: removeEvent(plan.withdrawals, id) };
 }

@@ -83,7 +83,7 @@ export function parseOneTimeDepositAmount(text: string): ParseResult<Ore> {
 }
 
 /** A short name for an event. Empty text becomes `fallback`. */
-export function parseLabel(text: string, fallback = "Withdrawal"): ParseResult<string> {
+export function parseLabel(text: string, fallback: string): ParseResult<string> {
   const label = text.trim();
   if (label === "") return { ok: true, value: fallback };
   if (label.length > PLAN_LIMITS.maxLabelLength) return fail(`Use ${PLAN_LIMITS.maxLabelLength} characters or fewer`);

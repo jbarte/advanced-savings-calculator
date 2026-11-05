@@ -65,7 +65,7 @@ function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, a
     sub: `Deposit change · ${periodText(change)}`,
     amount: change.amount === 0 ? "Paused" : `${formatMoney(change.amount)}/mo`,
     chips: [h("span", { class: "chip" }, STATUS_LABELS[change.status])],
-    impact: h("div", { class: "impact-empty", role: "cell" }),
+    impact: h("div", { class: "impact impact--empty", role: "cell" }),
     edit: () =>
       openDepositChangeDialog({
         start: scenario.start,
@@ -83,7 +83,7 @@ function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry,
     sub: `One-time deposit · ${formatYearMonth(deposit.date)}`,
     amount: `+${formatMoney(deposit.amount)}`,
     chips: [h("span", { class: "chip" }, STATUS_LABELS[deposit.status])],
-    impact: h("div", { class: "impact-empty", role: "cell" }),
+    impact: h("div", { class: "impact impact--empty", role: "cell" }),
     edit: () =>
       openOneTimeDepositDialog({
         start: scenario.start,

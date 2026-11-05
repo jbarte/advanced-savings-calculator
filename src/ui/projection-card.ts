@@ -2,7 +2,6 @@ import { yearsToMonths } from "../core/year-month";
 import { HORIZONS, METRICS } from "../state/types";
 import type { AppState, Metric, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
-import { buildTimeline } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
 import { areaPath, axisTicks, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
 import { renderChartEvents, renderChartLegend } from "./chart-events";
@@ -89,8 +88,12 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
   );
 }
 
-export function renderChartCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
-  const timeline = buildTimeline(scenario.withdrawals, scenario.depositChanges, scenario.oneTimeDeposits);
+export function renderChartCard(
+  scenario: ScenarioView,
+  timeline: readonly TimelineEntry[],
+  state: AppState,
+  actions: Actions,
+): HTMLElement {
   return h(
     "section",
     { class: "card card--chart", "aria-labelledby": "chart-heading" },

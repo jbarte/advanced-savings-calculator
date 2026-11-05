@@ -1,5 +1,5 @@
 import { PLAN_LIMITS } from "../state/plan-document";
-import { buildTimeline } from "../state/timeline";
+import type { TimelineEntry } from "../state/timeline";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderEmptyState } from "./components";
@@ -12,7 +12,12 @@ import { openWithdrawalDialog } from "./withdrawal-dialog";
 import { renderTimelineList } from "./timeline-list";
 
 /** Everything that happens in the plan besides the monthly saving: withdrawals, deposit changes and one-time deposits. */
-export function renderEventsSection(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+export function renderEventsSection(
+  scenario: ScenarioView,
+  timeline: readonly TimelineEntry[],
+  state: AppState,
+  actions: Actions,
+): HTMLElement {
   const { withdrawals, depositChanges, oneTimeDeposits } = scenario;
   const total = withdrawals.length + depositChanges.length + oneTimeDeposits.length;
   const full: Record<EventType, boolean> = {
@@ -45,7 +50,7 @@ export function renderEventsSection(scenario: ScenarioView, state: AppState, act
   const body =
     total === 0
       ? h("div", { class: "table-card" }, renderEmptyState("No events yet", "Add a withdrawal or a change to your monthly deposit to see what it does."))
-      : renderTimelineList(scenario, buildTimeline(withdrawals, depositChanges, oneTimeDeposits), state, actions);
+      : renderTimelineList(scenario, timeline, state, actions);
 
   return h(
     "section",

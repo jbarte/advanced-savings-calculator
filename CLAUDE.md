@@ -198,7 +198,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
   to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
   types, and nothing reaches the store until Save. `openFormDialog` (`src/ui/dialog-form.ts`)
-  is the shared shell for the form dialogs (`withdrawal-dialog.ts`, `deposit-change-dialog.ts`):
+  is the shared shell for the form dialogs. Withdrawals and one-time deposits share one dialog
+  (`openAmountEventDialog` in `amount-event-dialog.ts`, with a small kind description); deposit changes have
+  their own (`deposit-change-dialog.ts`):
   the primary button and Enter both call `save`, and it closes only when `save` returns true. A dialog closes
   on the backdrop only when the press starts and ends outside its box, and is named with `aria-label`. When an
   event is edited, its own date is accepted even if it is before the plan start (`earliestMonth`).
@@ -278,7 +280,10 @@ with the toggle.
 - Interactive states: hover lifts 1px, pressed uses `--shadow-inner`, disabled drops shadows and contrast,
   focus shows `--glow-focus`.
 - All colours are CSS custom properties in `src/styles/tokens.css`. Use the tokens,
-  never hard-coded colours.
+  never hard-coded colours. Event kinds have their own tokens (`--kind-withdrawal`, `--kind-deposit-change`,
+  `--kind-one-time-deposit` and its `-fill`), used by the chart badges and lines, the list badges and the legend.
+  Font sizes use the `--text-*` tokens where one matches. The chart's height, badge size and badge lane are
+  custom properties on `.chart`, and `chart-events.ts` only sets `--lane` on each badge.
 - Component styles live in `src/styles/app.css`.
 - Build DOM with the `h()` / `s()` helpers in `src/ui/dom.ts`. Never use `innerHTML`
   with user-provided text.
@@ -327,7 +332,7 @@ with the toggle.
     │   ├── types.ts          # Engine input/output: PlanInput, Projection, Ore …
     │   ├── project.ts        # project(): the monthly projection (+ project.test.ts)
     │   ├── lost-growth.ts    # lostGrowth(): what a withdrawal costs by a horizon (+ test)
-    │   ├── deposit-schedule.ts # depositInMonth, depositLevelChanges (+ test)
+    │   ├── deposit-schedule.ts # depositInMonth: the deposit in a given month (+ test)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
     │   └── year-month.test.ts
@@ -338,6 +343,7 @@ with the toggle.
     │   ├── plan-fields.ts    # updatePlanFields: change the plan's single values, validated (+ test)
     │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
     │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals, validated (+ test)
+    │   ├── event-list.ts     # Shared add/update/remove for the three event lists (+ test)
     │   ├── deposit-changes.ts # Pure add/update/remove of deposit changes, validated (+ test)
     │   ├── one-time-deposits.ts # Pure add/update/remove of one-time deposits, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
@@ -373,8 +379,9 @@ with the toggle.
     │   ├── event-type-dialog.ts # Asks which kind of event to add
     │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, lost growth
     │   ├── deposit-change-dialog.ts # Dialog to add or edit a deposit change
-    │   ├── one-time-deposit-dialog.ts # Dialog to add or edit a one-time deposit
-    │   ├── withdrawal-dialog.ts # Dialog to add or edit a withdrawal
+    │   ├── amount-event-dialog.ts # Dialog for an amount in one month (withdrawal, one-time deposit)
+    │   ├── one-time-deposit-dialog.ts # openOneTimeDepositDialog: the amount dialog for one-time deposits
+    │   ├── withdrawal-dialog.ts # openWithdrawalDialog: the amount dialog for withdrawals
     │   ├── side-cards.ts     # Bento cards: plan inputs, goal gauge, scenario comparison
     │   ├── components.ts     # Design-system components (toggle, slider, toast, modal …)
     │   ├── design-system.ts  # Reference page for tokens and components (#design-system)

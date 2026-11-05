@@ -10,15 +10,15 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   "Change my saving over time" (PR #5), the contrast of raised surfaces and dialogs (PR #6), the removal of the
   white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8), one-time deposits (PR #9), milestone 4B
   "events on the chart" (PR #10), the Add event dialog styles fix (PR #11), milestone 5 "saved in the browser"
-  (PR #12), milestone 6 "share my plan" (PR #13) and the roadmap after the code review (PR #14) and the
-  step 0a bug fixes (PR #15). PR #4 had
+  (PR #12), milestone 6 "share my plan" (PR #13) and the roadmap after the code review (PR #14) the
+  step 0a bug fixes (PR #15) and the step 0b safety net (PR #16). PR #4 had
   been merged into its base `feature/foundation-fixes` after #3 was already in `main`, so it never reached
   `main`; PR #5 carried the same commits there.
 - **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** step 0b, the safety net (branch `test/step-0b`). Step 0a is merged (PR #15).
+- **Open:** step 0c, cleanup (branch `refactor/step-0c`). Step 0b is merged (PR #16).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
 - **Tests:** 380 (`npm test`), typecheck and build pass.
@@ -338,4 +338,32 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   faults: a `Date.now()` in the core, a `ui` import in `state` and a `localStorage` call in the UI each made the
   architecture test fail; adding one öre per month in `project()` made all six reference tests fail. The faults
   were removed again.
+
+### Step 0c: cleanup (branch `refactor/step-0c`)
+- **No change in behaviour.** The reference values from step 0b and the architecture test pass unchanged, and
+  computed styles in the browser are the same as before.
+- **Removed:** `depositLevels` from `ScenarioView` and `depositLevelChanges` from the core (the chart stopped
+  using them in 4B; they cost 360 × C calls per render). Its view-model tests now read the deposit of a month from
+  the projection itself (`deposited` of a month minus the month before), so the behaviour is still covered; the
+  five unit tests of the removed function went with it. Also `initials()`, the CSS classes `.mono`, `.muted`,
+  `.tiles` and `.table__empty`, and stale comments ("static sample data", "Where a withdrawal falls", "later on
+  the chart", "within 30 years").
+- **Shared instead of repeated:**
+  - `src/state/event-list.ts` (`nextId`, `appendEvent`, `replaceEvent`, `removeEvent`, with tests) behind the
+    add/update/remove of all three event lists; `validatePlanDocument` checks each list with one helper.
+  - The deposit-change status uses `statusOf` (from month 0 for a change that began before the plan).
+  - `amount-event-dialog.ts`: one dialog for withdrawals and one-time deposits; the two dialog files are now
+    a few lines each. `parseLabel` takes its fallback label explicitly.
+  - `buildTimeline` runs once per render in `app.ts` and is passed to the chart and the list.
+  - Badge and marker colours come from `--kind-*` tokens in one CSS block for chart, list and legend.
+- **Magic numbers:** `DEFAULT_MONTHS_AHEAD` is `MONTHS_PER_YEAR`; the example car is `yearsToMonths(5)` ahead;
+  the chart height, badge size and lane height are custom properties on `.chart` (the code only sets `--lane`);
+  20 font sizes that equal a `--text-*` token now use it.
+- **BEM:** `.impact-empty` is now `.impact impact--empty`. JSDoc added to the exported validators.
+- **Checked:** 380 tests (5 new for `event-list.ts`, 5 removed with `depositLevelChanges`), typecheck and build
+  pass. Every removed CSS line was listed and checked (lesson from 4B). In the browser, with one event of each kind:
+  the dialogs are titled "Add one-time deposit", "Add withdrawal" and "Change monthly deposit"; an empty withdrawal
+  label still becomes "Withdrawal"; badge, legend and marker colours equal the theme colours in light and dark
+  (for example the withdrawal badge rgb(168, 120, 107) light, rgb(141, 98, 90) dark); badge lanes sit at 4, 30 and
+  56 px as before; plot height 280 px, badge 22 px, list title 15 px.
 
