@@ -1,4 +1,5 @@
 import { formatYearMonth, yearsToMonths } from "../core/year-month";
+import { chartMonthOf } from "../state/timeline";
 import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { EventStatus, Ore } from "../state/types";
 import type { AppState, PlannedDepositChange, ScenarioView } from "../state/types";
@@ -172,10 +173,12 @@ function renderRow(
           type: "button",
           "data-key": `event-select-${entry.key}`,
           "aria-pressed": String(isSelected),
-          "aria-label": `Event ${entry.number}: ${parts.title}`,
-          onclick: () => actions.selectEvent(isSelected ? null : entry.key),
+          onclick: () => actions.selectEvent(isSelected ? null : entry.key, chartMonthOf(entry)),
         },
+        // The name read out is "Event 2: New car, Withdrawal · Nov 2031": number, title, kind and date.
+        h("span", { class: "visually-hidden" }, `Event ${entry.number}: `),
         h("span", { class: "table__title" }, parts.title),
+        h("span", { class: "visually-hidden" }, ", "),
         h("span", { class: "table__sub" }, parts.sub),
       ),
     ),

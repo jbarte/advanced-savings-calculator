@@ -1,9 +1,10 @@
-import { yearsToMonths } from "../core/year-month";
+import { MONTHS_PER_YEAR, yearsToMonths } from "../core/year-month";
 import { HORIZONS, METRICS } from "../state/types";
 import type { AppState, Metric, ScenarioView } from "../state/types";
-import type { Actions } from "./actions";
+import { eventsAtMonth } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
-import { areaPath, axisTicks, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
+import type { Actions } from "./actions";
+import { areaPath, axisTicks, cursorAfterKey, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
 import { renderChartEvents, renderChartLegend } from "./chart-events";
 import { renderEmptyState } from "./components";
 import { h, s } from "./dom";
@@ -123,6 +124,18 @@ function renderChartOrEmptyState(
   return renderChart(scenario, state, timeline, actions);
 }
 
+/** The label of an event, for the tooltip and the value text. */
+function eventLabel(entry: TimelineEntry): string {
+  switch (entry.kind) {
+    case "withdrawal":
+      return entry.withdrawal.label;
+    case "deposit-change":
+      return entry.change.label;
+    case "one-time-deposit":
+      return entry.deposit.label;
+  }
+}
+
 function renderChart(
   scenario: ScenarioView,
   state: AppState,
@@ -158,14 +171,22 @@ function renderChart(
   const dot = h("div", { class: "chart__dot" });
   const tooltipValue = h("strong", {});
   const tooltipLabel = h("span", {});
-  const tooltip = h("div", { class: "chart__tooltip", role: "status" }, tooltipValue, tooltipLabel);
+  const tooltipEvents = h("ul", { class: "chart__tooltip-events" });
+  // Hidden from screen readers: the slider's value text says the same, once per key press.
+  const tooltip = h("div", { class: "chart__tooltip", "aria-hidden": "true" }, tooltipValue, tooltipLabel, tooltipEvents);
 
-  let current = points.length - 1;
+  const last = points.length - 1;
+  // The cursor rests where the keyboard or a selected event left it, so a re-render doesn't move it.
+  const resting = state.chartMonth === null ? last : Math.min(last, Math.max(0, state.chartMonth));
+  let current = resting;
   const show = (index: number): void => {
     const point = points[index];
     const coord = coords[index];
     if (!point || !coord) return;
     current = index;
+    const events = eventsAtMonth(timeline, point.month);
+    const when = monthLabel(scenario, point.month);
+    const value = formatMoney(point[state.metric]);
     const [x, y] = coord;
     cursor.style.left = `${x}%`;
     dot.style.left = `${x}%`;
@@ -174,8 +195,12 @@ function renderChart(
     tooltip.style.top = `${y}%`;
     // Shift the tooltip so it stays inside the plot near the edges.
     tooltip.style.transform = `translate(-${x}%, calc(-100% - 14px))`;
-    tooltipValue.textContent = formatMoney(point[state.metric]);
-    tooltipLabel.textContent = monthLabel(scenario, point.month);
+    tooltipValue.textContent = value;
+    tooltipLabel.textContent = when;
+    tooltipEvents.replaceChildren(...events.map((entry) => h("li", {}, `${entry.number} · ${eventLabel(entry)}`)));
+    const eventText = events.length === 0 ? "" : `. Events: ${events.map(eventLabel).join(", ")}`;
+    plot.setAttribute("aria-valuenow", String(index));
+    plot.setAttribute("aria-valuetext", `${when}: ${value}${eventText}`);
   };
 
   const plot = h(
@@ -184,17 +209,23 @@ function renderChart(
       class: "chart__plot",
       tabindex: 0,
       "data-key": "chart",
-      "aria-label": `${METRIC_LABELS[state.metric]} over time. Use the arrow keys to move between points.`,
+      // A slider over the months: screen readers read the value text, and the keys follow the slider pattern.
+      role: "slider",
+      "aria-label": `${METRIC_LABELS[state.metric]} over time`,
+      "aria-describedby": "chart-keys",
+      "aria-valuemin": 0,
+      "aria-valuemax": last,
       onpointermove: (event) => {
         const rect = plot.getBoundingClientRect();
         show(nearestIndex(((event as PointerEvent).clientX - rect.left) / rect.width, points.length));
       },
-      onpointerleave: () => show(points.length - 1),
+      onpointerleave: () => show(resting),
       onkeydown: (event) => {
-        const key = (event as KeyboardEvent).key;
-        if (key !== "ArrowLeft" && key !== "ArrowRight") return;
+        const next = cursorAfterKey((event as KeyboardEvent).key, current, last, MONTHS_PER_YEAR);
+        if (next === null) return;
         event.preventDefault();
-        show(Math.min(points.length - 1, Math.max(0, current + (key === "ArrowRight" ? 1 : -1))));
+        show(next);
+        actions.setChartMonth(points[next]?.month ?? next);
       },
     },
     h("div", { class: "chart__grid", "aria-hidden": "true" }, ...ticks.map(() => h("div"))),
@@ -206,6 +237,11 @@ function renderChart(
     tooltip,
   );
   show(current);
+  const keysHint = h(
+    "p",
+    { id: "chart-keys", class: "visually-hidden" },
+    "Arrow keys move one month, Page Up and Page Down one year, Home and End to the start and the end.",
+  );
 
   const yLabels = ticks.map((tick) => h("span", {}, formatMoneyCompact(tick)));
   const step = state.horizon / 5;
@@ -214,6 +250,7 @@ function renderChart(
   return h(
     "div",
     { class: "chart" },
+    keysHint,
     h("div", { class: "chart__y", "aria-hidden": "true" }, ...yLabels),
     h("div", { class: "chart__body" }, plot, h("div", { class: "chart__x", "aria-hidden": "true" }, ...xLabels)),
   );

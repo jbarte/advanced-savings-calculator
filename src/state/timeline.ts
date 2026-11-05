@@ -65,3 +65,25 @@ export function buildTimeline(
   entries.sort((a, b) => a.month - b.month || KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || eventId(a) - eventId(b));
   return entries.map((entry, index) => ({ ...entry, number: index + 1 }) as TimelineEntry);
 }
+
+/** Whether an event is drawn on the chart: not before the plan start and not after the horizon. */
+export function isPlanned(entry: TimelineEntry): boolean {
+  switch (entry.kind) {
+    case "withdrawal":
+      return entry.withdrawal.status === "planned";
+    case "deposit-change":
+      return entry.change.status === "planned";
+    case "one-time-deposit":
+      return entry.deposit.status === "planned";
+  }
+}
+
+/** The chart month of an event. A deposit change that began before the plan is drawn at month 0. */
+export function chartMonthOf(entry: TimelineEntry): number {
+  return Math.max(0, entry.month);
+}
+
+/** The events drawn at one month of the chart, in list order. */
+export function eventsAtMonth(timeline: readonly TimelineEntry[], month: number): TimelineEntry[] {
+  return timeline.filter((entry) => isPlanned(entry) && chartMonthOf(entry) === month);
+}

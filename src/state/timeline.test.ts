@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlannedDepositChange, PlannedOneTimeDeposit, PlannedWithdrawal } from "./types";
-import { buildTimeline, depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./timeline";
+import { buildTimeline, chartMonthOf, depositChangeKey, eventsAtMonth, isPlanned, oneTimeDepositKey, withdrawalKey } from "./timeline";
 
 function withdrawal(id: number, month: number): PlannedWithdrawal {
   return {
@@ -85,3 +85,27 @@ describe("buildTimeline", () => {
     ]);
   });
 });
+
+describe("events on the chart", () => {
+  const timeline = buildTimeline(
+    [withdrawal(1, 60), { ...withdrawal(2, 60), status: "after-horizon" }],
+    [depositChange(1, -6), depositChange(2, 60)],
+    [oneTime(1, 61)],
+  );
+
+  it("counts only planned events", () => {
+    expect(timeline.filter(isPlanned).map((e) => e.key)).not.toContain(withdrawalKey(2));
+  });
+
+  it("draws a change that began before the plan at month 0", () => {
+    const early = timeline.find((e) => e.key === depositChangeKey(1));
+    expect(early && chartMonthOf(early)).toBe(0);
+  });
+
+  it("finds the planned events of one month, in list order", () => {
+    expect(eventsAtMonth(timeline, 60).map((e) => e.key)).toEqual([depositChangeKey(2), withdrawalKey(1)]);
+    expect(eventsAtMonth(timeline, 0).map((e) => e.key)).toEqual([depositChangeKey(1)]);
+    expect(eventsAtMonth(timeline, 5)).toEqual([]);
+  });
+});
+

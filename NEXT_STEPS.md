@@ -223,11 +223,12 @@ All confirmed in the code:
   (CSS custom properties shared with the code), raw px font sizes where `--text-*` tokens exist.
 - **BEM:** `.impact-empty` becomes `.impact--empty`.
 
-### Milestone 7: "What is every event worth?" (includes "show lost growth as a loss")
+### Milestone 7: "What is every event worth?" (includes "show lost growth as a loss"): done
 
-**7A (done):** the effect column for all kinds (total effect on the end balance, decided), red and green,
-the total, the speed-up and cache, the phone label and the wording. **7B (next):** the chart and list
-interplay and the select button's accessible name.
+Done in two PRs. **7A:** the effect column for all kinds (total effect on the end balance, decided), red and
+green, the total, the speed-up and cache, the phone label and the wording. **7B:** the chart and list interplay
+(the cursor follows a selected event and keeps its place, the tooltip lists the month's events, slider keys)
+and the select button's accessible name.
 
 The product promise is to make the cost of a decision visible, but only withdrawals show an effect today:
 the column is empty for a one-time deposit or a pause.

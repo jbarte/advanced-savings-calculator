@@ -114,6 +114,11 @@ export interface AppState {
   readonly metric: Metric;
   /** The event highlighted in the list and on the chart, or null. */
   readonly selectedEvent: EventKey | null;
+  /**
+   * The month the chart cursor rests on, so it keeps its place when the page is drawn again. Set by the keyboard
+   * and by selecting an event; null means the last month. Pointer moves don't change it.
+   */
+  readonly chartMonth: number | null;
   readonly theme: ThemePreference;
   /** Why the last change was not applied, shown until the next change or until dismissed. */
   readonly notice: string | null;

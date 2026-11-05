@@ -36,6 +36,7 @@ const store = createStore({
   horizon: 30,
   metric: "balance",
   selectedEvent: null,
+  chartMonth: null,
   theme: loadThemePreference(),
   notice: startup.notice,
 });
@@ -69,11 +70,12 @@ const actions: Actions = {
   selectScenario: (scenarioId) => store.update({ scenarioId }),
   selectMetric: (metric) => store.update({ metric }),
   setHorizon: (horizon) => store.update({ horizon }),
-  selectEvent: (selectedEvent) => store.update({ selectedEvent }),
+  selectEvent: (selectedEvent, month) => store.update({ selectedEvent, ...(month === undefined ? {} : { chartMonth: month }) }),
+  setChartMonth: (chartMonth) => store.update({ chartMonth }),
   updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
   startFromScratch: () => {
     const plan = createBlankPlan(currentYearMonth());
-    store.update({ plan, planOrigin: "own", selectedEvent: null, notice: null });
+    store.update({ plan, planOrigin: "own", selectedEvent: null, chartMonth: null, notice: null });
     persist(plan);
     clearShareHash();
   },
@@ -84,6 +86,7 @@ const actions: Actions = {
       planOrigin: "example",
       storage: cleared ? "idle" : "blocked",
       selectedEvent: null,
+      chartMonth: null,
       notice: cleared ? null : STORAGE_BLOCKED_NOTICE,
     });
   },
@@ -131,7 +134,7 @@ const actions: Actions = {
   },
   leaveSharedPlan: () => {
     const back = resolveStartupPlan(loadSavedPlan(), createExamplePlan(currentYearMonth()));
-    store.update({ ...back, selectedEvent: null });
+    store.update({ ...back, selectedEvent: null, chartMonth: null });
     clearShareHash();
   },
 };
@@ -140,7 +143,7 @@ const actions: Actions = {
 const openSharedPlan = async (token: string): Promise<void> => {
   try {
     const plan = await decodePlan(token);
-    store.update({ plan, planOrigin: "shared", storage: "idle", selectedEvent: null, notice: null });
+    store.update({ plan, planOrigin: "shared", storage: "idle", selectedEvent: null, chartMonth: null, notice: null });
   } catch (error) {
     if (!(error instanceof RangeError)) {
       console.error(error);

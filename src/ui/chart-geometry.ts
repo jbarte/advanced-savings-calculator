@@ -110,3 +110,28 @@ export function assignLanes(positions: readonly number[], minGap: number, maxLan
   return lanes;
 }
 
+/**
+ * Where the chart cursor goes for a key, as a point index from 0 to `last`, or null for a key the chart doesn't
+ * use. Follows the slider pattern: arrows move one month, Page Up and Page Down one year, Home and End to the ends.
+ */
+export function cursorAfterKey(key: string, current: number, last: number, monthsPerStep: number): number | null {
+  const clamp = (index: number): number => Math.min(last, Math.max(0, index));
+  switch (key) {
+    case "ArrowRight":
+    case "ArrowUp":
+      return clamp(current + 1);
+    case "ArrowLeft":
+    case "ArrowDown":
+      return clamp(current - 1);
+    case "PageUp":
+      return clamp(current + monthsPerStep);
+    case "PageDown":
+      return clamp(current - monthsPerStep);
+    case "Home":
+      return 0;
+    case "End":
+      return last;
+    default:
+      return null;
+  }
+}

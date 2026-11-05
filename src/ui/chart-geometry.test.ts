@@ -3,6 +3,7 @@ import {
   areaPath,
   assignLanes,
   axisTicks,
+  cursorAfterKey,
   bandExtent,
   isAllZero,
   linePath,
@@ -206,3 +207,25 @@ describe("assignLanes", () => {
     expect(assignLanes([], 6, 4)).toEqual([]);
   });
 });
+
+describe("cursorAfterKey", () => {
+  it("moves a month with the arrows and a year with Page Up and Page Down", () => {
+    expect(cursorAfterKey("ArrowRight", 10, 360, 12)).toBe(11);
+    expect(cursorAfterKey("ArrowLeft", 10, 360, 12)).toBe(9);
+    expect(cursorAfterKey("PageUp", 10, 360, 12)).toBe(22);
+    expect(cursorAfterKey("PageDown", 20, 360, 12)).toBe(8);
+  });
+
+  it("goes to the ends with Home and End, and never past them", () => {
+    expect(cursorAfterKey("Home", 50, 360, 12)).toBe(0);
+    expect(cursorAfterKey("End", 50, 360, 12)).toBe(360);
+    expect(cursorAfterKey("PageDown", 5, 360, 12)).toBe(0);
+    expect(cursorAfterKey("ArrowRight", 360, 360, 12)).toBe(360);
+  });
+
+  it("ignores other keys, so they keep their normal use", () => {
+    expect(cursorAfterKey("Tab", 5, 360, 12)).toBeNull();
+    expect(cursorAfterKey("a", 5, 360, 12)).toBeNull();
+  });
+});
+

@@ -7,7 +7,10 @@ export interface Actions {
   selectScenario(id: string): void;
   selectMetric(metric: Metric): void;
   setHorizon(horizon: HorizonYears): void;
-  selectEvent(key: EventKey | null): void;
+  /** Selects an event (or none). `month` moves the chart cursor to the event. */
+  selectEvent(key: EventKey | null, month?: number): void;
+  /** Remembers where the chart cursor is, after a key press. */
+  setChartMonth(month: number): void;
   updatePlan(patch: Partial<PlanFields>): void;
   startFromScratch(): void;
   /** Forgets the saved plan and shows the example again. */

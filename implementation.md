@@ -18,10 +18,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** milestone 7A, the effect of every event (branch `feature/m7a-effects`). Step 0c is merged (PR #17).
+- **Open:** milestone 7B, chart and list interplay (branch `feature/m7b-chart-list`). 7A is merged (PR #18).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 393 (`npm test`), typecheck and build pass.
+- **Tests:** 399 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -391,4 +391,26 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   and the total line. Checked at 375 px in dark mode (labels on each card, no sideways scroll) and on desktop.
 - **Known gaps:** the effect amount in `--danger` is about 4.1 : 1 on the card in the light theme, below 4.5 : 1
   for small text (the contrast pass is in milestone 12); 7B (chart and list interplay) is still to come.
+
+### Milestone 7B: chart and list interplay (branch `feature/m7b-chart-list`)
+- **Built:**
+  - `AppState.chartMonth`: where the chart cursor rests. Selecting an event (in the list or on the chart) moves it
+    to the event's month (`chartMonthOf`: a change that began before the plan sits at month 0); the keys set it;
+    pointer moves only show a month for as long as the pointer is there. It is reset when the whole plan is
+    replaced (start from scratch, start over, a shared plan). A month past the horizon is clamped to the end.
+  - The chart is a slider: `role="slider"`, min, max and now, and a value text such as
+    "Nov 2031: 133 715 kr. Events: New car"; a hidden hint names the keys. The tooltip lists the month's events by
+    their number and is hidden from screen readers (no more announcement on every pointer move).
+  - Keys (`cursorAfterKey`, tested): arrows one month, Page Up and Page Down one year, Home and End.
+  - `eventsAtMonth`, `chartMonthOf` and `isPlanned` in `timeline.ts` (tested); the chart's own copy of the
+    "is it drawn" check is gone.
+  - The list's select button is named "Event 1: New car, Withdrawal · Nov 2031" (number, title, kind and date),
+    instead of a label that hid the sub-line.
+- **Checked:** 399 tests (6 new), typecheck and build. In the browser: the slider starts at month 360 with
+  "Nov 2056: 3 074 856 kr"; selecting the car moves it to "Nov 2031: 133 715 kr. Events: New car" (133 715,17 kr
+  by the independent script) and the tooltip shows "1 · New car"; Page Up 60 → 72, Page Down → 60, → 61, Home 0,
+  End 360; after two Page Downs (336) switching the metric re-rendered the page and the cursor stayed at 336.
+- **Known gaps:** the list row and the chart badge are separate controls, so a screen reader reaches the event
+  through the list (as decided in milestone 4); held arrow keys redraw the page on each step (cheap now, since the
+  view model is cached, but not free).
 
