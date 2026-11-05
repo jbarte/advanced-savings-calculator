@@ -248,7 +248,7 @@ the column is empty for a one-time deposit or a pause.
 
 **8A (done):** horizon 1–40 years in the plan (format version 2 with the upgrade of version 1), end year in
 the Plan card next to the presets, 40-year projection, maximum return 30 % (decided), namespaced storage keys.
-**8B (done):** the "today's money" switch (2 %, not saved, decided; what the user enters stays nominal, decided),
+**8B (done):** the "inflation adjusted" switch (2 %, not saved, decided; what the user enters stays nominal, decided),
 using `inflationPct` from version 2, an inflation field in the Plan card, and labels on the headline, chart, list
 and total.
 
@@ -260,7 +260,7 @@ and total.
   maximum; the x-axis labels come from real dates; "Not within 30 years" and similar texts follow the horizon.
 - Namespace the storage key (for example `advanced-savings-calculator:plan`, reading the old key once):
   `localStorage` on `jbarte.github.io` is shared with every other Pages site of the same account.
-- A "today's money" switch that shows results adjusted for inflation (one plan field and a display
+- An "inflation adjusted" switch that shows results adjusted for inflation (one plan field and a display
   conversion), decided to be part of this milestone and built in 8B.
 
 ### Milestone 9: goal planning
@@ -314,7 +314,7 @@ and total.
    (150 000 kr) costs 664 115 kr in growth only, or 814 115 kr as the total effect on the end balance (the
    amount plus its growth); a 12-month pause has a total effect of 246 944 kr. Recommendation: one meaning for
    the whole column, the total effect on the end balance, so all three kinds read the same way.
-5. **"Today's money":** decided, included in milestone 8.
+5. **"Inflation adjusted":** decided, included in milestone 8.
 6. **Pull-request workflow in step 0b:** decided to wait. No workflow or config file is added for now; the
    rest of step 0b goes ahead.
 

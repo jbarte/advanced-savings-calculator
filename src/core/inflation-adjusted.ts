@@ -3,7 +3,7 @@ import type { Ore, ProjectionPoint } from "./types";
 import { MONTHS_PER_YEAR } from "./year-month";
 
 /*
- * "Today's money": nominal amounts of a later month divided by how much prices have risen since the start. It is
+ * "Inflation adjusted": nominal amounts of a later month divided by how much prices have risen since the start. It is
  * a display conversion only: the engine, the plan and everything the user types stay in nominal kronor, and the
  * conversion never changes what is stored.
  */
@@ -13,18 +13,18 @@ export function priceLevel(months: number, inflationPct: number): number {
   return (1 + inflationPct / 100) ** (months / MONTHS_PER_YEAR);
 }
 
-/** An amount that belongs to `months` after the start, in today's money, rounded to whole öre. */
-export function inTodaysMoney(amount: Ore, months: number, inflationPct: number): Ore {
+/** An amount that belongs to `months` after the start, inflation adjusted, rounded to whole öre. */
+export function toInflationAdjusted(amount: Ore, months: number, inflationPct: number): Ore {
   return roundToOre(amount / priceLevel(months, inflationPct));
 }
 
 /**
- * The projection in today's money. Each month's balance is divided by that month's price level. Deposits and
+ * The projection inflation adjusted. Each month's balance is divided by that month's price level. Deposits and
  * withdrawals are added up month by month, each divided by the price level of the month it happened in (dividing
  * the running total by the last month's level would be wrong). Growth keeps the identity
  * growth = balance + withdrawn − deposited. Month 0 is unchanged.
  */
-export function pointsInTodaysMoney(points: readonly ProjectionPoint[], inflationPct: number): ProjectionPoint[] {
+export function inflationAdjustedPoints(points: readonly ProjectionPoint[], inflationPct: number): ProjectionPoint[] {
   let deposited = 0;
   let withdrawn = 0;
   let previous: ProjectionPoint | undefined;

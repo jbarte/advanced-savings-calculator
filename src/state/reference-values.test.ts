@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createExamplePlan } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
-import { applyTodaysMoney, buildScenarioView } from "./view-model";
+import { applyInflationAdjustment, buildScenarioView } from "./view-model";
 
 /*
  * Results checked by hand and by an independent script (the same monthly steps written separately in Python),
@@ -68,10 +68,10 @@ describe("reference values: the effect of each event (end balance with it minus 
   });
 });
 
-describe("reference values: today's money at 2 % inflation, 30 years", () => {
-  const real = applyTodaysMoney(buildScenarioView(example, "Example", 360), 2);
+describe("reference values: inflation adjusted at 2 % inflation, 30 years", () => {
+  const real = applyInflationAdjustment(buildScenarioView(example, "Example", 360), 2);
 
-  it("the example plan's end balance is 1 697 538 kr in today's money", () => {
+  it("the example plan's end balance is 1 697 538 kr inflation adjusted", () => {
     expect(real.points[360]?.balance).toBe(169_753_834);
   });
 
@@ -81,7 +81,7 @@ describe("reference values: today's money at 2 % inflation, 30 years", () => {
     expect(real.points[360]?.growth).toBe(96_976_116);
   });
 
-  it("the car's effect is −449 449 kr in today's money (−814 115 kr in 2056 kronor)", () => {
+  it("the car's effect is −449 449 kr inflation adjusted (−814 115 kr in 2056 kronor)", () => {
     expect(real.withdrawals[0]?.effect).toBe(-44_944_905);
     expect(real.totalEffect).toBe(-44_944_905);
   });

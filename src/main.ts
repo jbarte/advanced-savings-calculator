@@ -13,7 +13,7 @@ import { createStore } from "./state/store";
 import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
 import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
 import { loadThemePreference, onSystemThemeChange, saveThemePreference, systemPrefersDark } from "./state/theme";
-import { PLAN_SCENARIO_ID, applyTodaysMoney, createScenarioViewCache } from "./state/view-model";
+import { PLAN_SCENARIO_ID, applyInflationAdjustment, createScenarioViewCache } from "./state/view-model";
 import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
 import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
 import type { Actions } from "./ui/actions";
@@ -35,7 +35,7 @@ const store = createStore({
   storage: startup.storage,
   metric: "balance",
   selectedEvent: null,
-  todaysMoney: false,
+  inflationAdjusted: false,
   chartMonth: null,
   theme: loadThemePreference(),
   notice: startup.notice,
@@ -71,7 +71,7 @@ const actions: Actions = {
   selectMetric: (metric) => store.update({ metric }),
   selectEvent: (selectedEvent, month) => store.update({ selectedEvent, ...(month === undefined ? {} : { chartMonth: month }) }),
   setChartMonth: (chartMonth) => store.update({ chartMonth }),
-  setTodaysMoney: (todaysMoney) => store.update({ todaysMoney }),
+  setInflationAdjusted: (inflationAdjusted) => store.update({ inflationAdjusted }),
   updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
   startFromScratch: () => {
     const plan = createBlankPlan(currentYearMonth());
@@ -168,7 +168,7 @@ const render = (): void => {
     }
     const name = { example: "Example plan", own: "My plan", shared: "Shared plan" }[state.planOrigin];
     const nominal = scenarioView(state.plan, name, yearsToMonths(state.plan.horizonYears));
-    const scenarios = [state.todaysMoney ? applyTodaysMoney(nominal, state.plan.inflationPct) : nominal];
+    const scenarios = [state.inflationAdjusted ? applyInflationAdjustment(nominal, state.plan.inflationPct) : nominal];
     renderApp(root, { scenarios, state, isDark: isDark() }, actions);
   } catch (error) {
     console.error(error);

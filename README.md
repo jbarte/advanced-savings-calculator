@@ -34,8 +34,8 @@ long-term cost of a decision like that visible.
 - **Scenario comparison.** Several plans side by side, with the end balance of each one.
 - **Goal planning.** How much do you need to save each month to reach X kr by a given date,
   and when do you get there?
-- **Today's money.** A switch shows the results with inflation removed, so a balance in 30 years reads in
-  what it would buy today. What you enter stays as entered.
+- **Inflation adjusted view.** A switch shows the results adjusted for inflation (2 % a year by default, you can
+  change it), so a balance in 30 years reads in what it would buy today. What you enter stays as entered.
 - **Your own time horizon**, from 1 to 40 years (with 10, 20 and 30 years one click away), with an interactive
   chart for balance, deposits, growth and withdrawals.
 - **Light and dark mode** that follows the system setting.

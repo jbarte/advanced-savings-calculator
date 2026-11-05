@@ -10,7 +10,7 @@ const initial: AppState = {
   storage: "idle",
   metric: "balance",
   selectedEvent: null,
-  todaysMoney: false,
+  inflationAdjusted: false,
   chartMonth: null,
   theme: "system",
   notice: null,

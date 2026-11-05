@@ -295,7 +295,7 @@ button {
   flex-wrap: wrap;
 }
 
-/* The horizon buttons with the today's money switch under them. */
+/* The horizon buttons with the inflation adjusted switch under them. */
 .hero__controls {
   display: flex;
   flex-direction: column;

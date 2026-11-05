@@ -3,7 +3,7 @@ import { addMonths } from "../core/year-month";
 import { PLAN_LIMITS, createBlankPlan, createExamplePlan } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
 import type { ScenarioView } from "./types";
-import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, applyTodaysMoney, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
+import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, applyInflationAdjustment, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
 
 const plan: PlanDocument = {
   version: 2,
@@ -370,18 +370,18 @@ describe("the horizon in the plan", () => {
   });
 });
 
-describe("applyTodaysMoney", () => {
+describe("applyInflationAdjustment", () => {
   const withEvents: PlanDocument = {
     ...plan,
     withdrawals: [{ id: 1, date: { year: 2031, month: 1 }, amount: 15_000_000, label: "Car" }],
     oneTimeDeposits: [{ id: 1, date: { year: 2031, month: 1 }, amount: 10_000_000, label: "Bonus" }],
   };
   const nominal = buildScenarioView(withEvents, "P");
-  const real = applyTodaysMoney(nominal, 2);
+  const real = applyInflationAdjustment(nominal, 2);
 
   it("flags the view, and leaves the original alone", () => {
-    expect(real.todaysMoney).toBe(true);
-    expect(nominal.todaysMoney).toBe(false);
+    expect(real.inflationAdjusted).toBe(true);
+    expect(nominal.inflationAdjusted).toBe(false);
     expect(nominal.points[360]?.balance).toBeGreaterThan(real.points[360]?.balance ?? 0);
   });
 
@@ -405,7 +405,7 @@ describe("applyTodaysMoney", () => {
   });
 
   it("changes nothing at 0 % inflation except the flag", () => {
-    expect(applyTodaysMoney(nominal, 0)).toEqual({ ...nominal, todaysMoney: true });
+    expect(applyInflationAdjustment(nominal, 0)).toEqual({ ...nominal, inflationAdjusted: true });
   });
 });
 

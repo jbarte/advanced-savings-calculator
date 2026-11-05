@@ -32,8 +32,8 @@ function periodText(change: PlannedDepositChange): string {
 
 /** What is shared by every row's effect cell: where it is measured and how long the longest bar is. */
 interface EffectScale {
-  /** True when effects are in today's money, so the hover text names both amounts. */
-  readonly todaysMoney: boolean;
+  /** True when effects are inflation adjusted, so the hover text names both amounts. */
+  readonly inflationAdjusted: boolean;
   /** The month the effect is measured at, e.g. "Nov 2056". */
   readonly end: string;
   /** The largest effect in the list (as a positive number), which gets a full bar. */
@@ -57,7 +57,7 @@ function noEffectReason(status: EventStatus, end: string): string {
 function effectCell(effect: Ore, status: EventStatus, scale: EffectScale, explain: string): HTMLElement {
   const counted = status === "planned";
   // The nominal breakdown (money in, growth) no longer adds up once the effect is divided by the price level.
-  const hover = scale.todaysMoney ? `${formatSignedMoney(effect)} in today's money, measured by ${scale.end}` : explain;
+  const hover = scale.inflationAdjusted ? `${formatSignedMoney(effect)} inflation adjusted by ${scale.end}` : explain;
   const tone = !counted || effect === 0 ? "" : effect < 0 ? " impact--loss" : " impact--gain";
   return h(
     "div",
@@ -228,7 +228,7 @@ export function renderTimelineList(
 ): HTMLElement {
   const endLabel = monthLabel(scenario, scenario.horizonMonths);
   const effects = [...scenario.withdrawals, ...scenario.depositChanges, ...scenario.oneTimeDeposits].map((event) => Math.abs(event.effect));
-  const scale: EffectScale = { end: endLabel, max: Math.max(1, ...effects), todaysMoney: scenario.todaysMoney };
+  const scale: EffectScale = { end: endLabel, max: Math.max(1, ...effects), inflationAdjusted: scenario.inflationAdjusted };
 
   const head = h(
     "div",
@@ -236,7 +236,7 @@ export function renderTimelineList(
     h("span", { role: "columnheader" }, "Event"),
     h("span", { role: "columnheader" }, "Amount"),
     h("span", { role: "columnheader" }, "Status"),
-    h("span", { role: "columnheader" }, `Effect by ${endLabel}${scenario.todaysMoney ? " (today's money)" : ""}`),
+    h("span", { role: "columnheader" }, `Effect by ${endLabel}${scenario.inflationAdjusted ? " (inflation adjusted)" : ""}`),
     h("span", { class: "visually-hidden", role: "columnheader" }, "Actions"),
   );
 

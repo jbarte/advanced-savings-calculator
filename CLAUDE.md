@@ -161,13 +161,13 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - **A withdrawal dated before the plan start** can't be projected. The view model lists it as
     `before-start` and leaves it out of the engine input. One dated after the horizon is
     `after-horizon` and costs nothing within it.
-  - **Today's money is a display conversion** (`src/core/todays-money.ts`): an amount that belongs to month m is
+  - **Inflation adjusted is a display conversion** (`src/core/inflation-adjusted.ts`): an amount that belongs to month m is
     divided by `(1 + inflation)^(m/12)` (`priceLevel`, the effective yearly rate, like the monthly rate). The balance is
     divided by each month's level; deposits and withdrawals are added up month by month, each divided by its own
     month's level (dividing a running total by the last level would be wrong); growth keeps
     `balance + withdrawn − deposited`; an effect (a difference of two balances at the horizon) is divided by the
     horizon's level. What the user enters (event amounts, start amount, deposit) is never converted, and the engine
-    and the plan stay nominal. `applyTodaysMoney` (view model) applies it when `AppState.todaysMoney` is on; that
+    and the plan stay nominal. `applyInflationAdjustment` (view model) applies it when `AppState.inflationAdjusted` is on; that
     switch is a view setting, off at each visit, not saved or shared. The rate is `PlanDocument.inflationPct`.
   - **The monthly rate is the effective rate:** `(1 + yearly)^(1/12) − 1`, from
     `monthlyRate()` in `src/core/money.ts`. Twelve months of compounding give exactly
@@ -357,7 +357,7 @@ with the toggle.
     │   ├── event-effect.ts   # eventEffect, totalEffect, lostGrowthOf: what each event changes (+ test)
     │   ├── deposit-schedule.ts # depositInMonth: the deposit in a given month (+ test)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
-    │   ├── todays-money.ts   # priceLevel, inTodaysMoney, pointsInTodaysMoney: inflation-adjusted display (+ test)
+    │   ├── inflation-adjusted.ts   # priceLevel, toInflationAdjusted, inflationAdjustedPoints: inflation-adjusted display (+ test)
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
     │   └── year-month.test.ts
     ├── state/                # State, data models, storage

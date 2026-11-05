@@ -33,8 +33,8 @@ function isLongAmount(ore: number): boolean {
 }
 
 function heroSubtitle(scenario: ScenarioView): string {
-  if (!scenario.todaysMoney) return `${scenario.name} · How your savings grow, and what each event adds or costs.`;
-  return `${scenario.name} · Results with ${scenario.inflationPct} % inflation a year removed. What you enter stays as entered.`;
+  if (!scenario.inflationAdjusted) return `${scenario.name} · How your savings grow, and what each event adds or costs.`;
+  return `${scenario.name} · Inflation adjusted at ${scenario.inflationPct} % a year. What you enter stays as entered.`;
 }
 
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
@@ -80,7 +80,7 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
       h(
         "div",
         {},
-        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}${scenario.todaysMoney ? " · today's money" : ""}`),
+        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}${scenario.inflationAdjusted ? " · inflation adjusted" : ""}`),
         h(
           "p",
           { class: isLongAmount(end[state.metric]) ? "hero__value hero__value--long" : "hero__value" },
@@ -93,7 +93,7 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
         "div",
         { class: "hero__controls" },
         h("div", { class: "tabs", role: "group", "aria-label": "Time horizon" }, ...horizons),
-        renderToggle({ label: "Today's money", checked: scenario.todaysMoney, onChange: (on) => actions.setTodaysMoney(on) }),
+        renderToggle({ label: "Inflation adjusted", checked: scenario.inflationAdjusted, onChange: (on) => actions.setInflationAdjusted(on) }),
       ),
     ),
     h("div", { class: "kpis" }, ...tiles),
@@ -116,7 +116,7 @@ export function renderChartCard(
       h(
         "span",
         { class: "card__meta" },
-        `${scenario.start.year}–${addMonths(scenario.start, scenario.horizonMonths).year}${scenario.todaysMoney ? " · today's money" : ""}`,
+        `${scenario.start.year}–${addMonths(scenario.start, scenario.horizonMonths).year}${scenario.inflationAdjusted ? " · inflation adjusted" : ""}`,
       ),
     ),
     renderChartOrEmptyState(scenario, state, timeline, actions),

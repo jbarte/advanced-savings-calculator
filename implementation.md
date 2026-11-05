@@ -18,7 +18,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** milestone 8B, today's money (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
+- **Open:** milestone 8B, inflation adjusted (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
 - **Tests:** 448 (`npm test`), typecheck and build pass.
@@ -286,7 +286,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   showing lost growth as a loss), 8 custom horizon (plan format version 2), 9 goal planning, 10 strings out,
   11 compare plans, 12 Swedish and polish. Status lines, the target-scenario table and the open decisions were
   brought up to date.
-- **Decisions since:** "today's money" goes into milestone 8; the pull-request workflow waits (no config file
+- **Decisions since:** "inflation adjusted" goes into milestone 8; the pull-request workflow waits (no config file
   for now). Still open: what the effect column shows (total effect on the end balance is recommended).
 
 ### Step 0a: bug fixes from the code review (branch `fix/step-0a`)
@@ -440,22 +440,22 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** changing the horizon of the untouched example now saves it as the user's own plan (the horizon is
   part of the plan); a plan or link with a return above 30 % made before this version no longer opens (decided).
 
-### Milestone 8B: today's money (branch `feature/m8b-todays-money`)
+### Milestone 8B: inflation adjusted (branch `feature/m8b-todays-money`)
 - **Decisions (user):** inflation 2 % by default, the switch is not saved; the amounts the user enters stay in
   nominal kronor, only results are converted.
 - **Built:**
-  - `src/core/todays-money.ts` (test first): `priceLevel` (effective yearly rate, never `rate / 12`),
-    `inTodaysMoney`, `pointsInTodaysMoney`. The balance is divided by each month's level; deposits and
+  - `src/core/inflation-adjusted.ts` (test first): `priceLevel` (effective yearly rate, never `rate / 12`),
+    `toInflationAdjusted`, `inflationAdjustedPoints`. The balance is divided by each month's level; deposits and
     withdrawals are added up month by month, each divided by its own month's level; growth keeps the identity;
     month 0 is unchanged.
-  - `applyTodaysMoney(view, inflationPct)` in the view model converts the points, each event's effect and the total
-    (effects are differences at the horizon, so they use the horizon's level), sets `ScenarioView.todaysMoney` and
+  - `applyInflationAdjustment(view, inflationPct)` in the view model converts the points, each event's effect and the total
+    (effects are differences at the horizon, so they use the horizon's level), sets `ScenarioView.inflationAdjusted` and
     leaves event amounts, start amount and deposit alone. `ScenarioView.inflationPct` carries the plan's rate.
-  - `AppState.todaysMoney` and `setTodaysMoney`: a view setting, off at each visit, not in the plan, saved
+  - `AppState.inflationAdjusted` and `setInflationAdjusted`: a view setting, off at each visit, not in the plan, saved
     data or share links.
-  - UI: a "Today's money" switch under the horizon buttons, an "Inflation" field in the Plan card
-    (`parseInflationPct`, −5 to 20 %), "· today's money" on the headline and the chart card, a sentence under the
-    headline ("Results with 2 % inflation a year removed. What you enter stays as entered."), "(today's money)" in
+  - UI: an "Inflation adjusted" switch under the horizon buttons, an "Inflation" field in the Plan card
+    (`parseInflationPct`, −5 to 20 %), "· inflation adjusted" on the headline and the chart card, a sentence under the
+    headline ("Inflation adjusted at 2 % a year. What you enter stays as entered."), "(inflation adjusted)" in
     the effect column header and the total line, and a hover text that gives only the converted effect (the
     nominal "money in plus growth" breakdown stops adding up once divided).
 - **Checked:** 448 tests (27 new: the conversion, the view, the parser, and reference values), typecheck and
@@ -465,7 +465,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   the headline, tiles, chart value text, effect and total; changing the rate to 3 % gave 1 266 800 kr (the script:
   1 266 799,85) and was saved in the plan; switching off returned 3 074 856 kr; the entered 150 000 kr, 50 000 kr
   and 3 000 kr stayed as entered. 375 px in dark mode, no sideways scroll.
-- **Known gaps:** the lost-growth figure is not shown in today's money; the chart's event hover texts and the
+- **Naming (user request after review):** the feature is called "inflation adjusted", not "today's money" (switch,
+  labels, `inflationAdjusted` in the view and the app state, `src/core/inflation-adjusted.ts`,
+  `applyInflationAdjustment`). The branch and the PR title keep the first name. The default rate stays 2 %.
+- **Known gaps:** the lost-growth figure is not shown inflation adjusted; the chart's event hover texts and the
   Goal and Compare cards (not built yet) will need the same conversion when they arrive; with the switch on, the
-  y-axis labels are in today's money but nothing on the axis says so (the card's title does).
+  y-axis labels are inflation adjusted but nothing on the axis says so (the card's title does).
 
