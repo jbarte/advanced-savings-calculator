@@ -80,7 +80,7 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
           formatKronor(end[state.metric]),
           h("span", { class: "hero__unit" }, "kr"),
         ),
-        h("p", { class: "hero__sub" }, `${scenario.name} · How your savings grow, and what each withdrawal costs you.`),
+        h("p", { class: "hero__sub" }, `${scenario.name} · How your savings grow, and what each event adds or costs.`),
       ),
       h("div", { class: "tabs", role: "group", "aria-label": "Time horizon" }, ...horizons),
     ),

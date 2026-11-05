@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
+import { formatKronor, formatMoney, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact } from "./format";
 
 /** Intl uses a non-breaking (or narrow no-break) space and a Unicode minus; tests compare with plain text. */
 const plain = (text: string): string => text.replace(/[  ]/g, " ").replace(/−/g, "-");
@@ -35,3 +35,18 @@ describe("formatMoney and formatMoneyCompact", () => {
     expect(formatMoneyCompact(50_000)).toBe("500 kr");
   });
 });
+
+describe("signed amounts", () => {
+  it("shows a plus for a gain and a minus sign for a loss", () => {
+    expect(plain(formatSignedMoney(54_274_305))).toBe("+542 743 kr");
+    expect(plain(formatSignedMoney(-81_411_474))).toBe("-814 115 kr");
+    expect(formatSignedMoney(-81_411_474).startsWith("\u2212")).toBe(true);
+    expect(plain(formatSignedMoney(0))).toBe("0 kr");
+  });
+
+  it("works for the short form too", () => {
+    expect(plain(formatSignedMoneyCompact(-81_411_474))).toBe("-814.1K kr");
+    expect(formatSignedMoneyCompact(54_274_305)).toBe("+542.7K kr");
+  });
+});
+

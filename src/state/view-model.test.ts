@@ -3,7 +3,7 @@ import { addMonths } from "../core/year-month";
 import { PLAN_LIMITS, createBlankPlan, createExamplePlan } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
 import type { ScenarioView } from "./types";
-import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, buildScenarioView, toPlanInput } from "./view-model";
+import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
 
 const plan: PlanDocument = {
   version: 1,
@@ -326,3 +326,24 @@ describe("one-time deposits", () => {
     expect(Number.isSafeInteger(end)).toBe(true);
   });
 });
+
+describe("createScenarioViewCache", () => {
+  it("returns the same view while the plan, name and horizon stay the same", () => {
+    const view = createScenarioViewCache();
+    const first = view(plan, "P", HORIZON_30);
+    expect(view(plan, "P", HORIZON_30)).toBe(first);
+  });
+
+  it("builds a new view when any of them changes", () => {
+    const view = createScenarioViewCache();
+    const first = view(plan, "P", HORIZON_30);
+    expect(view({ ...plan }, "P", HORIZON_30)).not.toBe(first);
+    expect(view(plan, "Q", HORIZON_30)).not.toBe(first);
+    expect(view(plan, "P", 120)).not.toBe(first);
+  });
+
+  it("gives the same numbers as building the view directly", () => {
+    expect(createScenarioViewCache()(plan, "P", 120)).toEqual(buildScenarioView(plan, "P", 120));
+  });
+});
+

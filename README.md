@@ -21,8 +21,9 @@ long-term cost of a decision like that visible.
 
 ## Features
 
-- **Withdrawals on specific dates.** Plan withdrawals and see the dip in the curve and the
-  growth you lose by the end of the period.
+- **Withdrawals on specific dates.** Plan withdrawals and see the dip in the curve.
+- **What every event is worth.** Each withdrawal, one-time deposit and deposit change shows how much it moves
+  your end balance, in red for a loss and green for a gain, plus the total of all events.
 - **Change your monthly saving over time.** Raise, lower or pause your deposit from a date
   onward, or for a period only (for example during parental leave).
 - **One-time deposits.** Add a bonus or an inheritance in a specific month.

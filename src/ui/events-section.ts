@@ -1,3 +1,4 @@
+import { yearsToMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import type { TimelineEntry } from "../state/timeline";
 import type { AppState, ScenarioView } from "../state/types";
@@ -5,9 +6,11 @@ import type { Actions } from "./actions";
 import { renderEmptyState } from "./components";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { h } from "./dom";
+import { formatSignedMoney } from "./format";
 import { openEventTypeDialog } from "./event-type-dialog";
 import type { EventType } from "./event-type-dialog";
 import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
+import { monthLabel } from "./view-helpers";
 import { openWithdrawalDialog } from "./withdrawal-dialog";
 import { renderTimelineList } from "./timeline-list";
 
@@ -49,8 +52,22 @@ export function renderEventsSection(
 
   const body =
     total === 0
-      ? h("div", { class: "table-card" }, renderEmptyState("No events yet", "Add a withdrawal or a change to your monthly deposit to see what it does."))
+      ? h("div", { class: "table-card" }, renderEmptyState("No events yet", "Add a withdrawal, a one-time deposit or a change to your monthly deposit to see what it does."))
       : renderTimelineList(scenario, timeline, state, actions);
+
+  const end = monthLabel(scenario, yearsToMonths(state.horizon));
+  const tone = scenario.totalEffect < 0 ? "events__total-value--loss" : scenario.totalEffect > 0 ? "events__total-value--gain" : "";
+  // The combined effect is not the sum of the rows: events change each other (a withdrawal can be capped).
+  const totalLine =
+    total === 0
+      ? null
+      : h(
+          "p",
+          { class: "events__total" },
+          `All events together change your balance by ${end} by `,
+          h("strong", { class: `events__total-value ${tone}`.trim() }, formatSignedMoney(scenario.totalEffect)),
+          ".",
+        );
 
   return h(
     "section",
@@ -61,6 +78,7 @@ export function renderEventsSection(
       h("h2", {}, "Planned events"),
       h("div", { class: "card__head-side" }, h("span", { class: "card__meta" }, `${total} ${total === 1 ? "event" : "events"}`), addButton),
     ),
+    totalLine,
     body,
   );
 }

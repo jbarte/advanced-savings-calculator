@@ -32,7 +32,12 @@ export interface PlannedWithdrawal {
   readonly shortfall: Ore;
   readonly label: string;
   readonly status: EventStatus;
-  /** Growth the withdrawn money would have earned by the end of the horizon. 0 unless `planned`. */
+  /**
+   * How much the withdrawal changes the balance at the end of the horizon (negative): the amount withdrawn plus
+   * the growth it would have earned. 0 unless `planned`.
+   */
+  readonly effect: Ore;
+  /** The growth part of the effect: what the withdrawn money would have earned. 0 unless `planned`. */
   readonly lostGrowth: Ore;
 }
 
@@ -46,6 +51,8 @@ export interface PlannedDepositChange {
   readonly endMonth: number | null;
   readonly amount: Ore;
   readonly status: EventStatus;
+  /** How much the change moves the balance at the end of the horizon: negative for a pause or a cut. */
+  readonly effect: Ore;
 }
 
 /** A one-time deposit as the UI shows it. `month` is after the plan start, and can be negative. */
@@ -56,6 +63,8 @@ export interface PlannedOneTimeDeposit {
   readonly month: number;
   readonly amount: Ore;
   readonly status: EventStatus;
+  /** How much the deposit adds to the balance at the end of the horizon: the amount plus its growth. */
+  readonly effect: Ore;
 }
 
 export interface GoalSummary {
@@ -80,6 +89,8 @@ export interface ScenarioView {
   readonly withdrawals: readonly PlannedWithdrawal[];
   readonly depositChanges: readonly PlannedDepositChange[];
   readonly oneTimeDeposits: readonly PlannedOneTimeDeposit[];
+  /** How much all events together change the balance at the end of the horizon, compared with none of them. */
+  readonly totalEffect: Ore;
   /** Null until the user has set a goal. */
   readonly goal: GoalSummary | null;
   readonly points: readonly ProjectionPoint[];

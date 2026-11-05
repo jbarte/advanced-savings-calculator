@@ -38,3 +38,33 @@ describe("reference values", () => {
     expect(gain).toBe(54_274_305);
   });
 });
+
+describe("reference values: the effect of each event (end balance with it minus without it)", () => {
+  const full: PlanDocument = {
+    ...example,
+    depositChanges: [{ id: 1, startDate: { year: 2027, month: 2 }, endDate: { year: 2028, month: 1 }, amount: 0, label: "Pause" }],
+    oneTimeDeposits: [{ id: 1, date: { year: 2031, month: 1 }, amount: 10_000_000, label: "Bonus" }],
+  };
+
+  it("the car alone costs 814 115 kr by year 30: 150 000 kr plus 664 115 kr of growth", () => {
+    const view = buildScenarioView(example, "Example", 360);
+    expect(view.withdrawals[0]?.effect).toBe(-81_411_474);
+    expect(view.totalEffect).toBe(-81_411_474);
+  });
+
+  it("the car costs 210 383 kr by year 10", () => {
+    expect(buildScenarioView({ ...full, depositChanges: [], oneTimeDeposits: [] }, "E", 120).withdrawals[0]?.effect).toBe(
+      -21_038_276,
+    );
+  });
+
+  it("with a car, a bonus and a 12-month pause, each effect and the total", () => {
+    const view = buildScenarioView(full, "Full", 360);
+    expect(view.points[360]?.balance).toBe(337_065_516);
+    expect(view.withdrawals[0]?.effect).toBe(-81_411_508);
+    expect(view.oneTimeDeposits[0]?.effect).toBe(54_274_329);
+    expect(view.depositChanges[0]?.effect).toBe(-24_694_362);
+    expect(view.totalEffect).toBe(-51_831_531);
+  });
+});
+

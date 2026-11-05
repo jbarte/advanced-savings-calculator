@@ -13,7 +13,7 @@ import { createStore } from "./state/store";
 import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
 import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
 import { loadThemePreference, onSystemThemeChange, saveThemePreference, systemPrefersDark } from "./state/theme";
-import { PLAN_SCENARIO_ID, buildScenarioView } from "./state/view-model";
+import { PLAN_SCENARIO_ID, createScenarioViewCache } from "./state/view-model";
 import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
 import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
 import type { Actions } from "./ui/actions";
@@ -152,6 +152,9 @@ const openSharedPlan = async (token: string): Promise<void> => {
   }
 };
 
+/** Runs the engine only when the plan or horizon changes, not on selection, theme or notice changes. */
+const scenarioView = createScenarioViewCache();
+
 const render = (): void => {
   const state = store.get();
   applyTheme(state.theme);
@@ -161,7 +164,7 @@ const render = (): void => {
       return;
     }
     const name = { example: "Example plan", own: "My plan", shared: "Shared plan" }[state.planOrigin];
-    const scenarios = [buildScenarioView(state.plan, name, yearsToMonths(state.horizon))];
+    const scenarios = [scenarioView(state.plan, name, yearsToMonths(state.horizon))];
     renderApp(root, { scenarios, state, isDark: isDark() }, actions);
   } catch (error) {
     console.error(error);

@@ -18,10 +18,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** step 0c, cleanup (branch `refactor/step-0c`). Step 0b is merged (PR #16).
+- **Open:** milestone 7A, the effect of every event (branch `feature/m7a-effects`). Step 0c is merged (PR #17).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 380 (`npm test`), typecheck and build pass.
+- **Tests:** 393 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -366,4 +366,29 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   label still becomes "Withdrawal"; badge, legend and marker colours equal the theme colours in light and dark
   (for example the withdrawal badge rgb(168, 120, 107) light, rgb(141, 98, 90) dark); badge lanes sit at 4, 30 and
   56 px as before; plot height 280 px, badge 22 px, list title 15 px.
+
+### Milestone 7A: the effect of every event (branch `feature/m7a-effects`)
+- **Decision (user):** the column shows the *total* effect on the end balance, one meaning for all kinds.
+- **Built:**
+  - `src/core/event-effect.ts` (test first) replaces `lost-growth.ts`: `withoutEvent`, `eventEffect` (balance
+    with the event minus without it, at the horizon; the "with" balance is passed in from the main projection, so
+    one extra run per event, cut to the horizon), `totalEffect` (against the plan with no events) and
+    `lostGrowthOf` (the growth part of a withdrawal's effect). The old lost-growth cases (closed form, horizon,
+    after the horizon, last month, capped, squeezed, rejects a bad position) moved over, plus closed forms for a
+    one-time deposit and a 12-month pause, a raise, a change after the horizon and the total.
+  - View model: `effect` on every event (0 unless `planned`), `lostGrowth` derived from it, `totalEffect`, ids
+    mapped for all three lists; `createScenarioViewCache` so selection, theme and notice changes reuse the view.
+  - UI: "Effect by <month>" column for all kinds, bar and signed amount, red (`--effect-loss` = `--danger`) for
+    a loss and green for a gain, a hover sentence per kind (a withdrawal splits money and growth; a one-time
+    deposit too; a deposit change compares with keeping the deposit), a reason for events without effect, a
+    label in each card on phones, and a line above the list with the total. Hero subtitle and empty state cover
+    all event kinds. `formatSignedMoney(Compact)` with a plus or a minus sign (U+2212).
+- **Checked:** 393 tests (15 for `event-effect.ts`, 9 lost-growth tests moved into them, 5 new reference values,
+  4 for signed formatting, 3 for the cache), typecheck and build. Reference values from the independent script,
+  pinned to the öre: the car alone −814 114,74 kr by year 30 (−210 382,76 kr by year 10); with a car, a 100 000 kr
+  bonus in the car's month and a 12-month pause: end balance 3 370 655,16 kr, car −814 115,08, bonus +542 743,29,
+  pause −246 943,62 and total −518 315,31 kr. The page shows exactly these (rounded) in the list, the hover texts
+  and the total line. Checked at 375 px in dark mode (labels on each card, no sideways scroll) and on desktop.
+- **Known gaps:** the effect amount in `--danger` is about 4.1 : 1 on the card in the light theme, below 4.5 : 1
+  for small text (the contrast pass is in milestone 12); 7B (chart and list interplay) is still to come.
 

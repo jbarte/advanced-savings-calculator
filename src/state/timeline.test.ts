@@ -12,6 +12,7 @@ function withdrawal(id: number, month: number): PlannedWithdrawal {
     shortfall: 0,
     label: `W${id}`,
     status: "planned",
+    effect: 0,
     lostGrowth: 0,
   };
 }
@@ -26,6 +27,7 @@ function depositChange(id: number, startMonth: number): PlannedDepositChange {
     endMonth: null,
     amount: 0,
     status: "planned",
+    effect: 0,
   };
 }
 
@@ -37,6 +39,7 @@ function oneTime(id: number, month: number): PlannedOneTimeDeposit {
     month,
     amount: 100,
     status: "planned",
+    effect: 0,
   };
 }
 

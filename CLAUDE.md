@@ -32,7 +32,7 @@ stays in the user's browser.
 
 **Status:** milestones 1–6 are done: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
-their lost growth shown, and the monthly deposit can be changed from a month or for a period
+the effect of every event shown, and the monthly deposit can be changed from a month or for a period
 (including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
@@ -127,7 +127,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
   (`project`) for 360 months and shapes the result, including display-oriented fields. It
-  takes the horizon in months, which is how far each withdrawal's lost growth is measured.
+  takes the horizon in months, which is where the effect of each event is measured. `createScenarioViewCache`
+  returns the same view while plan, name and horizon are unchanged, so selection, theme and notice changes don't
+  run the engine.
   Features that don't exist yet are empty: `goal` is `null`, and the UI hides that card.
 - **Calculation rules** (decided, change only after asking):
   - **Money is stored as integers in minor units (öre).** Never use floats for stored
@@ -143,10 +145,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - **The chart scale always contains zero.** `niceScale(min, max)` reaches below zero for
     negative values (for example negative growth at a negative return) and one step above zero
     when nothing is positive. A zero line is drawn when the scale goes below zero.
-  - **Lost growth of a withdrawal** by a month H is the end balance at H without that
-    withdrawal, minus the end balance at H with it, minus the amount actually withdrawn, never
-    below 0 (`lostGrowth` in `src/core/lost-growth.ts`). It is found by running the projection
-    twice, so it takes any horizon in months.
+  - **The effect of an event** by a month H is the balance at H with the event minus the balance at H
+    without it (`eventEffect` in `src/core/event-effect.ts`): negative for a loss (a withdrawal, a pause),
+    positive for a gain (a one-time deposit, a raise). It is the *total* effect on the balance, so a withdrawal's
+    effect includes the money taken out. The balance with the event comes from the main projection; only the run
+    without it is extra. An event after the horizon has no effect within it. **Lost growth** of a withdrawal is
+    the growth part only: minus the effect, minus the amount actually withdrawn, never below 0 (`lostGrowthOf`),
+    shown in the hover text. **The total effect** compares the plan with one without any events, so it is not
+    the sum of the rows (events affect each other, for example how a withdrawal is capped).
   - **A withdrawal dated before the plan start** can't be projected. The view model lists it as
     `before-start` and leaves it out of the engine input. One dated after the horizon is
     `after-horizon` and costs nothing within it.
@@ -225,7 +231,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   `renderErrorState` shows a message instead of a blank page.
 - **Reference values are pinned.** `src/state/reference-values.test.ts` holds results checked by hand and by an
   independent script, to the öre (the example plan, the car's lost growth at three horizons, a one-time
-  deposit). If a change moves one of them, it is either a bug or a rule change that needs asking first.
+  deposit, and the effect of a car, a bonus, a pause and all three together). If a change moves one of them, it is either a bug or a rule change that needs asking first.
 - **Tests are written alongside the code, not after.** Core functions are written test
   first. Every function in `src/core/` has unit tests, including edge cases:
   - a withdrawal larger than the balance
@@ -331,7 +337,7 @@ with the toggle.
     ├── core/                 # Pure calculation engine (no DOM, no I/O)
     │   ├── types.ts          # Engine input/output: PlanInput, Projection, Ore …
     │   ├── project.ts        # project(): the monthly projection (+ project.test.ts)
-    │   ├── lost-growth.ts    # lostGrowth(): what a withdrawal costs by a horizon (+ test)
+    │   ├── event-effect.ts   # eventEffect, totalEffect, lostGrowthOf: what each event changes (+ test)
     │   ├── deposit-schedule.ts # depositInMonth: the deposit in a given month (+ test)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
@@ -377,7 +383,7 @@ with the toggle.
     │   ├── shared-banner.ts  # Banner while a shared plan is open: keep it or go back
     │   ├── start-over-dialog.ts # Confirmation before the saved plan is cleared
     │   ├── event-type-dialog.ts # Asks which kind of event to add
-    │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, lost growth
+    │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, effect
     │   ├── deposit-change-dialog.ts # Dialog to add or edit a deposit change
     │   ├── amount-event-dialog.ts # Dialog for an amount in one month (withdrawal, one-time deposit)
     │   ├── one-time-deposit-dialog.ts # openOneTimeDepositDialog: the amount dialog for one-time deposits
