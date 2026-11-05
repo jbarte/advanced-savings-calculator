@@ -5,7 +5,9 @@ import { createBlankPlan, createExamplePlan } from "./state/plan-document";
 import type { PlanDocument } from "./state/plan-document";
 import { withPlanChange } from "./state/plan-change";
 import { updatePlanFields } from "./state/plan-fields";
+import { loadSavedPlan, clearSavedPlan, savePlan } from "./state/plan-storage";
 import { currentRoute } from "./state/route";
+import { STORAGE_BLOCKED_NOTICE, resolveStartupPlan } from "./state/startup-plan";
 import { createStore } from "./state/store";
 import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
 import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
@@ -23,18 +25,33 @@ import { applyTheme } from "./ui/theme";
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app element");
 
+const startup = resolveStartupPlan(loadSavedPlan(), createExamplePlan(currentYearMonth()));
+
 const store = createStore({
   scenarioId: PLAN_SCENARIO_ID,
-  plan: createExamplePlan(currentYearMonth()),
-  planOrigin: "example",
+  plan: startup.plan,
+  planOrigin: startup.planOrigin,
+  storage: startup.storage,
   horizon: 30,
   metric: "balance",
   selectedEvent: null,
   theme: loadThemePreference(),
-  notice: null,
+  notice: startup.notice,
 });
 
-const commitPlan = (change: (plan: PlanDocument) => PlanDocument): void => store.update(withPlanChange(store.get(), change));
+/** Keeps the plan in this browser. The blocked notice is shown once, not on every change. */
+const persist = (plan: PlanDocument): void => {
+  const wasBlocked = store.get().storage === "blocked";
+  const saved = savePlan(plan);
+  store.update({ storage: saved ? "saved" : "blocked", ...(saved || wasBlocked ? {} : { notice: STORAGE_BLOCKED_NOTICE }) });
+};
+
+const commitPlan = (change: (plan: PlanDocument) => PlanDocument): void => {
+  const before = store.get().plan;
+  store.update(withPlanChange(store.get(), change));
+  const { plan } = store.get();
+  if (plan !== before) persist(plan);
+};
 
 /** Removing the selected event must not leave its key behind, since a later event can reuse the id. */
 const deselectIf = (key: string): void => {
@@ -52,7 +69,21 @@ const actions: Actions = {
   setHorizon: (horizon) => store.update({ horizon }),
   selectEvent: (selectedEvent) => store.update({ selectedEvent }),
   updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
-  startFromScratch: () => store.update({ plan: createBlankPlan(currentYearMonth()), planOrigin: "own", selectedEvent: null, notice: null }),
+  startFromScratch: () => {
+    const plan = createBlankPlan(currentYearMonth());
+    store.update({ plan, planOrigin: "own", selectedEvent: null, notice: null });
+    persist(plan);
+  },
+  startOver: () => {
+    const cleared = clearSavedPlan();
+    store.update({
+      plan: createExamplePlan(currentYearMonth()),
+      planOrigin: "example",
+      storage: cleared ? "idle" : "blocked",
+      selectedEvent: null,
+      notice: cleared ? null : STORAGE_BLOCKED_NOTICE,
+    });
+  },
   addWithdrawal: (draft) => commitPlan((plan) => addWithdrawal(plan, draft)),
   updateWithdrawal: (id, draft) => commitPlan((plan) => updateWithdrawal(plan, id, draft)),
   removeWithdrawal: (id) => {

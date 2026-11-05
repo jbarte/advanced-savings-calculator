@@ -8,6 +8,7 @@ const state: AppState = {
   scenarioId: "plan",
   plan: createBlankPlan({ year: 2026, month: 1 }),
   planOrigin: "example",
+  storage: "idle",
   horizon: 30,
   metric: "balance",
   selectedEvent: null,

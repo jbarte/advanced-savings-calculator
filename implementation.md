@@ -8,16 +8,17 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 
 - **Merged into `main`:** milestone 1 (PR #1), milestone 2 (PR #2), foundation fixes (PR #3), milestone 3
   "Change my saving over time" (PR #5), the contrast of raised surfaces and dialogs (PR #6), the removal of the
-  white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8) and one-time deposits (PR #9). PR #4 had
+  white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8), one-time deposits (PR #9), milestone 4B
+  "events on the chart" (PR #10) and the Add event dialog styles fix (PR #11). PR #4 had
   been merged into its base `feature/foundation-fixes` after #3 was already in `main`, so it never reached
   `main`; PR #5 carried the same commits there.
 - **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **In progress:** milestone 4B (chart: numbered badges, bands, lanes, legend, selection, phone layout) on
-  `feature/m4-chart`. Then milestone 5 (saving) and 6 (sharing).
-- **Tests:** 293 (`npm test`), typecheck and build pass.
+- **Open:** milestone 5 (saving) on `feature/m5-saving`. Next: milestone 6 (sharing), goal planning,
+  scenario comparison, Swedish, custom horizon, polish.
+- **Tests:** 316 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -208,4 +209,31 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   selectors by position, which also removed the `.choice` and `.choices` rules of the Add event dialog (the
   options lost their cards and ran together). Restored from `main`. Only this branch was affected. Lesson: after
   removing CSS by range, list every removed line (`git diff main -- src/styles/app.css | grep '^-'`).
+
+### Milestone 5: "It is all saved" (branch `feature/m5-saving`)
+- **Built (all in `src/state/` except the UI bits):**
+  - `read-plan.ts`: `readPlanDocument`/`readPlanText` turn untrusted data into a `PlanDocument`: shape checked field
+    by field, only known fields copied, list lengths checked before walking them, then `validatePlanDocument`. A newer
+    version gets its own message. It is the place for future migrations, and M6 reuses it for share links.
+  - `plan-storage.ts`: `loadSavedPlan` (none, loaded, invalid with a reason, unavailable), `savePlan` and
+    `clearSavedPlan` (return false instead of throwing). They take the storage as a parameter so tests use a fake.
+  - `startup-plan.ts`: `resolveStartupPlan` decides what the page opens with and which notice to show.
+  - `main.ts`: loads at startup; `persist` after every change that replaces the plan (also "Start from scratch");
+    `startOver` clears the save. `AppState.storage` is `idle | saved | blocked`.
+  - UI: the Plan card says "Example plan", "Saved in this browser" or "Not saved: storage is blocked"; own plans
+    get a "Start over" button that asks first (`start-over-dialog.ts`).
+- **Decisions:** the untouched example is never saved, so a visitor who only looks around has nothing written. A
+  broken save is not deleted at once: it stays until the next change replaces it. Export and import as a JSON
+  file (optional in the plan) was left out.
+- **Checked:** 23 new tests (reader: round trip with all event kinds, unknown fields dropped, wrong types, missing
+  fields, newer and unknown versions, limits, oversized lists, duplicate ids, bad JSON, `__proto__` key; storage:
+  none, loaded, invalid, bad JSON, blocked, missing storage, overwrite, clear; startup: all four cases). 316 tests,
+  typecheck and build pass. In the browser: nothing stored on a first visit; after changing the deposit it was
+  stored and survived a reload with the same result (4 244 308 kr, equal to an independent calculation);
+  a save with a start amount of -5 showed the example with a notice and stayed in storage; with `setItem`
+  throwing, the app kept working, said "Not saved" and showed the notice once; "Keep my plan" kept the save and
+  "Start over" removed it and showed the example.
+- **Known gaps:** two tabs do not see each other's changes (last write wins); the invalid-save notice shows the
+  validator's wording ("whole number of öre"); no test of the DOM wiring (no jsdom), so `main.ts` and the Plan card
+  were checked by hand; the selected event and horizon are not saved on purpose.
 

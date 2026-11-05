@@ -10,6 +10,8 @@ export interface Actions {
   selectEvent(key: EventKey | null): void;
   updatePlan(patch: Partial<PlanFields>): void;
   startFromScratch(): void;
+  /** Forgets the saved plan and shows the example again. */
+  startOver(): void;
   addWithdrawal(draft: WithdrawalDraft): void;
   updateWithdrawal(id: number, draft: WithdrawalDraft): void;
   removeWithdrawal(id: number): void;

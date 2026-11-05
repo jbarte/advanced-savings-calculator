@@ -1043,6 +1043,13 @@ button {
   color: var(--danger);
 }
 
+.modal__text {
+  margin: 0 0 var(--space-4);
+  color: var(--ink2);
+  font-size: var(--text-md);
+  text-align: center;
+}
+
 .modal__body {
   display: flex;
   flex-direction: column;
