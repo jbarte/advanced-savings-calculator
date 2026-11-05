@@ -9,15 +9,16 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged into `main`:** milestone 1 (PR #1), milestone 2 (PR #2), foundation fixes (PR #3), milestone 3
   "Change my saving over time" (PR #5), the contrast of raised surfaces and dialogs (PR #6), the removal of the
   white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8), one-time deposits (PR #9), milestone 4B
-  "events on the chart" (PR #10) the Add event dialog styles fix (PR #11) and milestone 5 "saved in the browser" (PR #12). PR #4 had
+  "events on the chart" (PR #10), the Add event dialog styles fix (PR #11), milestone 5 "saved in the browser"
+  (PR #12) and milestone 6 "share my plan" (PR #13). PR #4 had
   been merged into its base `feature/foundation-fixes` after #3 was already in `main`, so it never reached
   `main`; PR #5 carried the same commits there.
 - **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** milestone 6 (sharing) on `feature/m6-sharing`. Next: goal planning, scenario comparison, Swedish,
-  custom horizon, polish.
+- **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05: bug fixes (step 0a),
+  a safety net (0b), cleanup (0c), then milestones 7–12.
 - **Tests:** 335 (`npm test`), typecheck and build pass.
 
 ## Working rules
@@ -61,7 +62,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - `ANALYS.md` (untracked): docs-based analysis of risks. A code-based version was moved out of the repo.
 - The next phase was planned as two PRs: A (foundation fixes) and B (milestone 3).
 
-### Foundation fixes (PR #3, open)
+### Foundation fixes (PR #3, merged)
 - **Built:**
   - **Chart:** `niceScale(min, max)` always contains zero and reaches below it for negative values;
     `toPoints`, `areaPath`, `zeroLine`, `isAllZero`; a zero line is drawn. Fixed a real bug: with a
@@ -271,4 +272,18 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   afterwards does not change an already shared link; a tampered link that still inflates to a valid plan opens as
   that plan (there is no signature, and none is needed since the data is checked like any input); the
   uncompressed (`u.`) path is only tested through the functions, not in a browser without `CompressionStream`.
+
+### Code review and roadmap (branch `docs/backlog-review`, docs only)
+- **Done:** three read-only review passes over the code on `main` after milestone 6: core and state, UI and
+  CSS, tooling, tests and docs. Findings were checked against the code before they went into the plan (for
+  example the id check with `Number.isInteger`, the dialog closing on a click in its padding, and a no-op change
+  saving the example plan). Findings about the Share button were stale (the review started from a branch older
+  than PR #13) and were dropped.
+- **Result:** NEXT_STEPS.md has a new "Roadmap": step 0a bug fixes, 0b safety net (checks on pull requests,
+  an architecture test, pinned numbers), 0c cleanup, then milestone 7 "What is every event worth?" (includes
+  showing lost growth as a loss), 8 custom horizon (plan format version 2), 9 goal planning, 10 strings out,
+  11 compare plans, 12 Swedish and polish. Status lines, the target-scenario table and the open decisions were
+  brought up to date.
+- **Decisions since:** "today's money" goes into milestone 8; the pull-request workflow waits (no config file
+  for now). Still open: what the effect column shows (total effect on the end balance is recommended).
 
