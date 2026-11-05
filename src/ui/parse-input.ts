@@ -103,6 +103,12 @@ export function parseOneTimeDepositAmount(text: string): ParseResult<Ore> {
   return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
 }
 
+/** A goal amount: whole kronor, above 0, up to the goal limit. */
+export function parseGoalAmount(text: string): ParseResult<Ore> {
+  const result = parseKronor(text, PLAN_LIMITS.maxGoalAmount);
+  return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
+}
+
 /** A short name for an event. Empty text becomes `fallback`. */
 export function parseLabel(text: string, fallback: string): ParseResult<string> {
   const label = text.trim();

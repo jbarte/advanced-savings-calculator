@@ -21,7 +21,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Open:** milestone 8B, inflation adjusted (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 478 (`npm test`), typecheck and build pass.
+- **Tests:** 489 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -496,4 +496,32 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   goal and 32 ms without, once per plan change (the cache hides it otherwise).
 - **Known gaps:** nothing in the UI shows or edits the goal yet (9B); the goal card from the first shell still
   exists but is hidden until 9B replaces it.
+
+### Milestone 9B: the goal in the interface (branch `feature/m9b-goal-ui`)
+- **Built:**
+  - `goal-card.ts` replaces the dead goal card from the first shell (and its code in `side-cards.ts`). Without a goal
+    it is a prompt with "Set a goal"; with one it shows the gauge, the balance at the goal date, the deposit needed,
+    when the goal is reached and the goal inflation adjusted, with "Edit" and "Remove" in the header. The gauge's magic
+    numbers are named constants. A goal date before the plan start or after the 40-year projection shows a message
+    instead of numbers.
+  - `goal-dialog.ts` ("I want to have" / "By", the month defaults to the end of the horizon, same checks as the
+    other dialogs, an edited goal keeps its own earlier date), `parseGoalAmount`, `setGoal` and `clearGoal` actions.
+  - `goal-text.ts` (`requiredDepositText`, tested): "791 kr/mo more than your deposit now", "less than", "the same",
+    "Nothing" when no saving is needed, "Not reachable" when even the largest deposit isn't enough.
+  - Chart: a dashed goal line with its value at the left end (the tooltip rests at the right end), "Goal" in the
+    legend, and the scale includes it. Rules in `chart-geometry.ts` (`chartGoalLine`, `valueToPercent`, tested): only
+    for the balance, only for a goal inside the chart's months, and none when the goal is more than 3 times the
+    highest balance (it would flatten the curve; the card still says how far off it is). With the inflation switch
+    on, the line sits at the goal's value in today's money.
+  - Remove sends keyboard focus to "Set a goal", and "Set a goal" to "Edit".
+- **Checked:** 489 tests (11 new: goal amount parser, goal line rules, scale position, deposit wording), typecheck and
+  build. In the browser against the independent script: 4 000 000 kr by Nov 2056 shows 76 %, short 925,1K kr, 3 791 kr/mo
+  needed (791 kr/mo more than now), reached Apr 2060, 2 208 284 kr inflation adjusted, line at 4M on a chart that now
+  reaches 6M; 1 000 000 kr by Nov 2036 shows 40 %, 6 501 kr/mo, reached Apr 2044; 2 000 000 kr by Nov 2056 shows "On track",
+  2 081 kr/mo (919 kr/mo less), reached Sep 2051; 50 000 000 kr draws no line and says short 46,9M kr; with the
+  switch on the line moves to 2.2M; with a 10-year horizon the line disappears and the card says the date is after the
+  end year; moving the plan start past the goal date shows the "before the plan starts" message; the dialog refuses 0 and
+  a month before the start; Remove clears the saved goal. 375 px: no sideways scroll.
+- **Known gaps:** the goal shown in the card is always nominal (only the "inflation adjusted" row converts it); the
+  chart's goal line has no keyboard or screen reader equivalent beyond the card (it is decorative, `aria-hidden`).
 

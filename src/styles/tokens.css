@@ -62,6 +62,9 @@
   --kind-one-time-deposit: var(--accent-ink);
   --kind-one-time-deposit-fill: var(--accent-soft);
 
+  /* The goal line on the chart. */
+  --goal-line: var(--ink2);
+
   /* The effect of an event: a loss in the danger colour, a gain in green. */
   --effect-loss: var(--danger);
   --effect-gain: var(--accent-ink);

@@ -146,3 +146,20 @@ export function axisMonths(totalMonths: number, maxIntervals = 5): number[] {
   const intervals = Math.max(1, Math.min(maxIntervals, Math.floor(totalMonths / MONTHS_PER_YEAR)));
   return Array.from({ length: intervals + 1 }, (_, i) => Math.round((i * totalMonths) / intervals));
 }
+
+/** A goal this many times above the highest balance would squash the curve flat, so no goal line is drawn for it. */
+export const GOAL_LINE_MAX_FACTOR = 3;
+
+/**
+ * The value to draw the goal line at, or null when there is none to draw: no goal, or a goal so far above the
+ * balance that including it would flatten the curve. `maxValue` is the highest value on the chart.
+ */
+export function chartGoalLine(goal: number | null, maxValue: number): number | null {
+  if (goal === null || goal <= 0) return null;
+  return goal <= maxValue * GOAL_LINE_MAX_FACTOR ? goal : null;
+}
+
+/** Where a value falls on the y axis of a scale, as 0–100 (0 = top, 100 = bottom). The same rule as `toPoints`. */
+export function valueToPercent(value: number, { min, max }: Scale): number {
+  return ((max - value) / (max - min)) * 100;
+}

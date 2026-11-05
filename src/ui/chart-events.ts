@@ -97,10 +97,10 @@ export function renderChartEvents(
   return [...bands, ...lines, ...badges].filter((element): element is HTMLElement => element !== null);
 }
 
-/** A key to the kinds of event on the chart. Only kinds that are drawn are listed. Null when nothing is drawn. */
-export function renderChartLegend(timeline: readonly TimelineEntry[]): HTMLElement | null {
+/** A key to what is drawn on the chart: the kinds of event and the goal line. Null when nothing is drawn. */
+export function renderChartLegend(timeline: readonly TimelineEntry[], showGoal: boolean): HTMLElement | null {
   const kinds = new Set(timeline.filter(isPlanned).map((entry) => entry.kind));
-  if (kinds.size === 0) return null;
+  if (kinds.size === 0 && !showGoal) return null;
   const items = (Object.keys(KIND_LABELS) as TimelineEntry["kind"][])
     .filter((kind) => kinds.has(kind))
     .map((kind) =>
@@ -111,5 +111,8 @@ export function renderChartLegend(timeline: readonly TimelineEntry[]): HTMLEleme
         KIND_LABELS[kind],
       ),
     );
-  return h("ul", { class: "legend", "aria-label": "Events on the chart" }, ...items);
+  const goal = showGoal
+    ? h("li", { class: "legend__item" }, h("span", { class: "legend__swatch legend__swatch--goal", "aria-hidden": "true" }), "Goal")
+    : null;
+  return h("ul", { class: "legend", "aria-label": "On the chart" }, ...items, goal);
 }

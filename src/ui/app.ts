@@ -6,7 +6,8 @@ import { announce } from "./announcer";
 import { renderNotice } from "./error-state";
 import { renderSharedBanner } from "./shared-banner";
 import { renderChartCard, renderHero } from "./projection-card";
-import { renderComparisonCard, renderGoalCard, renderInputsCard } from "./side-cards";
+import { renderGoalCard } from "./goal-card";
+import { renderComparisonCard, renderInputsCard } from "./side-cards";
 import { renderAppBar } from "./topbar";
 import { renderEventsSection } from "./events-section";
 
@@ -44,7 +45,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
         "div",
         { class: "bento" },
         renderInputsCard(active, state, actions),
-        active.goal ? renderGoalCard(active, active.goal) : null,
+        renderGoalCard(active, actions),
         scenarios.length > 1 ? renderComparisonCard(scenarios, active, actions) : null,
       ),
       renderEventsSection(active, timeline, state, actions),

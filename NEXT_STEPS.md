@@ -263,10 +263,10 @@ and total.
 - An "inflation adjusted" switch that shows results adjusted for inflation (one plan field and a display
   conversion), decided to be part of this milestone and built in 8B.
 
-### Milestone 9: goal planning
+### Milestone 9: goal planning: done
 
-**9A (in its PR):** the solver in `src/core/goal.ts`, plan format version 3 with `goal`, validation, `setGoal`,
-and the goal summary in the view model. **9B (next):** the goal card (add, edit, remove), a goal line on the chart,
+**9A (done):** the solver in `src/core/goal.ts`, plan format version 3 with `goal`, validation, `setGoal`,
+and the goal summary in the view model. **9B (done):** the goal card (set, edit, remove), a goal line on the chart,
 and the inflation-adjusted equivalent. Decisions made: the solver changes the base monthly deposit and keeps every
 event; the goal amount is nominal; the goal lives in the plan (version 3).
 

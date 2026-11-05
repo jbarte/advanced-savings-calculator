@@ -6,12 +6,14 @@ import {
   axisTicks,
   cursorAfterKey,
   bandExtent,
+  chartGoalLine,
   isAllZero,
   linePath,
   monthToPercent,
   nearestIndex,
   niceScale,
   toPoints,
+  valueToPercent,
   zeroLine,
 } from "./chart-geometry";
 
@@ -243,6 +245,33 @@ describe("axisMonths", () => {
 
   it("rounds to whole months when the years don't divide evenly", () => {
     expect(axisMonths(84)).toEqual([0, 17, 34, 50, 67, 84]);
+  });
+});
+
+describe("chartGoalLine", () => {
+  it("draws the goal when it is within three times the highest balance, and not otherwise", () => {
+    expect(chartGoalLine(4_000_000, 3_000_000)).toBe(4_000_000);
+    expect(chartGoalLine(9_000_000, 3_000_000)).toBe(9_000_000);
+    expect(chartGoalLine(9_000_001, 3_000_000)).toBeNull();
+  });
+
+  it("draws nothing without a goal, or for a goal of 0", () => {
+    expect(chartGoalLine(null, 3_000_000)).toBeNull();
+    expect(chartGoalLine(0, 3_000_000)).toBeNull();
+  });
+});
+
+describe("valueToPercent", () => {
+  it("puts the top of the scale at 0 and the bottom at 100, like toPoints", () => {
+    const scale = { min: 0, max: 100, step: 25 };
+    expect(valueToPercent(100, scale)).toBe(0);
+    expect(valueToPercent(0, scale)).toBe(100);
+    expect(valueToPercent(25, scale)).toBe(75);
+    expect(valueToPercent(40, scale)).toBeCloseTo(toPoints([40, 0], scale)[0]?.[1] ?? NaN);
+  });
+
+  it("works for a scale that reaches below zero", () => {
+    expect(valueToPercent(0, { min: -3, max: 1, step: 1 })).toBe(25);
   });
 });
 

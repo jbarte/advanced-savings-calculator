@@ -667,6 +667,28 @@ button {
   border-left-width: var(--border-3);
 }
 
+/* The goal: a dashed line across the chart at the goal amount, with its value at the left end (the tooltip rests at the right end). */
+.chart__goal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: var(--border-2) dashed var(--goal-line);
+  pointer-events: none;
+}
+
+.chart__goal span {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-1);
+  background: var(--surface);
+  color: var(--ink2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
 .chart__band {
   position: absolute;
   top: 0;
@@ -724,6 +746,14 @@ button {
   width: 14px;
   height: 14px;
   border-radius: var(--radius-pill);
+}
+
+/* The goal swatch is a short dashed line, like the goal line on the chart. */
+.legend__swatch.legend__swatch--goal {
+  width: 18px;
+  height: 0;
+  border-radius: 0;
+  border-top: var(--border-2) dashed var(--goal-line);
 }
 
 .chart__cursor {
