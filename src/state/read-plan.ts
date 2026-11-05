@@ -1,6 +1,6 @@
 import type { YearMonth } from "../core/year-month";
 import { DEFAULT_HORIZON_YEARS, DEFAULT_INFLATION_PCT, PLAN_LIMITS } from "./plan-document";
-import type { DepositChangeEvent, OneTimeDepositEvent, PlanDocument, WithdrawalEvent } from "./plan-document";
+import type { DepositChangeEvent, GoalPlan, OneTimeDepositEvent, PlanDocument, WithdrawalEvent } from "./plan-document";
 import { validatePlanDocument } from "./validate-plan";
 
 /*
@@ -78,29 +78,40 @@ function readOneTimeDeposit(value: unknown): OneTimeDepositEvent {
 }
 
 /** The newest plan format. Older formats are upgraded when read; newer ones can't be read. */
-const CURRENT_VERSION = 2;
+const CURRENT_VERSION = 3;
 
-/**
- * The fields that were added after version 1, read from a version 2 plan or filled in for a version 1 plan,
- * which had no horizon of its own (the page showed 30 years) and no inflation rate.
- */
-function readVersionFields(doc: Raw, version: number): Pick<PlanDocument, "horizonYears" | "inflationPct"> {
-  if (version === 1) return { horizonYears: DEFAULT_HORIZON_YEARS, inflationPct: DEFAULT_INFLATION_PCT };
-  return { horizonYears: numberField(doc, "horizonYears", "The plan"), inflationPct: numberField(doc, "inflationPct", "The plan") };
+function readGoal(value: unknown): GoalPlan | null {
+  if (value === null) return null;
+  const g = raw(value, "The goal");
+  return { amount: numberField(g, "amount", "The goal"), date: yearMonth(g["date"], "The goal's date") };
 }
 
 /**
- * Reads a plan from parsed JSON. A version 1 plan (saved or shared before the horizon became part of the plan)
- * is upgraded to version 2 here, before the check, so old saves and old links keep opening.
+ * The fields that were added after version 1, read from a newer plan or filled in for an older one. A version 1 plan
+ * had no horizon of its own (the page showed 30 years) and no inflation rate; a version 1 or 2 plan had no goal.
+ */
+function readVersionFields(doc: Raw, version: number): Pick<PlanDocument, "horizonYears" | "inflationPct" | "goal"> {
+  const horizon =
+    version === 1
+      ? { horizonYears: DEFAULT_HORIZON_YEARS, inflationPct: DEFAULT_INFLATION_PCT }
+      : { horizonYears: numberField(doc, "horizonYears", "The plan"), inflationPct: numberField(doc, "inflationPct", "The plan") };
+  if (version < 3) return { ...horizon, goal: null };
+  if (!("goal" in doc)) return fail('The plan: "goal" must be an object or null');
+  return { ...horizon, goal: readGoal(doc["goal"]) };
+}
+
+/**
+ * Reads a plan from parsed JSON. An older plan (saved or shared before the horizon, the inflation rate or the
+ * goal became part of the plan) is upgraded to version 3 here, before the check, so old saves and old links keep opening.
  */
 export function readPlanDocument(value: unknown): PlanDocument {
   const doc = raw(value, "The plan");
   const version = doc["version"];
   if (typeof version === "number" && version > CURRENT_VERSION) fail("This plan was made by a newer version of the app");
-  if (version !== 1 && version !== 2) fail(`Unknown plan version ${String(version)}`);
+  if (version !== 1 && version !== 2 && version !== 3) fail(`Unknown plan version ${String(version)}`);
 
   const plan: PlanDocument = {
-    version: 2,
+    version: 3,
     start: yearMonth(doc["start"], "The start date"),
     startAmount: numberField(doc, "startAmount", "The plan"),
     monthlyDeposit: numberField(doc, "monthlyDeposit", "The plan"),

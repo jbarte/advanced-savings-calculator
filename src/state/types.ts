@@ -67,15 +67,36 @@ export interface PlannedOneTimeDeposit {
   readonly effect: Ore;
 }
 
+/**
+ * Where the goal date falls: inside the projection, before the plan start, or after the end of the projection (the
+ * longest horizon). Only an `ok` goal has numbers.
+ */
+export type GoalStatus = "ok" | "before-start" | "after-projection";
+
+/** How the plan stands against its goal. The goal amount is nominal; `targetInflationAdjusted` is what it is worth at the start. */
 export interface GoalSummary {
+  readonly status: GoalStatus;
   readonly target: Ore;
+  readonly date: YearMonth;
+  /** Months after the plan start. Negative before the start. */
   readonly month: number;
+  /** True when the goal date is on or before the end of the plan's horizon, so the chart can draw it. */
+  readonly withinHorizon: boolean;
+  /** The balance at the goal date. 0 unless `status` is `ok`. */
   readonly balanceAtGoal: Ore;
+  /** How much of the goal the balance covers, 0 to 100 (rounded down). */
   readonly percentReached: number;
+  /** What is missing at the goal date: 0 when the goal is reached. */
   readonly shortfall: Ore;
-  readonly requiredMonthly: Ore;
-  /** First month the balance reaches the target, or null if it never does within the projection. */
+  /**
+   * The base monthly deposit that reaches the goal with every planned event kept, in whole öre. 0 when no saving is
+   * needed, null when the goal can't be reached even with the largest allowed deposit (or the status is not `ok`).
+   */
+  readonly requiredMonthly: Ore | null;
+  /** First month the balance reaches the goal amount, or null if it never does within the projection. */
   readonly reachedMonth: number | null;
+  /** The goal amount divided by the price level at the goal date (see `toInflationAdjusted`). */
+  readonly targetInflationAdjusted: Ore;
 }
 
 /** Everything the UI needs to render one scenario, built from the engine's output by `buildScenarioView`. */

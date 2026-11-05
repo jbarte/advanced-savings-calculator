@@ -118,15 +118,16 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   `ProjectionPoint`, `AppliedWithdrawal`, `Ore`). They describe money and time only, never how things are
   displayed.
 - **The plan is a document.** `src/state/` defines one versioned, JSON-friendly
-  `PlanDocument` (start capital, return, base deposit, horizon in whole years, inflation, and three lists of
-  events: withdrawals, deposit changes and one-time deposits, numbered apart, with real
+  `PlanDocument` (start capital, return, base deposit, horizon in whole years, inflation, an optional goal, and
+  three lists of events: withdrawals, deposit changes and one-time deposits, numbered apart, with real
   `YearMonth` dates rather than month offsets). It is the only thing that gets saved to
   `localStorage` or put in a share link. A mapper turns it into the engine's `PlanInput`
   (dates become month offsets there). Every document has a `version`, and loading goes
   through a hand-written validator and migrations, so old saves and old links keep working. Version 2 added
   `horizonYears` (1–40) and `inflationPct` (default 2, the Riksbank target); a version 1 plan is upgraded with
-  30 years (what the page showed then) and 2 %. The horizon is part of the plan, so changing it is a plan change:
-  it is saved and shared, and it makes the example the user's own plan.
+  30 years (what the page showed then) and 2 %. Version 3 added `goal` (`{ amount, date }` or null; a version 1 or 2
+  plan upgrades with no goal). The horizon and the goal are part of the plan, so changing them is a plan change:
+  they are saved and shared, and they make the example the user's own plan.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
   (`project`) for 480 months (`PROJECTION_MONTHS`, the longest horizon) and shapes the result, including
@@ -134,7 +135,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   each event is measured and where the chart ends (`ScenarioView.horizonMonths`). `createScenarioViewCache`
   returns the same view while plan, name and horizon are unchanged, so selection, theme and notice changes don't
   run the engine.
-  Features that don't exist yet are empty: `goal` is `null`, and the UI hides that card.
+  `goal` is the `GoalSummary` of the plan's goal, or `null` without one (`buildGoalSummary`).
 - **Calculation rules** (decided, change only after asking):
   - **Money is stored as integers in minor units (öre).** Never use floats for stored
     amounts. Convert to kronor only when formatting (`src/ui/format.ts`), and parse typed
@@ -169,6 +170,17 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     horizon's level. What the user enters (event amounts, start amount, deposit) is never converted, and the engine
     and the plan stay nominal. `applyInflationAdjustment` (view model) applies it when `AppState.inflationAdjusted` is on; that
     switch is a view setting, off at each visit, not saved or shared. The rate is `PlanDocument.inflationPct`.
+  - **The goal** is an amount in nominal kronor (like everything the user enters) and a month. The deposit needed
+    is `requiredMonthlyDeposit` in `src/core/goal.ts`: the smallest whole-öre *base* monthly deposit that reaches
+    the amount by that month, found by bisection (the balance never falls when the base deposit rises). Every
+    planned event is kept as it is: withdrawals, one-time deposits and deposit changes (a pause stays a pause, and
+    only months without an active change use the base deposit). It is 0 when the goal is reached without saving and
+    null when even `maxMonthlyDeposit` is not enough. `buildGoalSummary` (view model) adds the balance at the goal
+    date, the shortfall, the share reached, the first month the balance reaches the amount and the amount in
+    today's money (`targetInflationAdjusted`); the summary is never converted by the inflation switch. A goal date
+    before the plan start or after the 40-year projection has status `before-start` or `after-projection` and no
+    numbers. The solver adds about 20 ms for the worst plan (110 events, 40 years); the view cache hides it on
+    re-renders that don't change the plan.
   - **The monthly rate is the effective rate:** `(1 + yearly)^(1/12) − 1`, from
     `monthlyRate()` in `src/core/money.ts`. Twelve months of compounding give exactly
     the yearly return. Never use `yearly / 12`.
@@ -355,6 +367,7 @@ with the toggle.
     │   ├── types.ts          # Engine input/output: PlanInput, Projection, Ore …
     │   ├── project.ts        # project(): the monthly projection (+ project.test.ts)
     │   ├── event-effect.ts   # eventEffect, totalEffect, lostGrowthOf: what each event changes (+ test)
+    │   ├── goal.ts           # requiredMonthlyDeposit, balanceAtMonth, firstMonthAtLeast: the goal solver (+ test)
     │   ├── deposit-schedule.ts # depositInMonth: the deposit in a given month (+ test)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── inflation-adjusted.ts   # priceLevel, toInflationAdjusted, inflationAdjustedPoints: inflation-adjusted display (+ test)
@@ -370,6 +383,7 @@ with the toggle.
     │   ├── event-list.ts     # Shared add/update/remove for the three event lists (+ test)
     │   ├── deposit-changes.ts # Pure add/update/remove of deposit changes, validated (+ test)
     │   ├── one-time-deposits.ts # Pure add/update/remove of one-time deposits, validated (+ test)
+    │   ├── goal.ts           # setGoal, clearGoal: the plan's savings goal, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── reference-values.test.ts # Hand- and script-checked results, pinned to the öre
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock

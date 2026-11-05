@@ -87,3 +87,19 @@ describe("reference values: inflation adjusted at 2 % inflation, 30 years", () =
   });
 });
 
+describe("reference values: the goal (independent script, whole öre)", () => {
+  const goalPlan = (amount: number, year: number): PlanDocument => ({ ...example, goal: { amount, date: { year, month: 1 } } });
+
+  it("4 000 000 kr after 30 years needs 3 791,10 kr a month as the base deposit; the plan reaches it in month 401", () => {
+    const goal = buildScenarioView(goalPlan(400_000_000, 2056), "Example").goal;
+    expect(goal?.requiredMonthly).toBe(379_110);
+    expect(goal?.reachedMonth).toBe(401);
+    expect(goal?.shortfall).toBe(92_514_427);
+  });
+
+  it("1 000 000 kr after 10 years needs 6 501,11 kr a month; 2 000 000 kr after 30 years only 2 080,89 kr", () => {
+    expect(buildScenarioView(goalPlan(100_000_000, 2036), "Example").goal?.requiredMonthly).toBe(650_111);
+    expect(buildScenarioView(goalPlan(200_000_000, 2056), "Example").goal?.requiredMonthly).toBe(208_089);
+  });
+});
+

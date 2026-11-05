@@ -265,6 +265,11 @@ and total.
 
 ### Milestone 9: goal planning
 
+**9A (in its PR):** the solver in `src/core/goal.ts`, plan format version 3 with `goal`, validation, `setGoal`,
+and the goal summary in the view model. **9B (next):** the goal card (add, edit, remove), a goal line on the chart,
+and the inflation-adjusted equivalent. Decisions made: the solver changes the base monthly deposit and keeps every
+event; the goal amount is nominal; the goal lives in the plan (version 3).
+
 - Set a goal amount and date (defaulting to the horizon end), see whether I am on track, the monthly deposit I
   need and when I would reach it, with all events included.
 - A pure `requiredMonthlyDeposit(plan, goal)` in `src/core/`, found by bisection on whole öre (the end balance

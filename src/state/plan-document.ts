@@ -40,12 +40,21 @@ export interface OneTimeDepositEvent {
 export type OneTimeDepositDraft = Omit<OneTimeDepositEvent, "id">;
 
 /**
+ * A savings goal: an amount to have by a month. Like everything the user enters, the amount is in nominal kronor.
+ * The plan has at most one goal.
+ */
+export interface GoalPlan {
+  readonly amount: Ore;
+  readonly date: YearMonth;
+}
+
+/**
  * Everything that defines a plan, in a shape that can be saved and shared. Dates are real
  * year-months (not offsets), so changing the start date never moves an event.
  */
 export interface PlanDocument {
-  /** 2 since the horizon and inflation became part of the plan. Version 1 plans are upgraded when read. */
-  readonly version: 2;
+  /** 3 since the goal became part of the plan. Version 1 and 2 plans are upgraded when read. */
+  readonly version: 3;
   readonly start: YearMonth;
   readonly startAmount: Ore;
   readonly monthlyDeposit: Ore;
@@ -58,10 +67,12 @@ export interface PlanDocument {
   readonly withdrawals: readonly WithdrawalEvent[];
   readonly depositChanges: readonly DepositChangeEvent[];
   readonly oneTimeDeposits: readonly OneTimeDepositEvent[];
+  /** The savings goal, or null when there is none. */
+  readonly goal: GoalPlan | null;
 }
 
 /** The plan's single-value fields, edited in the Plan card. */
-export type PlanFields = Omit<PlanDocument, "version" | "withdrawals" | "depositChanges" | "oneTimeDeposits">;
+export type PlanFields = Omit<PlanDocument, "version" | "withdrawals" | "depositChanges" | "oneTimeDeposits" | "goal">;
 
 /*
  * Input limits. Chosen so that even the largest allowed plan (maximum start amount, deposit and one-time deposits
@@ -87,6 +98,7 @@ export const PLAN_LIMITS = {
   // them at 5 000 000 kr still fit below Number.MAX_SAFE_INTEGER next to the largest start amount and deposit.
   maxOneTimeDeposits: 10,
   maxOneTimeDepositAmount: 500_000_000, // 5 000 000 kr
+  maxGoalAmount: 10_000_000_000, // 100 000 000 kr, like the start amount
   maxLabelLength: 40,
 } as const;
 
@@ -99,7 +111,7 @@ export const DEFAULT_INFLATION_PCT = 2;
 /** A worked example for first-time visitors, starting this month, with a car purchase five years in. */
 export function createExamplePlan(today: YearMonth): PlanDocument {
   return {
-    version: 2,
+    version: 3,
     start: today,
     startAmount: 5_000_000,
     monthlyDeposit: 300_000,
@@ -109,13 +121,14 @@ export function createExamplePlan(today: YearMonth): PlanDocument {
     withdrawals: [{ id: 1, date: addMonths(today, yearsToMonths(5)), amount: 15_000_000, label: "New car" }],
     depositChanges: [],
     oneTimeDeposits: [],
+    goal: null,
   };
 }
 
 /** An empty plan: nothing saved yet, with a typical return so it works as soon as an amount is typed. */
 export function createBlankPlan(today: YearMonth): PlanDocument {
   return {
-    version: 2,
+    version: 3,
     start: today,
     startAmount: 0,
     monthlyDeposit: 0,
@@ -125,5 +138,6 @@ export function createBlankPlan(today: YearMonth): PlanDocument {
     withdrawals: [],
     depositChanges: [],
     oneTimeDeposits: [],
+    goal: null,
   };
 }
