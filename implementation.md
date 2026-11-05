@@ -10,17 +10,18 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   "Change my saving over time" (PR #5), the contrast of raised surfaces and dialogs (PR #6), the removal of the
   white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8), one-time deposits (PR #9), milestone 4B
   "events on the chart" (PR #10), the Add event dialog styles fix (PR #11), milestone 5 "saved in the browser"
-  (PR #12), milestone 6 "share my plan" (PR #13) and the roadmap after the code review (PR #14). PR #4 had
+  (PR #12), milestone 6 "share my plan" (PR #13) and the roadmap after the code review (PR #14) and the
+  step 0a bug fixes (PR #15). PR #4 had
   been merged into its base `feature/foundation-fixes` after #3 was already in `main`, so it never reached
   `main`; PR #5 carried the same commits there.
 - **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** step 0a, the bug fixes from the code review (PR #15, branch `fix/step-0a`).
+- **Open:** step 0b, the safety net (branch `test/step-0b`). Step 0a is merged (PR #15).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 347 (`npm test`), typecheck and build pass.
+- **Tests:** 380 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -317,4 +318,24 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   (74 971 414 885 100 kr) fits in 343 px at 375 px with no sideways scroll; after moving the plan start past the
   car, editing the car (now "Before start") saved without moving its date.
 - **Not done here:** screen-reader output itself was not tested with a screen reader, only the live region's text.
+
+### Step 0b: safety net (branch `test/step-0b`)
+- **Built (tests and settings only, no change in behaviour):**
+  - `src/architecture.test.ts` reads the sources through Vite's `import.meta.glob` (no `@types/node` or other new
+    dependency) and checks: core imports nothing from state or ui; state imports nothing from ui; the core uses no
+    `Date.now`, `new Date`, `Math.random`, `window`, `document`, `localStorage` or `fetch`; the UI touches no storage,
+    `location` or `history`; no `innerHTML`. It also checks that it found the files, so it can't pass on nothing.
+  - `src/state/reference-values.test.ts` pins the hand-checked results to the öre: base plan 3 888 970,47 kr,
+    example plan 3 074 855,73 kr, the car's lost growth 60 382,76 / 263 854,63 / 664 114,74 kr at 10 / 20 / 30 years,
+    a 100 000 kr one-time deposit +542 743,05 kr. The values come from a separate Python script that repeats the
+    monthly steps, and they match the earlier hand checks (shown rounded in the UI).
+  - New tests for `format.ts` (spaces that don't break, minus sign, rounding, compact form), `store.ts`, `route.ts`
+    (with a stubbed `window`, and with none) and `validateOneTimeDepositDraft` directly.
+  - `noFallthroughCasesInSwitch` and `noImplicitReturns` in `tsconfig.json` (no code changes were needed);
+    `"engines": { "node": ">=22.12" }` in `package.json`, lockfile synced.
+- **Not done:** the pull-request workflow, on hold by decision.
+- **Checked:** 33 new tests; 380 tests, typecheck and build pass. The new tests were checked against planted
+  faults: a `Date.now()` in the core, a `ui` import in `state` and a `localStorage` call in the UI each made the
+  architecture test fail; adding one öre per month in `project()` made all six reference tests fail. The faults
+  were removed again.
 

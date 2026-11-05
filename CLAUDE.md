@@ -47,7 +47,8 @@ their lost growth shown, and the monthly deposit can be changed from a month or 
 | **Charts drawn with plain SVG** | No chart library to begin with. Ask before adding one. |
 | **Geist / Geist Mono** (Google Fonts) | Fonts from the base design. |
 
-There are no runtime dependencies. Dev dependencies: `vite`, `vitest`, `typescript`.
+There are no runtime dependencies. Dev dependencies: `vite`, `vitest`, `typescript`. Node 22.12 or newer
+(`engines` in `package.json`).
 
 UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
 
@@ -109,7 +110,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   the click). Always trigger renders through the store, never by calling `render()` after
   an input event.
 - **Dependencies point inwards: `ui → state → core`.** `src/core/` never imports from
-  `src/state/` or `src/ui/`, and `src/state/` never imports from `src/ui/`.
+  `src/state/` or `src/ui/`, and `src/state/` never imports from `src/ui/`. `src/architecture.test.ts` enforces
+  this, the pure core (no clock, randomness, DOM or storage), storage and URL access only in `src/state/`, and no
+  `innerHTML` in the UI.
 - **The engine has its own types.** `src/core/types.ts` defines the engine's input and
   output (`PlanInput`, `WithdrawalInput`, `DepositChangeInput`, `GoalInput`, `Projection`,
   `ProjectionPoint`, `AppliedWithdrawal`, `Ore`). They describe money and time only, never how things are
@@ -218,6 +221,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   and event dates may reach `PLAN_LIMITS.maxEventYear` (the last start year plus the longest horizon).
   Other errors are bugs and are not hidden. If drawing the page throws,
   `renderErrorState` shows a message instead of a blank page.
+- **Reference values are pinned.** `src/state/reference-values.test.ts` holds results checked by hand and by an
+  independent script, to the öre (the example plan, the car's lost growth at three horizons, a one-time
+  deposit). If a change moves one of them, it is either a bug or a rule change that needs asking first.
 - **Tests are written alongside the code, not after.** Core functions are written test
   first. Every function in `src/core/` has unit tests, including edge cases:
   - a withdrawal larger than the balance
@@ -316,6 +322,7 @@ with the toggle.
 │   └── deploy.yml            # Test, build and deploy to GitHub Pages
 └── src/
     ├── main.ts               # Entry point: creates the store and actions, renders the app
+    ├── architecture.test.ts  # Enforces the layer rules by reading the sources
     ├── core/                 # Pure calculation engine (no DOM, no I/O)
     │   ├── types.ts          # Engine input/output: PlanInput, Projection, Ore …
     │   ├── project.ts        # project(): the monthly projection (+ project.test.ts)
@@ -334,6 +341,7 @@ with the toggle.
     │   ├── deposit-changes.ts # Pure add/update/remove of deposit changes, validated (+ test)
     │   ├── one-time-deposits.ts # Pure add/update/remove of one-time deposits, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
+    │   ├── reference-values.test.ts # Hand- and script-checked results, pinned to the öre
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
     │   ├── timeline.ts       # buildTimeline: both event kinds in date order, numbered; EventKey (+ test)

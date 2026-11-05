@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS, createBlankPlan, createExamplePlan } from "./plan-document";
 import type { DepositChangeDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
-import { validateDepositChangeDraft, validatePlanDocument, validatePlanFields, validateWithdrawalDraft } from "./validate-plan";
+import {
+  validateDepositChangeDraft,
+  validateOneTimeDepositDraft,
+  validatePlanDocument,
+  validatePlanFields,
+  validateWithdrawalDraft,
+} from "./validate-plan";
 
 const fields: PlanFields = {
   start: { year: 2026, month: 1 },
@@ -195,3 +201,30 @@ describe("step 0a: ids, event dates and labels", () => {
     expect(() => validatePlanFields({ ...base, start: { year: PLAN_LIMITS.maxStartYear + 1, month: 1 } })).toThrow(RangeError);
   });
 });
+
+describe("validateOneTimeDepositDraft", () => {
+  const deposit = { date: { year: 2030, month: 6 }, amount: 1_000_000, label: "Bonus" };
+
+  it("accepts a valid deposit, including the largest amount", () => {
+    expect(() => validateOneTimeDepositDraft(deposit)).not.toThrow();
+    expect(() => validateOneTimeDepositDraft({ ...deposit, amount: PLAN_LIMITS.maxOneTimeDepositAmount })).not.toThrow();
+  });
+
+  it.each([
+    ["zero", { amount: 0 }],
+    ["more than the limit", { amount: PLAN_LIMITS.maxOneTimeDepositAmount + 1 }],
+    ["a fraction of an öre", { amount: 1.5 }],
+    ["an empty label", { label: "  " }],
+    ["a too long label", { label: "x".repeat(PLAN_LIMITS.maxLabelLength + 1) }],
+    ["a month of 13", { date: { year: 2030, month: 13 } }],
+    ["a year after the event limit", { date: { year: PLAN_LIMITS.maxEventYear + 1, month: 1 } }],
+  ])("rejects %s", (_name, patch) => {
+    expect(() => validateOneTimeDepositDraft({ ...deposit, ...patch })).toThrow(RangeError);
+  });
+
+  it("is part of the whole-document check: too many one-time deposits", () => {
+    const many = Array.from({ length: PLAN_LIMITS.maxOneTimeDeposits + 1 }, (_, i) => ({ ...deposit, id: i + 1 }));
+    expect(() => validatePlanDocument({ ...createBlankPlan({ year: 2026, month: 1 }), oneTimeDeposits: many })).toThrow(RangeError);
+  });
+});
+
