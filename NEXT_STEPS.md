@@ -193,7 +193,7 @@ All confirmed in the code:
   overflow at 375 px with a large balance.
 - The share dialog should also say that the link stays in browser history and wherever it is pasted.
 
-### Step 0b: safety net
+### Step 0b: safety net (done, except the pull-request workflow, which waits)
 
 - **Checks on pull requests (on hold, see open decision 6).** Today only pushes to `main` run anything, so the CSS removed by mistake in 4B
   reached `main` unnoticed. Run `npm test` and `npm run build` (which includes the typecheck) on every pull
