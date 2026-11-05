@@ -1,10 +1,10 @@
-import { MONTHS_PER_YEAR, yearsToMonths } from "../core/year-month";
-import { HORIZONS, METRICS } from "../state/types";
+import { MONTHS_PER_YEAR, addMonths, yearsToMonths } from "../core/year-month";
+import { HORIZON_PRESETS, METRICS } from "../state/types";
 import type { AppState, Metric, ScenarioView } from "../state/types";
 import { eventsAtMonth } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
-import { areaPath, axisTicks, cursorAfterKey, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
+import { areaPath, axisMonths, axisTicks, cursorAfterKey, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
 import { renderChartEvents, renderChartLegend } from "./chart-events";
 import { renderEmptyState } from "./components";
 import { h, s } from "./dom";
@@ -33,17 +33,18 @@ function isLongAmount(ore: number): boolean {
 }
 
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
-  const end = lastPoint(scenario, state.horizon);
+  const end = lastPoint(scenario);
 
-  const horizons = HORIZONS.map((years) =>
+  // Presets for the horizon; any other length is set with the end year in the Plan card.
+  const horizons = HORIZON_PRESETS.map((years) =>
     h(
       "button",
       {
         class: "tabs__item",
         type: "button",
         "data-key": `horizon-${years}`,
-        "aria-pressed": years === state.horizon ? "true" : "false",
-        onclick: () => actions.setHorizon(years),
+        "aria-pressed": yearsToMonths(years) === scenario.horizonMonths ? "true" : "false",
+        onclick: () => actions.updatePlan({ horizonYears: years }),
       },
       `${years} yrs`,
     ),
@@ -102,7 +103,7 @@ export function renderChartCard(
       "div",
       { class: "card__head" },
       h("h2", { id: "chart-heading" }, `${METRIC_LABELS[state.metric]} over time`),
-      h("span", { class: "card__meta" }, `${scenario.start.year}–${scenario.start.year + state.horizon}`),
+      h("span", { class: "card__meta" }, `${scenario.start.year}–${addMonths(scenario.start, scenario.horizonMonths).year}`),
     ),
     renderChartOrEmptyState(scenario, state, timeline, actions),
     renderChartLegend(timeline),
@@ -118,7 +119,7 @@ function renderChartOrEmptyState(
   if (!scenario.points.some((p) => p.balance > 0)) {
     return renderEmptyState("Nothing to show yet", "Enter a start amount or a monthly deposit to see your projection.");
   }
-  if (isAllZero(visiblePoints(scenario, state.horizon).map((p) => p[state.metric]))) {
+  if (isAllZero(visiblePoints(scenario).map((p) => p[state.metric]))) {
     return renderEmptyState(EMPTY_METRIC_TITLES[state.metric], "This shows up here once your plan includes it.");
   }
   return renderChart(scenario, state, timeline, actions);
@@ -142,13 +143,13 @@ function renderChart(
   timeline: readonly TimelineEntry[],
   actions: Actions,
 ): HTMLElement {
-  const points = visiblePoints(scenario, state.horizon);
+  const points = visiblePoints(scenario);
   const values = points.map((p) => p[state.metric]);
   const scale = niceScale(Math.min(...values), Math.max(...values));
   const ticks = axisTicks(scale);
   const coords = toPoints(values, scale);
   const zeroY = zeroLine(scale);
-  const totalMonths = yearsToMonths(state.horizon);
+  const totalMonths = scenario.horizonMonths;
 
   const svg = s(
     "svg",
@@ -244,8 +245,7 @@ function renderChart(
   );
 
   const yLabels = ticks.map((tick) => h("span", {}, formatMoneyCompact(tick)));
-  const step = state.horizon / 5;
-  const xLabels = Array.from({ length: 6 }, (_, i) => h("span", {}, String(scenario.start.year + i * step)));
+  const xLabels = axisMonths(totalMonths).map((month) => h("span", {}, String(addMonths(scenario.start, month).year)));
 
   return h(
     "div",

@@ -45,7 +45,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
         { class: "bento" },
         renderInputsCard(active, state, actions),
         active.goal ? renderGoalCard(active, active.goal) : null,
-        scenarios.length > 1 ? renderComparisonCard(scenarios, active, state, actions) : null,
+        scenarios.length > 1 ? renderComparisonCard(scenarios, active, actions) : null,
       ),
       renderEventsSection(active, timeline, state, actions),
       h(

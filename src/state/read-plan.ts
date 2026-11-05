@@ -1,5 +1,5 @@
 import type { YearMonth } from "../core/year-month";
-import { PLAN_LIMITS } from "./plan-document";
+import { DEFAULT_HORIZON_YEARS, DEFAULT_INFLATION_PCT, PLAN_LIMITS } from "./plan-document";
 import type { DepositChangeEvent, OneTimeDepositEvent, PlanDocument, WithdrawalEvent } from "./plan-document";
 import { validatePlanDocument } from "./validate-plan";
 
@@ -77,22 +77,35 @@ function readOneTimeDeposit(value: unknown): OneTimeDepositEvent {
   };
 }
 
+/** The newest plan format. Older formats are upgraded when read; newer ones can't be read. */
+const CURRENT_VERSION = 2;
+
 /**
- * Reads a plan from parsed JSON. Version 1 is the only format so far; when the format changes, an older
- * version is upgraded here before the check, so old saves and old links keep opening.
+ * The fields that were added after version 1, read from a version 2 plan or filled in for a version 1 plan,
+ * which had no horizon of its own (the page showed 30 years) and no inflation rate.
+ */
+function readVersionFields(doc: Raw, version: number): Pick<PlanDocument, "horizonYears" | "inflationPct"> {
+  if (version === 1) return { horizonYears: DEFAULT_HORIZON_YEARS, inflationPct: DEFAULT_INFLATION_PCT };
+  return { horizonYears: numberField(doc, "horizonYears", "The plan"), inflationPct: numberField(doc, "inflationPct", "The plan") };
+}
+
+/**
+ * Reads a plan from parsed JSON. A version 1 plan (saved or shared before the horizon became part of the plan)
+ * is upgraded to version 2 here, before the check, so old saves and old links keep opening.
  */
 export function readPlanDocument(value: unknown): PlanDocument {
   const doc = raw(value, "The plan");
   const version = doc["version"];
-  if (typeof version === "number" && version > 1) fail("This plan was made by a newer version of the app");
-  if (version !== 1) fail(`Unknown plan version ${String(version)}`);
+  if (typeof version === "number" && version > CURRENT_VERSION) fail("This plan was made by a newer version of the app");
+  if (version !== 1 && version !== 2) fail(`Unknown plan version ${String(version)}`);
 
   const plan: PlanDocument = {
-    version: 1,
+    version: 2,
     start: yearMonth(doc["start"], "The start date"),
     startAmount: numberField(doc, "startAmount", "The plan"),
     monthlyDeposit: numberField(doc, "monthlyDeposit", "The plan"),
     annualReturnPct: numberField(doc, "annualReturnPct", "The plan"),
+    ...readVersionFields(doc, version),
     withdrawals: list(doc, "withdrawals", PLAN_LIMITS.maxWithdrawals, "withdrawals").map(readWithdrawal),
     depositChanges: list(doc, "depositChanges", PLAN_LIMITS.maxDepositChanges, "deposit changes").map(readDepositChange),
     oneTimeDeposits: list(doc, "oneTimeDeposits", PLAN_LIMITS.maxOneTimeDeposits, "one-time deposits").map(readOneTimeDeposit),

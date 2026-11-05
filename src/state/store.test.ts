@@ -8,7 +8,6 @@ const initial: AppState = {
   plan: createBlankPlan({ year: 2026, month: 1 }),
   planOrigin: "example",
   storage: "idle",
-  horizon: 30,
   metric: "balance",
   selectedEvent: null,
   chartMonth: null,
@@ -23,17 +22,17 @@ describe("createStore", () => {
 
   it("merges an update into the state and leaves the rest", () => {
     const store = createStore(initial);
-    store.update({ horizon: 10 });
-    expect(store.get()).toEqual({ ...initial, horizon: 10 });
-    expect(initial.horizon).toBe(30);
+    store.update({ chartMonth: 10 });
+    expect(store.get()).toEqual({ ...initial, chartMonth: 10 });
+    expect(initial.chartMonth).toBeNull();
   });
 
   it("tells every subscriber about each update, with the new state", () => {
     const store = createStore(initial);
-    const seen: number[] = [];
-    store.subscribe((state) => seen.push(state.horizon));
-    store.subscribe((state) => seen.push(state.horizon * 10));
-    store.update({ horizon: 20 });
+    const seen: (number | null)[] = [];
+    store.subscribe((state) => seen.push(state.chartMonth));
+    store.subscribe((state) => seen.push((state.chartMonth ?? 0) * 10));
+    store.update({ chartMonth: 20 });
     expect(seen).toEqual([20, 200]);
   });
 });

@@ -1,12 +1,11 @@
 import type { DepositChangeDraft, OneTimeDepositDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
 import type { EventKey } from "../state/timeline";
-import type { HorizonYears, Metric } from "../state/types";
+import type { Metric } from "../state/types";
 
 /** Everything the UI can ask the app to do. Wired to the store in main.ts. */
 export interface Actions {
   selectScenario(id: string): void;
   selectMetric(metric: Metric): void;
-  setHorizon(horizon: HorizonYears): void;
   /** Selects an event (or none). `month` moves the chart cursor to the event. */
   selectEvent(key: EventKey | null, month?: number): void;
   /** Remembers where the chart cursor is, after a key press. */

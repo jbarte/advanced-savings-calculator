@@ -5,8 +5,8 @@ import type { EventKey } from "./timeline";
 
 export type { Ore, ProjectionPoint };
 
-export const HORIZONS = [10, 20, 30] as const;
-export type HorizonYears = (typeof HORIZONS)[number];
+/** Horizons offered as one-click buttons. Any whole number of years within the limits can be typed as an end year. */
+export const HORIZON_PRESETS = [10, 20, 30] as const;
 
 export const METRICS = ["balance", "deposited", "growth", "withdrawn"] as const;
 export type Metric = (typeof METRICS)[number];
@@ -91,6 +91,8 @@ export interface ScenarioView {
   readonly oneTimeDeposits: readonly PlannedOneTimeDeposit[];
   /** How much all events together change the balance at the end of the horizon, compared with none of them. */
   readonly totalEffect: Ore;
+  /** The horizon in months: where effects are measured and where the chart ends. `points` reach further. */
+  readonly horizonMonths: number;
   /** Null until the user has set a goal. */
   readonly goal: GoalSummary | null;
   readonly points: readonly ProjectionPoint[];
@@ -110,7 +112,6 @@ export interface AppState {
   readonly plan: PlanDocument;
   readonly planOrigin: PlanOrigin;
   readonly storage: StorageStatus;
-  readonly horizon: HorizonYears;
   readonly metric: Metric;
   /** The event highlighted in the list and on the chart, or null. */
   readonly selectedEvent: EventKey | null;

@@ -1,4 +1,4 @@
-import { formatYearMonth, yearsToMonths } from "../core/year-month";
+import { formatYearMonth } from "../core/year-month";
 import { chartMonthOf } from "../state/timeline";
 import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { EventStatus, Ore } from "../state/types";
@@ -222,7 +222,7 @@ export function renderTimelineList(
   state: AppState,
   actions: Actions,
 ): HTMLElement {
-  const endLabel = monthLabel(scenario, yearsToMonths(state.horizon));
+  const endLabel = monthLabel(scenario, scenario.horizonMonths);
   const effects = [...scenario.withdrawals, ...scenario.depositChanges, ...scenario.oneTimeDeposits].map((event) => Math.abs(event.effect));
   const scale: EffectScale = { end: endLabel, max: Math.max(1, ...effects) };
 

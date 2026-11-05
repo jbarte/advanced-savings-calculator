@@ -4,6 +4,7 @@ import {
   errorMessage,
   monthInputValue,
   parseDepositAmount,
+  parseEndYear,
   parseKronor,
   parseLabel,
   parseMonthOnOrAfter,
@@ -66,7 +67,7 @@ describe("parseReturnPct", () => {
     ["0", 0],
     ["-0", 0],
     ["-100", -100],
-    ["50", 50],
+    ["30", 30],
   ])("accepts %j", (text, value) => {
     const result = parseReturnPct(text);
     expect(result).toEqual({ ok: true, value });
@@ -78,7 +79,7 @@ describe("parseReturnPct", () => {
     ["abc", "Enter a percentage, for example 7 or 6,5"],
     ["7%%", "Enter a percentage, for example 7 or 6,5"],
     ["-101", "Use -100 % or more"],
-    ["50,1", "Use 50 % or less"],
+    ["30,1", "Use 30 % or less"],
   ])("rejects %j with a message", (text, message) => {
     expect(parseReturnPct(text)).toEqual({ ok: false, message });
   });
@@ -238,6 +239,21 @@ describe("event months (step 0a)", () => {
     expect(parseMonthOnOrAfter(`${PLAN_LIMITS.maxEventYear + 1}-01`, start).ok).toBe(false);
     expect(parseOptionalMonthNotBefore(`${PLAN_LIMITS.maxEventYear}-12`, start).ok).toBe(true);
     expect(parseYearMonth(`${PLAN_LIMITS.maxStartYear + 1}-01`).ok).toBe(false);
+  });
+});
+
+describe("parseEndYear", () => {
+  it("turns an end year into whole years after the start", () => {
+    expect(parseEndYear("2056", 2026)).toEqual({ ok: true, value: 30 });
+    expect(parseEndYear(" 2027 ", 2026)).toEqual({ ok: true, value: 1 });
+    expect(parseEndYear("2066", 2026)).toEqual({ ok: true, value: 40 });
+  });
+
+  it("rejects a year outside 1 to 40 years after the start, and text that isn't a year", () => {
+    expect(parseEndYear("2026", 2026)).toEqual({ ok: false, message: "Pick a year from 2027 to 2066" });
+    expect(parseEndYear("2067", 2026)).toEqual({ ok: false, message: "Pick a year from 2027 to 2066" });
+    expect(parseEndYear("56", 2026).ok).toBe(false);
+    expect(parseEndYear("2056,5", 2026).ok).toBe(false);
   });
 });
 

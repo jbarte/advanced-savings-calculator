@@ -1,3 +1,5 @@
+import { MONTHS_PER_YEAR } from "../core/year-month";
+
 /*
  * Pure helpers that turn values into chart coordinates. Coordinates are in a
  * 0–100 box (x left→right, y top→bottom) so the SVG can stretch to any size.
@@ -134,4 +136,13 @@ export function cursorAfterKey(key: string, current: number, last: number, month
     default:
       return null;
   }
+}
+
+/**
+ * The months that get a label on the x axis: evenly spread from 0 to `totalMonths`, at most `maxIntervals` gaps
+ * and no more gaps than whole years, so a 2-year chart doesn't repeat a year five times.
+ */
+export function axisMonths(totalMonths: number, maxIntervals = 5): number[] {
+  const intervals = Math.max(1, Math.min(maxIntervals, Math.floor(totalMonths / MONTHS_PER_YEAR)));
+  return Array.from({ length: intervals + 1 }, (_, i) => Math.round((i * totalMonths) / intervals));
 }

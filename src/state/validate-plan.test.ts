@@ -14,6 +14,8 @@ const fields: PlanFields = {
   startAmount: 5_000_000,
   monthlyDeposit: 300_000,
   annualReturnPct: 7,
+  horizonYears: 30,
+  inflationPct: 2,
 };
 
 const draft: WithdrawalDraft = { date: { year: 2031, month: 4 }, amount: 15_000_000, label: "Car" };
@@ -31,11 +33,19 @@ describe("validatePlanFields", () => {
         startAmount: PLAN_LIMITS.maxStartAmount,
         monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
         annualReturnPct: PLAN_LIMITS.maxReturnPct,
+        horizonYears: PLAN_LIMITS.maxHorizonYears,
+        inflationPct: PLAN_LIMITS.maxInflationPct,
       }),
     ).not.toThrow();
   });
 
   it.each([
+    ["a horizon of 0 years", { horizonYears: 0 }],
+    ["a horizon over the limit", { horizonYears: PLAN_LIMITS.maxHorizonYears + 1 }],
+    ["a horizon in part years", { horizonYears: 10.5 }],
+    ["inflation over the limit", { inflationPct: PLAN_LIMITS.maxInflationPct + 1 }],
+    ["inflation under the limit", { inflationPct: PLAN_LIMITS.minInflationPct - 1 }],
+    ["a return over the new 30 % limit", { annualReturnPct: 31 }],
     ["a negative start amount", { startAmount: -1 }],
     ["a fractional start amount", { startAmount: 10.5 }],
     ["a start amount above the limit", { startAmount: PLAN_LIMITS.maxStartAmount + 1 }],
@@ -133,7 +143,7 @@ describe("validatePlanDocument", () => {
   });
 
   it("rejects an unknown version", () => {
-    expect(() => validatePlanDocument({ ...createBlankPlan({ year: 2026, month: 1 }), version: 2 as unknown as 1 })).toThrow(RangeError);
+    expect(() => validatePlanDocument({ ...createBlankPlan({ year: 2026, month: 1 }), version: 1 as unknown as 2 })).toThrow(RangeError);
   });
 
   it("rejects invalid plan fields and invalid withdrawals", () => {

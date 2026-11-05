@@ -8,7 +8,12 @@ export interface StorageLike {
   removeItem(key: string): void;
 }
 
-export const PLAN_STORAGE_KEY = "asc-plan";
+/*
+ * Storage on jbarte.github.io is shared by every Pages site of the account, so the key names the app. Plans saved
+ * under the earlier, short key are still read, and moved to the new key by the next save.
+ */
+export const PLAN_STORAGE_KEY = "advanced-savings-calculator:plan";
+export const LEGACY_PLAN_STORAGE_KEY = "asc-plan";
 
 export type LoadResult =
   | { readonly kind: "none" }
@@ -33,7 +38,7 @@ export function loadSavedPlan(storage: StorageLike | null = browserStorage()): L
   if (storage === null) return { kind: "unavailable" };
   let text: string | null;
   try {
-    text = storage.getItem(PLAN_STORAGE_KEY);
+    text = storage.getItem(PLAN_STORAGE_KEY) ?? storage.getItem(LEGACY_PLAN_STORAGE_KEY);
   } catch {
     return { kind: "unavailable" };
   }
@@ -51,6 +56,7 @@ export function savePlan(plan: PlanDocument, storage: StorageLike | null = brows
   if (storage === null) return false;
   try {
     storage.setItem(PLAN_STORAGE_KEY, serializePlan(plan));
+    storage.removeItem(LEGACY_PLAN_STORAGE_KEY);
     return true;
   } catch {
     return false;
@@ -62,6 +68,7 @@ export function clearSavedPlan(storage: StorageLike | null = browserStorage()): 
   if (storage === null) return false;
   try {
     storage.removeItem(PLAN_STORAGE_KEY);
+    storage.removeItem(LEGACY_PLAN_STORAGE_KEY);
     return true;
   } catch {
     return false;
