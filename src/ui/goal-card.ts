@@ -1,10 +1,10 @@
-import { addMonths, formatYearMonth } from "../core/year-month";
+import { addMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import type { GoalSummary, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderButton } from "./components";
 import { h, s } from "./dom";
-import { formatMoney, formatMoneyCompact } from "./format";
+import { formatMoney, formatMoneyCompact, formatYearMonth } from "./format";
 import { horizonEndOf, openGoalDialog } from "./goal-dialog";
 import { requiredDepositText } from "./goal-text";
 import { monthLabel } from "./view-helpers";

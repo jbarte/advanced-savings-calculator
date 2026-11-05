@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { appendEvent, nextId, removeEvent, replaceEvent } from "./event-list";
+import type { EventNames } from "./event-list";
 
-const names = { one: "thing", many: "things" };
+const names: EventNames = { kind: "withdrawal", one: "thing", many: "things" };
 const item = (id: number, label = "x"): { id: number; label: string } => ({ id, label });
 
 describe("event list helpers", () => {

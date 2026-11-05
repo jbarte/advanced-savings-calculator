@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatKronor, formatMoney, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact } from "./format";
+import { formatKronor, formatMoney, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact, formatYearMonth } from "./format";
 
 /** Intl uses a non-breaking (or narrow no-break) space and a Unicode minus; tests compare with plain text. */
 const plain = (text: string): string => text.replace(/[  ]/g, " ").replace(/−/g, "-");
@@ -50,3 +50,19 @@ describe("signed amounts", () => {
   });
 });
 
+
+describe("formatYearMonth", () => {
+  it("formats as the short month name and the year", () => {
+    expect(formatYearMonth({ year: 2031, month: 4 })).toBe("Apr 2031");
+  });
+
+  it("names every month, January to December, without shifting to a neighbour", () => {
+    const months = Array.from({ length: 12 }, (_, i) => formatYearMonth({ year: 2026, month: i + 1 }));
+    expect(months).toEqual(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m) => `${m} 2026`));
+  });
+
+  it("handles the years at the ends of the limits", () => {
+    expect(formatYearMonth({ year: 2000, month: 1 })).toBe("Jan 2000");
+    expect(formatYearMonth({ year: 2140, month: 12 })).toBe("Dec 2140");
+  });
+});

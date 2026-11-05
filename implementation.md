@@ -18,12 +18,12 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** milestone 8B, inflation adjusted (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
-- **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
-  (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Rebrand:** the app is now called **Life Ledger** and is described as a long-term financial planner (branch
-  `feature/rebrand-life-ledger`). The repo, URL and storage keys keep the old name.
-- **Tests:** 494 (`npm test`), typecheck and build pass.
+- **Merged since:** milestones 7–9, 10A (PR #24) and the rebrand to **Life Ledger** (PR #25; the repo, URL and storage
+  keys keep the old name).
+- **Open:** milestone 10B, notices and month names out of `src/state` and `src/core` (branch `feature/m10b-strings`).
+- **Next:** the plan name (backlog request), then milestones 11 (compare plans) and 12 (Swedish and polish), see
+  NEXT_STEPS.md.
+- **Tests:** 508 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -587,3 +587,38 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     "Life Ledger".
   - Text changes: only the wordmark (`git diff src/ui/i18n/en.ts`). The 49-state comparison
     from 10A was not rerun.
+
+### Milestone 10B: notices and month names out of the core and state (branch `feature/m10b-strings`)
+- **Built:**
+  - `src/state/plan-problem.ts`: `PlanProblem` (a code and the parts to fill in: `amount`, `date`, `percent`,
+    `horizon`, `label`, `too-many`, `end-before-start`, `newer-version`, `damaged` and four link codes), `PlanError`
+    (a `RangeError` that carries one), `failWith` and `problemOf`.
+  - `validate-plan.ts`, `event-list.ts`, `read-plan.ts` and `share-link.ts` now throw `PlanError`. Their English
+    messages stay, for developers and the existing tests.
+  - `AppState.notice` is a `Notice` (`change-rejected`, `saved-plan-unreadable`, `link-unreadable` with a problem, and
+    `storage-blocked`), set by `withPlanChange`, `resolveStartupPlan` and the link handler in `main.ts`.
+    `LoadResult.invalid` carries a problem instead of a reason.
+  - `src/ui/notice-text.ts`: `noticeText` and `problemText`, with words from `messages.notices` and
+    `messages.problems`, formatting amounts with `formatMoney`.
+  - `formatYearMonth` moved from `core/year-month.ts` to `ui/format.ts`, on `Intl.DateTimeFormat` in UTC with the
+    locale `messages.locale.dates` ("en"). The core's month names are gone.
+- **Decisions:**
+  - Shape errors in saved or shared data (a field of the wrong type, an unknown version, broken ids, not JSON) are one
+    code, `damaged` ("It is damaged"). The detail is for developers, not something the user can act on.
+  - Per-kind texts for labels and full lists are whole sentences, not a sentence with a kind name filled in, so a
+    language with grammatical gender can word each one.
+- **Visible change (intended):** notices from checks now read in kronor. For example, "Start amount must be a whole
+  number of öre from 0 to 10000000000, got -5" became "Start amount must be from 0 kr to 100 000 000 kr", and
+  shape errors read "It is damaged". Seven link messages became four: "characters that don't belong in it" and "damaged"
+  now read "The link is damaged or cut off", and "too long to be a plan" reads "The link holds too large a plan". The frames around them ("That link could not be opened. …") and every
+  month name ("Nov 2031") are unchanged.
+- **Checked:**
+  - 508 tests (15 new): problem codes from every kind of check, including links, a newer version and a missing event;
+    words for every problem code; amounts in kronor; the notice frames; and all twelve month names plus the years at
+    the limits. Typecheck and build pass.
+  - Browser: a bad link (`#plan=x.abc`) shows and announces "That link could not be opened. This is not a plan link.
+    Your own plan is shown instead.", and the hash is cleared. A broken save (start amount −5) shows the kronor
+    message. Month names in the list and the chart badges are unchanged. No console errors.
+  - The 49-state comparison from 10A was not rerun (its script was not kept). Blocked storage was checked by unit tests
+    only.
+- **Left:** number formats per language (milestone 12) and the example plan's "New car" label.

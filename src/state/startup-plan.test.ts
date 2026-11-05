@@ -20,16 +20,16 @@ describe("resolveStartupPlan", () => {
   });
 
   it("falls back to the example with a message that says why when the save is broken", () => {
-    const result = resolveStartupPlan({ kind: "invalid", reason: "Start amount must be a whole number" }, example);
+    const problem = { code: "amount", field: "startAmount", min: 0, max: 100 } as const;
+    const result = resolveStartupPlan({ kind: "invalid", problem }, example);
     expect(result.plan).toBe(example);
     expect(result.planOrigin).toBe("example");
-    expect(result.notice).toMatch(/could not be read/i);
-    expect(result.notice).toMatch(/start amount/i);
+    expect(result.notice).toEqual({ kind: "saved-plan-unreadable", problem });
   });
 
   it("warns once that changes will not be kept when storage is blocked", () => {
     const result = resolveStartupPlan({ kind: "unavailable" }, example);
     expect(result).toMatchObject({ plan: example, planOrigin: "example", storage: "blocked" });
-    expect(result.notice).toMatch(/not be kept/i);
+    expect(result.notice).toEqual({ kind: "storage-blocked" });
   });
 });

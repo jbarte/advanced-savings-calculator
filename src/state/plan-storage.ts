@@ -1,4 +1,6 @@
 import type { PlanDocument } from "./plan-document";
+import { problemOf } from "./plan-problem";
+import type { PlanProblem } from "./plan-problem";
 import { readPlanText, serializePlan } from "./read-plan";
 
 /** The part of `Storage` we use, so tests can pass a fake. */
@@ -18,7 +20,7 @@ export const LEGACY_PLAN_STORAGE_KEY = "asc-plan";
 export type LoadResult =
   | { readonly kind: "none" }
   | { readonly kind: "loaded"; readonly plan: PlanDocument }
-  | { readonly kind: "invalid"; readonly reason: string }
+  | { readonly kind: "invalid"; readonly problem: PlanProblem }
   | { readonly kind: "unavailable" };
 
 /** Even touching `localStorage` can throw (blocked site data), so it is read inside a try. */
@@ -46,7 +48,7 @@ export function loadSavedPlan(storage: StorageLike | null = browserStorage()): L
   try {
     return { kind: "loaded", plan: readPlanText(text) };
   } catch (error) {
-    if (error instanceof RangeError) return { kind: "invalid", reason: error.message };
+    if (error instanceof RangeError) return { kind: "invalid", problem: problemOf(error) };
     throw error;
   }
 }

@@ -3,6 +3,7 @@ import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
 import { announce } from "./announcer";
+import { noticeText } from "./notice-text";
 import { renderNotice } from "./error-state";
 import { renderSharedBanner } from "./shared-banner";
 import { renderChartCard, renderHero } from "./projection-card";
@@ -38,7 +39,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
     h(
       "main",
       { class: "canvas" },
-      state.notice ? renderNotice(state.notice, actions) : null,
+      state.notice ? renderNotice(noticeText(state.notice), actions) : null,
       state.planOrigin === "shared" ? renderSharedBanner(actions) : null,
       renderHero(active, state, actions),
       renderChartCard(active, timeline, state, actions),
@@ -59,5 +60,5 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   const find = (key: string | null | undefined): HTMLElement | null =>
     key ? root.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`) : null;
   (find(focusKey) ?? find(fallbackKey))?.focus();
-  announce(state.notice ?? "");
+  announce(state.notice ? noticeText(state.notice) : "");
 }

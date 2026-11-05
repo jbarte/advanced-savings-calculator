@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MONTHS_PER_YEAR, addMonths, earlierOf, formatYearMonth, monthsBetween, yearsToMonths } from "./year-month";
+import { MONTHS_PER_YEAR, addMonths, earlierOf, monthsBetween, yearsToMonths } from "./year-month";
 
 describe("addMonths", () => {
   it("returns the start month for offset 0", () => {
@@ -16,12 +16,6 @@ describe("addMonths", () => {
 
   it("handles negative offsets", () => {
     expect(addMonths({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 });
-  });
-});
-
-describe("formatYearMonth", () => {
-  it("formats as short month name and year", () => {
-    expect(formatYearMonth({ year: 2031, month: 4 })).toBe("Apr 2031");
   });
 });
 

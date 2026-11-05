@@ -3,7 +3,7 @@ import { renderButton } from "./components";
 import { h } from "./dom";
 import { messages } from "./i18n";
 
-/** A dismissible message about a change that was not applied. */
+/** A dismissible notice, already put into words (`noticeText`). */
 export function renderNotice(message: string, actions: Actions): HTMLElement {
   return h(
     "div",

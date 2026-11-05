@@ -1,4 +1,5 @@
 import type { Ore, ProjectionPoint } from "../core/types";
+import type { PlanProblem } from "./plan-problem";
 import type { YearMonth } from "../core/year-month";
 import type { PlanDocument } from "./plan-document";
 import type { EventKey } from "./timeline";
@@ -135,6 +136,16 @@ export type StorageStatus = "idle" | "saved" | "blocked";
  */
 export type PlanOrigin = "example" | "own" | "shared";
 
+/**
+ * A message for the user, as data: the UI words it (`noticeText`). A change that was not applied, a saved plan or a
+ * link that could not be read, or storage the browser blocks.
+ */
+export type Notice =
+  | { readonly kind: "change-rejected"; readonly problem: PlanProblem }
+  | { readonly kind: "saved-plan-unreadable"; readonly problem: PlanProblem }
+  | { readonly kind: "link-unreadable"; readonly problem: PlanProblem }
+  | { readonly kind: "storage-blocked" };
+
 export interface AppState {
   readonly scenarioId: string;
   readonly plan: PlanDocument;
@@ -151,6 +162,6 @@ export interface AppState {
    */
   readonly chartMonth: number | null;
   readonly theme: ThemePreference;
-  /** Why the last change was not applied, shown until the next change or until dismissed. */
-  readonly notice: string | null;
+  /** Something the user should know (a change not applied, a bad save or link, blocked storage), until dismissed. */
+  readonly notice: Notice | null;
 }

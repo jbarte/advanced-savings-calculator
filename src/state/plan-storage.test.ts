@@ -43,7 +43,7 @@ describe("loadSavedPlan", () => {
     const storage = fakeStorage({ [PLAN_STORAGE_KEY]: serializePlan({ ...plan, startAmount: -5 }) });
     const result = loadSavedPlan(storage);
     expect(result.kind).toBe("invalid");
-    expect(result.kind === "invalid" && result.reason).toMatch(/start amount/i);
+    expect(result.kind === "invalid" && result.problem).toMatchObject({ code: "amount", field: "startAmount" });
     expect(storage.data.has(PLAN_STORAGE_KEY)).toBe(true);
   });
 

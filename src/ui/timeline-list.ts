@@ -1,4 +1,3 @@
-import { formatYearMonth } from "../core/year-month";
 import { chartMonthOf } from "../state/timeline";
 import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { EventStatus, Ore } from "../state/types";
@@ -7,7 +6,7 @@ import type { Actions } from "./actions";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
 import { h } from "./dom";
-import { formatMoney, formatSignedMoney, formatSignedMoneyCompact } from "./format";
+import { formatMoney, formatSignedMoney, formatSignedMoneyCompact, formatYearMonth } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
 import { openWithdrawalDialog } from "./withdrawal-dialog";
 import { messages } from "./i18n";

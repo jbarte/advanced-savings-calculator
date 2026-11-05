@@ -1,8 +1,8 @@
 import type { Ore } from "../core/types";
-import { MONTHS_PER_YEAR, formatYearMonth, monthsBetween } from "../core/year-month";
+import { MONTHS_PER_YEAR, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
-import { formatKronor } from "./format";
+import { formatKronor, formatYearMonth } from "./format";
 import { messages } from "./i18n";
 
 export type ParseResult<T> =

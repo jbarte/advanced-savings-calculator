@@ -1,18 +1,20 @@
 import type { YearMonth } from "../core/year-month";
 import { DEFAULT_HORIZON_YEARS, DEFAULT_INFLATION_PCT, PLAN_LIMITS } from "./plan-document";
 import type { DepositChangeEvent, GoalPlan, OneTimeDepositEvent, PlanDocument, WithdrawalEvent } from "./plan-document";
+import { failWith } from "./plan-problem";
 import { validatePlanDocument } from "./validate-plan";
 
 /*
  * Turns untrusted data (a saved plan now, a shared link later) into a PlanDocument. It checks the shape field
  * by field and copies only the fields it knows, then runs the same value check as every other plan. Anything
- * wrong throws a RangeError that says what, so the caller can fall back to a safe plan.
+ * wrong throws a PlanError that says what, so the caller can fall back to a safe plan.
  */
 
 type Raw = Readonly<Record<string, unknown>>;
 
+/** Data that is not a plan. The message says where, for developers; the user is told only that it is damaged. */
 function fail(message: string): never {
-  throw new RangeError(message);
+  return failWith({ code: "damaged" }, message);
 }
 
 function isRaw(value: unknown): value is Raw {
@@ -107,7 +109,7 @@ function readVersionFields(doc: Raw, version: number): Pick<PlanDocument, "horiz
 export function readPlanDocument(value: unknown): PlanDocument {
   const doc = raw(value, "The plan");
   const version = doc["version"];
-  if (typeof version === "number" && version > CURRENT_VERSION) fail("This plan was made by a newer version of the app");
+  if (typeof version === "number" && version > CURRENT_VERSION) failWith({ code: "newer-version" }, "This plan was made by a newer version of the app");
   if (version !== 1 && version !== 2 && version !== 3) fail(`Unknown plan version ${String(version)}`);
 
   const plan: PlanDocument = {

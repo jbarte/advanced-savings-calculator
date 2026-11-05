@@ -14,7 +14,7 @@ const state: AppState = {
   inflationAdjusted: false,
   chartMonth: null,
   theme: "system",
-  notice: "An old notice",
+  notice: { kind: "storage-blocked" },
 };
 
 describe("withPlanChange", () => {
@@ -34,8 +34,7 @@ describe("withPlanChange", () => {
     const next = withPlanChange(state, (plan) => updatePlanFields(plan, { startAmount: -1 }));
     expect(next.plan).toBe(state.plan);
     expect(next.planOrigin).toBe("example");
-    expect(next.notice).toMatch(/not applied/i);
-    expect(next.notice).toMatch(/start amount/i);
+    expect(next.notice).toEqual({ kind: "change-rejected", problem: { code: "amount", field: "startAmount", min: 0, max: 10_000_000_000 } });
   });
 
   it("does not hide errors that are not about invalid values", () => {

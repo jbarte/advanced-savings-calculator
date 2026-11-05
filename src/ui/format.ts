@@ -1,3 +1,4 @@
+import type { YearMonth } from "../core/year-month";
 import type { Ore } from "../state/types";
 import { messages } from "./i18n";
 
@@ -34,3 +35,10 @@ export function formatSignedMoneyCompact(amount: Ore): string {
   return `${signOf(amount)}${formatMoneyCompact(Math.abs(amount))}`;
 }
 
+// UTC on both sides, so the month never shifts with the user's time zone.
+const monthFormat = new Intl.DateTimeFormat(messages.locale.dates, { month: "short", year: "numeric", timeZone: "UTC" });
+
+/** { year: 2031, month: 4 } → "Apr 2031", with the month name in the language in use. */
+export function formatYearMonth(ym: YearMonth): string {
+  return monthFormat.format(Date.UTC(ym.year, ym.month - 1));
+}
