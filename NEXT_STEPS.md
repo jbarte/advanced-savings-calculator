@@ -244,11 +244,13 @@ the column is empty for a one-time deposit or a pause.
   phones the effect gets a visible label, since the column header is hidden there.
 - Copy: the hero subtitle ("what each withdrawal costs you") and the empty state cover all event kinds.
 
-### Milestone 8: "My own time horizon" (backlog request)
+### Milestone 8: "My own time horizon" (backlog request): done
 
-**8A (in its PR):** horizon 1–40 years in the plan (format version 2 with the upgrade of version 1), end year in
+**8A (done):** horizon 1–40 years in the plan (format version 2 with the upgrade of version 1), end year in
 the Plan card next to the presets, 40-year projection, maximum return 30 % (decided), namespaced storage keys.
-**8B (next):** the "today's money" switch (2 %, not saved, decided), using `inflationPct` from version 2.
+**8B (done):** the "today's money" switch (2 %, not saved, decided; what the user enters stays nominal, decided),
+using `inflationPct` from version 2, an inflation field in the Plan card, and labels on the headline, chart, list
+and total.
 
 - Set the end of the projection freely: a typed or picked end year next to the 10, 20 and 30 year presets. No
   live slider, so open decision 2 stays as it is.
@@ -258,8 +260,8 @@ the Plan card next to the presets, 40-year projection, maximum return 30 % (deci
   maximum; the x-axis labels come from real dates; "Not within 30 years" and similar texts follow the horizon.
 - Namespace the storage key (for example `advanced-savings-calculator:plan`, reading the old key once):
   `localStorage` on `jbarte.github.io` is shared with every other Pages site of the same account.
-- A "today's money" switch that shows amounts adjusted for inflation (one plan field and a display
-  conversion), decided to be part of this milestone.
+- A "today's money" switch that shows results adjusted for inflation (one plan field and a display
+  conversion), decided to be part of this milestone and built in 8B.
 
 ### Milestone 9: goal planning
 

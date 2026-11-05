@@ -3,7 +3,7 @@ import { addMonths } from "../core/year-month";
 import { PLAN_LIMITS, createBlankPlan, createExamplePlan } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
 import type { ScenarioView } from "./types";
-import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
+import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, applyTodaysMoney, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
 
 const plan: PlanDocument = {
   version: 2,
@@ -367,6 +367,45 @@ describe("the horizon in the plan", () => {
     const view = buildScenarioView({ ...plan, horizonYears: 40 }, "P");
     expect(view.horizonMonths).toBe(480);
     expect(view.points[480]?.balance).toBeGreaterThan(view.points[360]?.balance ?? 0);
+  });
+});
+
+describe("applyTodaysMoney", () => {
+  const withEvents: PlanDocument = {
+    ...plan,
+    withdrawals: [{ id: 1, date: { year: 2031, month: 1 }, amount: 15_000_000, label: "Car" }],
+    oneTimeDeposits: [{ id: 1, date: { year: 2031, month: 1 }, amount: 10_000_000, label: "Bonus" }],
+  };
+  const nominal = buildScenarioView(withEvents, "P");
+  const real = applyTodaysMoney(nominal, 2);
+
+  it("flags the view, and leaves the original alone", () => {
+    expect(real.todaysMoney).toBe(true);
+    expect(nominal.todaysMoney).toBe(false);
+    expect(nominal.points[360]?.balance).toBeGreaterThan(real.points[360]?.balance ?? 0);
+  });
+
+  it("keeps what the user entered in nominal kronor", () => {
+    expect(real.startAmount).toBe(nominal.startAmount);
+    expect(real.monthlyDeposit).toBe(nominal.monthlyDeposit);
+    expect(real.withdrawals[0]?.amount).toBe(15_000_000);
+    expect(real.oneTimeDeposits[0]?.amount).toBe(10_000_000);
+  });
+
+  it("divides each effect and the total by the price level of the horizon", () => {
+    const level = 1.02 ** 30;
+    expect(Math.abs((real.withdrawals[0]?.effect ?? 0) - (nominal.withdrawals[0]?.effect ?? 0) / level)).toBeLessThanOrEqual(1);
+    expect(Math.abs((real.oneTimeDeposits[0]?.effect ?? 0) - (nominal.oneTimeDeposits[0]?.effect ?? 0) / level)).toBeLessThanOrEqual(1);
+    expect(Math.abs(real.totalEffect - nominal.totalEffect / level)).toBeLessThanOrEqual(1);
+  });
+
+  it("gives the same signs as the nominal view", () => {
+    expect(Math.sign(real.withdrawals[0]?.effect ?? 0)).toBe(-1);
+    expect(Math.sign(real.oneTimeDeposits[0]?.effect ?? 0)).toBe(1);
+  });
+
+  it("changes nothing at 0 % inflation except the flag", () => {
+    expect(applyTodaysMoney(nominal, 0)).toEqual({ ...nominal, todaysMoney: true });
   });
 });
 

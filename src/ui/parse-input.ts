@@ -63,6 +63,16 @@ export function parseEndYear(text: string, startYear: number): ParseResult<numbe
   return { ok: true, value: year - startYear };
 }
 
+/** Reads a yearly inflation like "2", "2,5" or "-1 %". */
+export function parseInflationPct(text: string): ParseResult<number> {
+  const cleaned = text.replace(/\s/g, "").replace(/%$/, "").replace(",", ".");
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail("Enter a percentage, for example 2 or 2,5");
+  const value = Number(cleaned) || 0; // turns -0 into 0
+  if (value < PLAN_LIMITS.minInflationPct) return fail(`Use ${PLAN_LIMITS.minInflationPct} % or more`);
+  if (value > PLAN_LIMITS.maxInflationPct) return fail(`Use ${PLAN_LIMITS.maxInflationPct} % or less`);
+  return { ok: true, value };
+}
+
 /** Reads "YYYY-MM", the value of <input type="month"> and the fallback text box. Events may reach `maxYear`. */
 export function parseYearMonth(text: string, maxYear: number = PLAN_LIMITS.maxStartYear): ParseResult<YearMonth> {
   const match = /^(\d{4})-(\d{2})$/.exec(text.trim());

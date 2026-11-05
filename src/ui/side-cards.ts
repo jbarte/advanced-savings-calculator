@@ -5,7 +5,7 @@ import type { Actions } from "./actions";
 import { renderTextField } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
-import { errorMessage, monthInputValue, parseEndYear, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
+import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
 import { openStartOverDialog } from "./start-over-dialog";
 import { lastPoint, monthLabel } from "./view-helpers";
@@ -125,6 +125,16 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
         inputMode: "decimal",
         parse: parseReturnPct,
         apply: (annualReturnPct) => actions.updatePlan({ annualReturnPct }),
+      }),
+      renderParsedField({
+        id: "inflation",
+        label: "Inflation",
+        unit: "%/YR",
+        value: String(scenario.inflationPct),
+        dataKey: "plan-inflation",
+        inputMode: "decimal",
+        parse: parseInflationPct,
+        apply: (inflationPct) => actions.updatePlan({ inflationPct }),
       }),
       renderParsedField({
         id: "start-date",

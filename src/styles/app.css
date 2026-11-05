@@ -295,6 +295,16 @@ button {
   flex-wrap: wrap;
 }
 
+/* The horizon buttons with the today's money switch under them. */
+.hero__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
 .hero__eyebrow {
   margin: 0 0 10px;
   font-size: 14px;

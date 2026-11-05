@@ -5,6 +5,7 @@ import {
   monthInputValue,
   parseDepositAmount,
   parseEndYear,
+  parseInflationPct,
   parseKronor,
   parseLabel,
   parseMonthOnOrAfter,
@@ -254,6 +255,28 @@ describe("parseEndYear", () => {
     expect(parseEndYear("2067", 2026)).toEqual({ ok: false, message: "Pick a year from 2027 to 2066" });
     expect(parseEndYear("56", 2026).ok).toBe(false);
     expect(parseEndYear("2056,5", 2026).ok).toBe(false);
+  });
+});
+
+describe("parseInflationPct", () => {
+  it.each([
+    ["2", 2],
+    ["2,5", 2.5],
+    [" 3 % ", 3],
+    ["-1", -1],
+    ["-0", 0],
+    ["20", 20],
+  ])("accepts %j", (text, value) => {
+    expect(parseInflationPct(text)).toEqual({ ok: true, value });
+  });
+
+  it.each([
+    ["", "Enter a percentage, for example 2 or 2,5"],
+    ["abc", "Enter a percentage, for example 2 or 2,5"],
+    ["21", "Use 20 % or less"],
+    ["-6", "Use -5 % or more"],
+  ])("rejects %j with a message", (text, message) => {
+    expect(parseInflationPct(text)).toEqual({ ok: false, message });
   });
 });
 

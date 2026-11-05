@@ -6,7 +6,7 @@ import type { TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
 import { areaPath, axisMonths, axisTicks, cursorAfterKey, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
 import { renderChartEvents, renderChartLegend } from "./chart-events";
-import { renderEmptyState } from "./components";
+import { renderEmptyState, renderToggle } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
@@ -30,6 +30,11 @@ const LONG_AMOUNT_DIGITS = 10;
 
 function isLongAmount(ore: number): boolean {
   return formatKronor(ore).replace(/\D/g, "").length >= LONG_AMOUNT_DIGITS;
+}
+
+function heroSubtitle(scenario: ScenarioView): string {
+  if (!scenario.todaysMoney) return `${scenario.name} · How your savings grow, and what each event adds or costs.`;
+  return `${scenario.name} · Results with ${scenario.inflationPct} % inflation a year removed. What you enter stays as entered.`;
 }
 
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
@@ -75,16 +80,21 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
       h(
         "div",
         {},
-        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}`),
+        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}${scenario.todaysMoney ? " · today's money" : ""}`),
         h(
           "p",
           { class: isLongAmount(end[state.metric]) ? "hero__value hero__value--long" : "hero__value" },
           formatKronor(end[state.metric]),
           h("span", { class: "hero__unit" }, "kr"),
         ),
-        h("p", { class: "hero__sub" }, `${scenario.name} · How your savings grow, and what each event adds or costs.`),
+        h("p", { class: "hero__sub" }, heroSubtitle(scenario)),
       ),
-      h("div", { class: "tabs", role: "group", "aria-label": "Time horizon" }, ...horizons),
+      h(
+        "div",
+        { class: "hero__controls" },
+        h("div", { class: "tabs", role: "group", "aria-label": "Time horizon" }, ...horizons),
+        renderToggle({ label: "Today's money", checked: scenario.todaysMoney, onChange: (on) => actions.setTodaysMoney(on) }),
+      ),
     ),
     h("div", { class: "kpis" }, ...tiles),
   );
@@ -103,7 +113,11 @@ export function renderChartCard(
       "div",
       { class: "card__head" },
       h("h2", { id: "chart-heading" }, `${METRIC_LABELS[state.metric]} over time`),
-      h("span", { class: "card__meta" }, `${scenario.start.year}–${addMonths(scenario.start, scenario.horizonMonths).year}`),
+      h(
+        "span",
+        { class: "card__meta" },
+        `${scenario.start.year}–${addMonths(scenario.start, scenario.horizonMonths).year}${scenario.todaysMoney ? " · today's money" : ""}`,
+      ),
     ),
     renderChartOrEmptyState(scenario, state, timeline, actions),
     renderChartLegend(timeline),

@@ -86,6 +86,8 @@ export interface ScenarioView {
   readonly startAmount: Ore;
   readonly monthlyDeposit: Ore;
   readonly annualReturnPct: number;
+  /** The plan's expected yearly inflation in percent, used for today's money. */
+  readonly inflationPct: number;
   readonly withdrawals: readonly PlannedWithdrawal[];
   readonly depositChanges: readonly PlannedDepositChange[];
   readonly oneTimeDeposits: readonly PlannedOneTimeDeposit[];
@@ -93,6 +95,11 @@ export interface ScenarioView {
   readonly totalEffect: Ore;
   /** The horizon in months: where effects are measured and where the chart ends. `points` reach further. */
   readonly horizonMonths: number;
+  /**
+   * True when `points`, the effects and the total are in today's money (see `applyTodaysMoney`). What the user
+   * entered (amounts of events, start amount, deposit) is always in nominal kronor.
+   */
+  readonly todaysMoney: boolean;
   /** Null until the user has set a goal. */
   readonly goal: GoalSummary | null;
   readonly points: readonly ProjectionPoint[];
@@ -115,6 +122,8 @@ export interface AppState {
   readonly metric: Metric;
   /** The event highlighted in the list and on the chart, or null. */
   readonly selectedEvent: EventKey | null;
+  /** Show results in today's money (inflation removed). A view setting: not saved, and off at each visit. */
+  readonly todaysMoney: boolean;
   /**
    * The month the chart cursor rests on, so it keeps its place when the page is drawn again. Set by the keyboard
    * and by selecting an event; null means the last month. Pointer moves don't change it.

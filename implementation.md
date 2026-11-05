@@ -18,10 +18,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** milestone 8A, the custom horizon (branch `feature/m8a-horizon`). Milestone 7 is merged (PR #18, #19).
+- **Open:** milestone 8B, today's money (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 421 (`npm test`), typecheck and build pass.
+- **Tests:** 448 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -439,4 +439,33 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   with "Pick a year from 2027 to 2066". No sideways scroll at 375 px.
 - **Known gaps:** changing the horizon of the untouched example now saves it as the user's own plan (the horizon is
   part of the plan); a plan or link with a return above 30 % made before this version no longer opens (decided).
+
+### Milestone 8B: today's money (branch `feature/m8b-todays-money`)
+- **Decisions (user):** inflation 2 % by default, the switch is not saved; the amounts the user enters stay in
+  nominal kronor, only results are converted.
+- **Built:**
+  - `src/core/todays-money.ts` (test first): `priceLevel` (effective yearly rate, never `rate / 12`),
+    `inTodaysMoney`, `pointsInTodaysMoney`. The balance is divided by each month's level; deposits and
+    withdrawals are added up month by month, each divided by its own month's level; growth keeps the identity;
+    month 0 is unchanged.
+  - `applyTodaysMoney(view, inflationPct)` in the view model converts the points, each event's effect and the total
+    (effects are differences at the horizon, so they use the horizon's level), sets `ScenarioView.todaysMoney` and
+    leaves event amounts, start amount and deposit alone. `ScenarioView.inflationPct` carries the plan's rate.
+  - `AppState.todaysMoney` and `setTodaysMoney`: a view setting, off at each visit, not in the plan, saved
+    data or share links.
+  - UI: a "Today's money" switch under the horizon buttons, an "Inflation" field in the Plan card
+    (`parseInflationPct`, −5 to 20 %), "· today's money" on the headline and the chart card, a sentence under the
+    headline ("Results with 2 % inflation a year removed. What you enter stays as entered."), "(today's money)" in
+    the effect column header and the total line, and a hover text that gives only the converted effect (the
+    nominal "money in plus growth" breakdown stops adding up once divided).
+- **Checked:** 448 tests (27 new: the conversion, the view, the parser, and reference values), typecheck and
+  build. Reference values from the independent script, pinned to the öre, for the example plan at 2 % over 30
+  years: balance 1 697 538,34 kr (3 074 855,73 kr in 2056 kronor), deposited 863 636,80, withdrawn 135 859,62,
+  growth 969 761,16, the car −449 449,05 kr (−814 114,74 nominal). In the browser the switch gave exactly these on
+  the headline, tiles, chart value text, effect and total; changing the rate to 3 % gave 1 266 800 kr (the script:
+  1 266 799,85) and was saved in the plan; switching off returned 3 074 856 kr; the entered 150 000 kr, 50 000 kr
+  and 3 000 kr stayed as entered. 375 px in dark mode, no sideways scroll.
+- **Known gaps:** the lost-growth figure is not shown in today's money; the chart's event hover texts and the
+  Goal and Compare cards (not built yet) will need the same conversion when they arrive; with the switch on, the
+  y-axis labels are in today's money but nothing on the axis says so (the card's title does).
 

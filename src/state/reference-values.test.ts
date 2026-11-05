@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createExamplePlan } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
-import { buildScenarioView } from "./view-model";
+import { applyTodaysMoney, buildScenarioView } from "./view-model";
 
 /*
  * Results checked by hand and by an independent script (the same monthly steps written separately in Python),
@@ -65,6 +65,25 @@ describe("reference values: the effect of each event (end balance with it minus 
     expect(view.oneTimeDeposits[0]?.effect).toBe(54_274_329);
     expect(view.depositChanges[0]?.effect).toBe(-24_694_362);
     expect(view.totalEffect).toBe(-51_831_531);
+  });
+});
+
+describe("reference values: today's money at 2 % inflation, 30 years", () => {
+  const real = applyTodaysMoney(buildScenarioView(example, "Example", 360), 2);
+
+  it("the example plan's end balance is 1 697 538 kr in today's money", () => {
+    expect(real.points[360]?.balance).toBe(169_753_834);
+  });
+
+  it("each deposit and the car are divided by their own month's prices", () => {
+    expect(real.points[360]?.deposited).toBe(86_363_680);
+    expect(real.points[360]?.withdrawn).toBe(13_585_962);
+    expect(real.points[360]?.growth).toBe(96_976_116);
+  });
+
+  it("the car's effect is −449 449 kr in today's money (−814 115 kr in 2056 kronor)", () => {
+    expect(real.withdrawals[0]?.effect).toBe(-44_944_905);
+    expect(real.totalEffect).toBe(-44_944_905);
   });
 });
 
