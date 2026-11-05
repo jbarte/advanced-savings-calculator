@@ -28,3 +28,8 @@ export function monthsBetween(from: YearMonth, to: YearMonth): number {
 export function formatYearMonth(ym: YearMonth): string {
   return `${MONTH_NAMES[ym.month - 1]} ${ym.year}`;
 }
+
+/** The earlier of two months. */
+export function earlierOf(a: YearMonth, b: YearMonth): YearMonth {
+  return monthsBetween(a, b) < 0 ? b : a;
+}

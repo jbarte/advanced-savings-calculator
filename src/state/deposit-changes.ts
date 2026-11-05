@@ -3,7 +3,7 @@ import type { DepositChangeDraft, PlanDocument } from "./plan-document";
 import { validateDepositChangeDraft } from "./validate-plan";
 
 function toEvent(id: number, draft: DepositChangeDraft): PlanDocument["depositChanges"][number] {
-  return { id, startDate: draft.startDate, endDate: draft.endDate, amount: draft.amount, label: draft.label };
+  return { id, startDate: draft.startDate, endDate: draft.endDate, amount: draft.amount, label: draft.label.trim() };
 }
 
 /** Adds a deposit change. Its id is one above the highest deposit change id. Throws a RangeError if it is invalid. */

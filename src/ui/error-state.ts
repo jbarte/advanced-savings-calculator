@@ -6,9 +6,14 @@ import { h } from "./dom";
 export function renderNotice(message: string, actions: Actions): HTMLElement {
   return h(
     "div",
-    { class: "notice", role: "alert" },
+    // Not a live region itself: the page is rebuilt on every change, so `announce` reads the message out once.
+    { class: "notice" },
     h("span", {}, message),
-    h("button", { class: "btn-text", type: "button", "data-key": "notice-dismiss", onclick: () => actions.dismissNotice() }, "Dismiss"),
+    h(
+      "button",
+      { class: "btn-text", type: "button", "data-key": "notice-dismiss", "data-focus-next": "hero-heading", onclick: () => actions.dismissNotice() },
+      "Dismiss",
+    ),
   );
 }
 

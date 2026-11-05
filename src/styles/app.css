@@ -323,6 +323,11 @@ button {
   white-space: nowrap;
 }
 
+/* Very large balances (ten digits or more) would push the page sideways on a phone. */
+.hero__value--long {
+  font-size: clamp(26px, 6.4vw, 64px);
+}
+
 .hero__unit {
   font-size: 0.32em;
   font-weight: 500;

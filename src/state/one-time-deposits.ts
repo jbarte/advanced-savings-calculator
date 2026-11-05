@@ -3,7 +3,7 @@ import type { OneTimeDepositDraft, PlanDocument } from "./plan-document";
 import { validateOneTimeDepositDraft } from "./validate-plan";
 
 function toEvent(id: number, draft: OneTimeDepositDraft): PlanDocument["oneTimeDeposits"][number] {
-  return { id, date: draft.date, amount: draft.amount, label: draft.label };
+  return { id, date: draft.date, amount: draft.amount, label: draft.label.trim() };
 }
 
 /** Adds a one-time deposit. Its id is one above the highest one-time deposit id. Throws a RangeError if it is invalid. */

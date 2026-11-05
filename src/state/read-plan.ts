@@ -51,7 +51,7 @@ function readWithdrawal(value: unknown): WithdrawalEvent {
     id: numberField(w, "id", "A withdrawal"),
     date: yearMonth(w["date"], "A withdrawal's date"),
     amount: numberField(w, "amount", "A withdrawal"),
-    label: textField(w, "label", "A withdrawal"),
+    label: textField(w, "label", "A withdrawal").trim(),
   };
 }
 
@@ -63,7 +63,7 @@ function readDepositChange(value: unknown): DepositChangeEvent {
     startDate: yearMonth(c["startDate"], "A deposit change's start"),
     endDate: end === null ? null : yearMonth(end, "A deposit change's end"),
     amount: numberField(c, "amount", "A deposit change"),
-    label: textField(c, "label", "A deposit change"),
+    label: textField(c, "label", "A deposit change").trim(),
   };
 }
 
@@ -73,7 +73,7 @@ function readOneTimeDeposit(value: unknown): OneTimeDepositEvent {
     id: numberField(d, "id", "A one-time deposit"),
     date: yearMonth(d["date"], "A one-time deposit's date"),
     amount: numberField(d, "amount", "A one-time deposit"),
-    label: textField(d, "label", "A one-time deposit"),
+    label: textField(d, "label", "A one-time deposit").trim(),
   };
 }
 

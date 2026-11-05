@@ -53,3 +53,14 @@ describe("withPlanChange", () => {
   });
 });
 
+describe("withPlanChange: changes that change nothing", () => {
+  it("keeps the same plan object and origin, so the untouched example is not saved", () => {
+    const next = withPlanChange(state, (plan) => updatePlanFields(plan, { monthlyDeposit: plan.monthlyDeposit }));
+    expect(next.plan).toBe(state.plan);
+    expect(next.planOrigin).toBe("example");
+  });
+
+  it("still clears an old notice", () => {
+    expect(withPlanChange(state, (plan) => ({ ...plan })).notice).toBeNull();
+  });
+});

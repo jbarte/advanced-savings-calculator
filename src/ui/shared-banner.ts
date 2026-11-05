@@ -23,8 +23,8 @@ export function renderSharedBanner(actions: Actions): HTMLElement {
     h(
       "div",
       { class: "notice__actions" },
-      h("button", { class: "btn-text", type: "button", "data-key": "shared-keep", onclick: () => openKeepDialog(actions) }, "Keep as my plan"),
-      h("button", { class: "btn-text", type: "button", "data-key": "shared-leave", onclick: () => actions.leaveSharedPlan() }, "Back to my plan"),
+      h("button", { class: "btn-text", type: "button", "data-key": "shared-keep", "data-focus-next": "hero-heading", onclick: () => openKeepDialog(actions) }, "Keep as my plan"),
+      h("button", { class: "btn-text", type: "button", "data-key": "shared-leave", "data-focus-next": "hero-heading", onclick: () => actions.leaveSharedPlan() }, "Back to my plan"),
     ),
   );
 }

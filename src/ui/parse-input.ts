@@ -52,15 +52,15 @@ export function parseReturnPct(text: string): ParseResult<number> {
   return { ok: true, value };
 }
 
-/** Reads "YYYY-MM", the value of <input type="month"> and the fallback text box. */
-export function parseYearMonth(text: string): ParseResult<YearMonth> {
+/** Reads "YYYY-MM", the value of <input type="month"> and the fallback text box. Events may reach `maxYear`. */
+export function parseYearMonth(text: string, maxYear: number = PLAN_LIMITS.maxStartYear): ParseResult<YearMonth> {
   const match = /^(\d{4})-(\d{2})$/.exec(text.trim());
   if (!match) return fail("Use the format YYYY-MM, for example 2026-01");
   const year = Number(match[1]);
   const month = Number(match[2]);
   if (month < 1 || month > MONTHS_PER_YEAR) return fail("The month must be between 01 and 12");
-  if (year < PLAN_LIMITS.minStartYear || year > PLAN_LIMITS.maxStartYear) {
-    return fail(`Use a year between ${PLAN_LIMITS.minStartYear} and ${PLAN_LIMITS.maxStartYear}`);
+  if (year < PLAN_LIMITS.minStartYear || year > maxYear) {
+    return fail(`Use a year between ${PLAN_LIMITS.minStartYear} and ${maxYear}`);
   }
   return { ok: true, value: { year, month } };
 }
@@ -90,9 +90,9 @@ export function parseLabel(text: string, fallback = "Withdrawal"): ParseResult<s
   return { ok: true, value: label };
 }
 
-/** A month that is not before `start`. */
+/** An event's month that is not before `start`. */
 export function parseMonthOnOrAfter(text: string, start: YearMonth): ParseResult<YearMonth> {
-  const result = parseYearMonth(text);
+  const result = parseYearMonth(text, PLAN_LIMITS.maxEventYear);
   if (!result.ok) return result;
   return monthsBetween(start, result.value) < 0 ? fail(`Pick ${formatYearMonth(start)} or later`) : result;
 }
@@ -105,7 +105,7 @@ export function parseDepositAmount(text: string): ParseResult<Ore> {
 /** An optional end month: empty means no end. Not before `start` when the start is known. */
 export function parseOptionalMonthNotBefore(text: string, start: YearMonth | null): ParseResult<YearMonth | null> {
   if (text.trim() === "") return { ok: true, value: null };
-  const result = parseYearMonth(text);
+  const result = parseYearMonth(text, PLAN_LIMITS.maxEventYear);
   if (!result.ok) return result;
   return start !== null && monthsBetween(start, result.value) < 0 ? fail("The end month can't be before the start month") : result;
 }

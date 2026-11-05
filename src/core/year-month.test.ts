@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MONTHS_PER_YEAR, addMonths, formatYearMonth, monthsBetween, yearsToMonths } from "./year-month";
+import { MONTHS_PER_YEAR, addMonths, earlierOf, formatYearMonth, monthsBetween, yearsToMonths } from "./year-month";
 
 describe("addMonths", () => {
   it("returns the start month for offset 0", () => {
@@ -59,3 +59,14 @@ describe("MONTHS_PER_YEAR and yearsToMonths", () => {
     expect(yearsToMonths(30)).toBe(360);
   });
 });
+
+describe("earlierOf", () => {
+  it("returns the earlier month, or the first when they are equal", () => {
+    const a = { year: 2026, month: 5 };
+    const b = { year: 2025, month: 12 };
+    expect(earlierOf(a, b)).toBe(b);
+    expect(earlierOf(b, a)).toBe(b);
+    expect(earlierOf(a, { ...a })).toBe(a);
+  });
+});
+

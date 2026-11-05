@@ -45,3 +45,9 @@ describe("one-time deposits", () => {
     expect(() => validatePlanDocument({ ...one, oneTimeDeposits: [...one.oneTimeDeposits, ...one.oneTimeDeposits] })).toThrow(RangeError);
   });
 });
+
+describe("labels", () => {
+  it("stores the label trimmed", () => {
+    expect(addOneTimeDeposit(plan, { ...draft, label: "  Gift " }).oneTimeDeposits[0]?.label).toBe("Gift");
+  });
+});

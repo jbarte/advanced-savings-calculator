@@ -2,7 +2,7 @@ import { addMonths } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import type { DepositChangeDraft } from "../state/plan-document";
 import { renderTextField } from "./components";
-import { DEFAULT_MONTHS_AHEAD, inputIn, openFormDialog, showErrors } from "./dialog-form";
+import { DEFAULT_MONTHS_AHEAD, earliestMonth, inputIn, openFormDialog, showErrors } from "./dialog-form";
 import { formatKronor } from "./format";
 import {
   errorMessage,
@@ -30,6 +30,7 @@ const DEFAULT_LABEL = "Deposit change";
  */
 export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
   const { initial } = props;
+  const earliest = earliestMonth(props.start, initial?.startDate);
   const nothing = (): void => undefined; // the dialog reads the inputs itself on Save
 
   const label = renderTextField({
@@ -60,7 +61,7 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
     value: monthInputValue(initial?.startDate ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
     dataKey: "deposit-from",
     placeholder: "YYYY-MM",
-    validate: errorMessage((text) => parseMonthOnOrAfter(text, props.start)),
+    validate: errorMessage((text) => parseMonthOnOrAfter(text, earliest)),
     onCommit: nothing,
   });
   const fromInput = inputIn(from);
@@ -93,7 +94,7 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
     if (!showErrors(inputs)) return false;
     const parsedLabel = parseLabel(inputs[0]?.value ?? "", DEFAULT_LABEL);
     const parsedAmount = parseDepositAmount(inputs[1]?.value ?? "");
-    const parsedFrom = parseMonthOnOrAfter(inputs[2]?.value ?? "", props.start);
+    const parsedFrom = parseMonthOnOrAfter(inputs[2]?.value ?? "", earliest);
     if (!parsedLabel.ok || !parsedAmount.ok || !parsedFrom.ok) return false;
     const parsedUntil = parseOptionalMonthNotBefore(inputs[3]?.value ?? "", parsedFrom.value);
     if (!parsedUntil.ok) return false;
