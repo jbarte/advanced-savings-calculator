@@ -21,6 +21,21 @@ export function saveThemePreference(theme: ThemePreference): void {
   }
 }
 
+/** Whether the system asks for dark mode. False when the browser can't tell. */
 export function systemPrefersDark(): boolean {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  try {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  } catch {
+    // matchMedia unavailable (very old or sandboxed browser): the light theme is the safe default.
+    return false;
+  }
+}
+
+/** Calls `onChange` when the system switches between light and dark. Does nothing if the browser can't tell. */
+export function onSystemThemeChange(onChange: () => void): void {
+  try {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onChange);
+  } catch {
+    // No matchMedia: the theme then only changes through the toggle.
+  }
 }

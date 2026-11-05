@@ -91,3 +91,15 @@ describe("readPlanText", () => {
     expect(({} as Record<string, unknown>)["polluted"]).toBeUndefined();
   });
 });
+
+describe("step 0a", () => {
+  it("trims labels when reading, so padding can't hide a long label", () => {
+    const padded = { ...asJson(full), withdrawals: [{ id: 1, date: { year: 2031, month: 1 }, amount: 100, label: " ".repeat(5000) + "Car  " }] };
+    expect(readPlanDocument(padded).withdrawals[0]?.label).toBe("Car");
+  });
+
+  it("rejects an id of 2^53", () => {
+    const raw = { ...asJson(full), withdrawals: [{ id: 2 ** 53, date: { year: 2031, month: 1 }, amount: 100, label: "x" }] };
+    expect(() => readPlanDocument(raw)).toThrow(RangeError);
+  });
+});

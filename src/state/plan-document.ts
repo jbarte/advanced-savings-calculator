@@ -69,6 +69,8 @@ export const PLAN_LIMITS = {
   maxReturnPct: 50,
   minStartYear: 2000,
   maxStartYear: 2100,
+  // Events can be dated up to the end of the longest horizon (30 years) of a plan that starts in the last year.
+  maxEventYear: 2130,
   maxWithdrawals: 50,
   maxDepositChanges: 50,
   // Smaller than the monthly deposit: a one-time deposit in month 0 compounds for all 30 years, and ten of

@@ -74,7 +74,7 @@ describe("validateWithdrawalDraft", () => {
     ["a blank label", { label: "   " }],
     ["a label that is too long", { label: "x".repeat(PLAN_LIMITS.maxLabelLength + 1) }],
     ["a month of 13", { date: { year: 2031, month: 13 } }],
-    ["a year after the limit", { date: { year: PLAN_LIMITS.maxStartYear + 1, month: 1 } }],
+    ["a year after the limit", { date: { year: PLAN_LIMITS.maxEventYear + 1, month: 1 } }],
   ])("rejects %s", (_name, patch) => {
     expect(() => validateWithdrawalDraft({ ...draft, ...patch })).toThrow(RangeError);
   });
@@ -105,7 +105,7 @@ describe("validateDepositChangeDraft", () => {
     ["an empty label", { label: " " }],
     ["a label that is too long", { label: "x".repeat(PLAN_LIMITS.maxLabelLength + 1) }],
     ["a start month of 13", { startDate: { year: 2027, month: 13 } }],
-    ["an end year after the limit", { endDate: { year: PLAN_LIMITS.maxStartYear + 1, month: 1 } }],
+    ["an end year after the limit", { endDate: { year: PLAN_LIMITS.maxEventYear + 1, month: 1 } }],
     ["an end month before the start month", { endDate: { year: 2027, month: 1 } }],
   ])("rejects %s", (_name, patch) => {
     expect(() => validateDepositChangeDraft({ ...change, ...patch })).toThrow(RangeError);
@@ -171,5 +171,27 @@ describe("validatePlanDocument", () => {
       const plan: PlanDocument = { ...withChanges([d(1)]), withdrawals: [{ id: 1, ...draft }] };
       expect(() => validatePlanDocument(plan)).not.toThrow();
     });
+  });
+});
+
+describe("step 0a: ids, event dates and labels", () => {
+  const base = createBlankPlan({ year: 2026, month: 1 });
+  const w = { id: 1, date: { year: 2030, month: 1 }, amount: 100, label: "w" };
+
+  it("rejects an id that is not a safe integer, or so large that the next id would not be", () => {
+    expect(() => validatePlanDocument({ ...base, withdrawals: [{ ...w, id: 2 ** 53 }] })).toThrow(RangeError);
+    expect(() => validatePlanDocument({ ...base, withdrawals: [{ ...w, id: Number.MAX_SAFE_INTEGER }] })).toThrow(RangeError);
+    expect(() => validatePlanDocument({ ...base, withdrawals: [{ ...w, id: Number.MAX_SAFE_INTEGER - 1 }] })).not.toThrow();
+  });
+
+  it("lets events reach the end of the longest horizon of a plan that starts in the last allowed year", () => {
+    const late = { ...base, start: { year: PLAN_LIMITS.maxStartYear, month: 1 } };
+    const at = (year: number): PlanDocument => ({ ...late, withdrawals: [{ ...w, date: { year, month: 12 } }] });
+    expect(() => validatePlanDocument(at(PLAN_LIMITS.maxEventYear))).not.toThrow();
+    expect(() => validatePlanDocument(at(PLAN_LIMITS.maxEventYear + 1))).toThrow(RangeError);
+  });
+
+  it("still caps the plan start at the start limit", () => {
+    expect(() => validatePlanFields({ ...base, start: { year: PLAN_LIMITS.maxStartYear + 1, month: 1 } })).toThrow(RangeError);
   });
 });

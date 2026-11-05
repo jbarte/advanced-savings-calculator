@@ -10,16 +10,17 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   "Change my saving over time" (PR #5), the contrast of raised surfaces and dialogs (PR #6), the removal of the
   white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8), one-time deposits (PR #9), milestone 4B
   "events on the chart" (PR #10), the Add event dialog styles fix (PR #11), milestone 5 "saved in the browser"
-  (PR #12) and milestone 6 "share my plan" (PR #13). PR #4 had
+  (PR #12), milestone 6 "share my plan" (PR #13) and the roadmap after the code review (PR #14). PR #4 had
   been merged into its base `feature/foundation-fixes` after #3 was already in `main`, so it never reached
   `main`; PR #5 carried the same commits there.
 - **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05: bug fixes (step 0a),
-  a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 335 (`npm test`), typecheck and build pass.
+- **Open:** step 0a, the bug fixes from the code review (PR #15, branch `fix/step-0a`).
+- **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
+  (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
+- **Tests:** 347 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -286,4 +287,34 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   brought up to date.
 - **Decisions since:** "today's money" goes into milestone 8; the pull-request workflow waits (no config file
   for now). Still open: what the effect column shows (total effect on the end balance is recommended).
+
+### Step 0a: bug fixes from the code review (branch `fix/step-0a`)
+- **Fixed (state, test first):**
+  - Ids must be safe integers below `Number.MAX_SAFE_INTEGER`, so the next id (highest + 1) is always exact. An
+    id of 2^53 in a save or link used to make the next add reuse an id, and the next load fall back to the example.
+  - A change that leaves the plan as it was (retyping "3000" as "3 000") keeps the same plan object, so the
+    untouched example is no longer marked as the user's own and saved.
+  - Event dates may reach `PLAN_LIMITS.maxEventYear` (2130, the last start year plus the longest horizon) instead
+    of 2100, in the validator and in the dialog parsers. The plan start keeps its 2000–2100 range.
+  - Labels are stored trimmed when added, edited or read from a save or link.
+- **Fixed (UI):**
+  - A dialog closes on the backdrop only when the press starts and ends outside its box; a click in its padding
+    or a text selection dragged out of a field no longer closes it and loses what was typed.
+  - Dialogs are named with `aria-label` instead of a shared `id="modal-title"`.
+  - Editing an event accepts its own date when that is before the plan start (`earliestMonth`, `earlierOf`).
+  - Focus moves to a sensible element when the focused one disappears (`data-focus-next`): Remove → "Add event",
+    Start from scratch ↔ Start over, Dismiss and the shared-plan banner buttons → the headline.
+  - Notices are read out once through a stable `#announcer` live region; field errors are polite and only
+    updated when the message changes.
+  - `matchMedia` calls are guarded (`systemPrefersDark`, `onSystemThemeChange`).
+  - Very large headline amounts (ten digits or more) get a smaller size, so the page doesn't scroll sideways at 375 px.
+  - The share dialog says the link stays in browser history and wherever it is pasted.
+- **Checked:** 12 new tests (ids, event-date limit in validator and parsers, trimmed labels in all three lists and
+  when reading, no-op change, `earlierOf`). 347 tests, typecheck and build pass. In the browser: retyping the
+  example's deposit as "3000" saved nothing and kept "Example plan"; real clicks in the dialog padding kept it open
+  and a click on the backdrop closed it; keyboard Remove moved focus to "Add event" and Dismiss to the headline;
+  a bad link's notice reached `#announcer` once and was cleared on dismiss; the largest possible balance
+  (74 971 414 885 100 kr) fits in 343 px at 375 px with no sideways scroll; after moving the plan start past the
+  car, editing the car (now "Before start") saved without moving its date.
+- **Not done here:** screen-reader output itself was not tested with a screen reader, only the live region's text.
 

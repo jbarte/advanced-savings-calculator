@@ -207,17 +207,32 @@ export interface ModalProps {
  * Built on <dialog>: the browser handles focus trapping, Escape and the backdrop. Call showModal() after
  * appending, or use `openModal`.
  */
+/** True when a pointer event happened on the backdrop, outside the dialog's own box (its padding counts as inside). */
+function isOutside(dialog: HTMLDialogElement, event: Event): boolean {
+  const { clientX, clientY } = event as MouseEvent;
+  const box = dialog.getBoundingClientRect();
+  return clientX < box.left || clientX > box.right || clientY < box.top || clientY > box.bottom;
+}
+
 export function renderModal(props: ModalProps): HTMLDialogElement {
+  // Close on the backdrop only when the press also started there, so a click in the padding or a text
+  // selection dragged out of a field never throws away what was typed.
+  let pressedOutside = false;
   const dialog = h(
     "dialog",
     {
       class: "modal",
-      "aria-labelledby": "modal-title",
+      // A name of its own: two dialogs can be in the page for a moment, so a shared heading id would clash.
+      "aria-label": props.title,
+      onpointerdown: (event: Event) => {
+        pressedOutside = event.target === dialog && isOutside(dialog, event);
+      },
       onclick: (event: Event) => {
-        if (event.target === dialog) dialog.close();
+        if (pressedOutside && event.target === dialog && isOutside(dialog, event)) dialog.close();
+        pressedOutside = false;
       },
     },
-    h("h2", { id: "modal-title", class: "modal__title" }, props.title),
+    h("h2", { class: "modal__title" }, props.title),
     props.body ?? null,
     h(
       "div",
@@ -273,7 +288,8 @@ export interface TextFieldProps {
  */
 export function renderTextField(props: TextFieldProps): HTMLElement {
   const errorId = `${props.id}-error`;
-  const error = h("p", { class: "field__error", id: errorId, role: "alert" });
+  // Polite and only updated when the message changes, so it isn't read out again on every keystroke.
+  const error = h("p", { class: "field__error", id: errorId, "aria-live": "polite" });
   const input = h("input", {
     id: props.id,
     type: props.type ?? "text",
@@ -286,7 +302,8 @@ export function renderTextField(props: TextFieldProps): HTMLElement {
   });
 
   const show = (message: string | null): void => {
-    error.textContent = message ?? "";
+    const text = message ?? "";
+    if (error.textContent !== text) error.textContent = text;
     if (message === null) input.removeAttribute("aria-invalid");
     else input.setAttribute("aria-invalid", "true");
   };

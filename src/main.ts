@@ -12,7 +12,7 @@ import { STORAGE_BLOCKED_NOTICE, resolveStartupPlan } from "./state/startup-plan
 import { createStore } from "./state/store";
 import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
 import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
-import { loadThemePreference, saveThemePreference, systemPrefersDark } from "./state/theme";
+import { loadThemePreference, onSystemThemeChange, saveThemePreference, systemPrefersDark } from "./state/theme";
 import { PLAN_SCENARIO_ID, buildScenarioView } from "./state/view-model";
 import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
 import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
@@ -175,7 +175,7 @@ window.addEventListener("hashchange", () => {
   if (token === null) render();
   else void openSharedPlan(token);
 });
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+onSystemThemeChange(render);
 // A share link is opened before the first draw, so the user's own plan doesn't flash first.
 const linkToken = sharedPlanToken();
 if (linkToken === null) render();

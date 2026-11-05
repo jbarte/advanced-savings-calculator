@@ -1,6 +1,7 @@
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
+import { announce } from "./announcer";
 import { renderNotice } from "./error-state";
 import { renderSharedBanner } from "./shared-banner";
 import { renderChartCard, renderHero } from "./projection-card";
@@ -19,8 +20,11 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   const active = scenarios.find((scenario) => scenario.id === state.scenarioId) ?? scenarios[0];
   if (!active) throw new Error("No scenarios to render");
 
-  // Re-rendering replaces every element, so restore keyboard focus afterwards.
-  const focusKey = document.activeElement?.getAttribute("data-key");
+  // Re-rendering replaces every element, so restore keyboard focus afterwards. When the focused element is
+  // gone (a removed row, a swapped button), its `data-focus-next` names where focus goes instead.
+  const focused = document.activeElement;
+  const focusKey = focused?.getAttribute("data-key");
+  const fallbackKey = focused?.getAttribute("data-focus-next");
 
   const shell = h(
     "div",
@@ -51,5 +55,8 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
 
   root.replaceChildren(shell);
 
-  if (focusKey) root.querySelector<HTMLElement>(`[data-key="${CSS.escape(focusKey)}"]`)?.focus();
+  const find = (key: string | null | undefined): HTMLElement | null =>
+    key ? root.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`) : null;
+  (find(focusKey) ?? find(fallbackKey))?.focus();
+  announce(state.notice ?? "");
 }

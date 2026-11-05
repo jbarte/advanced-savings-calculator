@@ -73,3 +73,11 @@ describe("validation", () => {
     expect(plan.withdrawals[0]?.amount).toBe(100_000);
   });
 });
+
+describe("labels", () => {
+  it("stores the label trimmed", () => {
+    const plan = addWithdrawal(createBlankPlan({ year: 2026, month: 1 }), { date: { year: 2030, month: 1 }, amount: 100, label: "  Car  " });
+    expect(plan.withdrawals[0]?.label).toBe("Car");
+    expect(updateWithdrawal(plan, 1, { date: { year: 2030, month: 1 }, amount: 100, label: " Boat " }).withdrawals[0]?.label).toBe("Boat");
+  });
+});

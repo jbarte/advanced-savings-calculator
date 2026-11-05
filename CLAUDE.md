@@ -188,11 +188,17 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   numbered apart). The list rows select through a real button with `aria-pressed`. The chart draws each event as a line with a
   numbered badge (same number as the list), plus a band for a deposit change with an end. Badges are buttons
   outside the tab order (`tabindex="-1"`), since the list rows are the keyboard path.
+- **Focus and announcements across re-renders.** Focus is restored by `data-key`. When the focused element
+  disappears (a removed row, a swapped button, a dismissed notice), its `data-focus-next` names the element that
+  gets focus instead. Notices are read out once through the `#announcer` live region in `index.html`
+  (`announce` in `src/ui/announcer.ts`), not by a live region inside the re-rendered page.
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
   to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
   types, and nothing reaches the store until Save. `openFormDialog` (`src/ui/dialog-form.ts`)
   is the shared shell for the form dialogs (`withdrawal-dialog.ts`, `deposit-change-dialog.ts`):
-  the primary button and Enter both call `save`, and it closes only when `save` returns true.
+  the primary button and Enter both call `save`, and it closes only when `save` returns true. A dialog closes
+  on the backdrop only when the press starts and ends outside its box, and is named with `aria-label`. When an
+  event is edited, its own date is accepted even if it is before the plan start (`earliestMonth`).
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
   granularity, never raw `Date` objects in the core.
 - **Functions do one thing.** If a function needs a comment to explain what it does,
@@ -207,7 +213,10 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   saved plan or a link. The parsers in `src/ui/parse-input.ts` only give friendlier messages
   while typing. Every change to the plan goes through `withPlanChange`
   (`src/state/plan-change.ts`): an invalid change leaves the plan alone and sets
-  `AppState.notice`. Other errors are bugs and are not hidden. If drawing the page throws,
+  `AppState.notice`. A change that leaves the plan as it was keeps the same plan object, so it is neither marked as
+  the user's own nor saved. Ids must be safe integers below `Number.MAX_SAFE_INTEGER`, labels are stored trimmed,
+  and event dates may reach `PLAN_LIMITS.maxEventYear` (the last start year plus the longest horizon).
+  Other errors are bugs and are not hidden. If drawing the page throws,
   `renderErrorState` shows a message instead of a blank page.
 - **Tests are written alongside the code, not after.** Core functions are written test
   first. Every function in `src/core/` has unit tests, including edge cases:
@@ -342,6 +351,7 @@ with the toggle.
     │   ├── parse-input.ts    # Typed text → öre, percent, year-month; errorMessage (+ test)
     │   ├── dialog-form.ts    # Shared dialog shell and helpers (openFormDialog, inputIn, showErrors)
     │   ├── error-state.ts    # Notice banner and the error view shown instead of a blank page
+    │   ├── announcer.ts      # announce(): reads notices out once through #announcer
     │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend

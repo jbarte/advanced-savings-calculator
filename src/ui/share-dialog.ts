@@ -4,7 +4,7 @@ import { h } from "./dom";
 
 const PRIVACY_NOTE =
   "Anyone with this link can see your plan: the amounts, dates and labels. The plan is inside the link itself, " +
-  "and this app has no server, so nothing is stored anywhere else.";
+  "and this app has no server. The link does stay in your browser history and wherever you paste it.";
 
 /** Runs `action` and returns false, which keeps the dialog open so the result of the action can be read. */
 function keepOpenAfter(action: () => Promise<void>): () => boolean {

@@ -25,6 +25,13 @@ const EMPTY_METRIC_TITLES: Record<Metric, string> = {
   withdrawn: "No withdrawals yet",
 };
 
+/** Ten or more digits (1 000 000 000 kr and up) don't fit a phone at the normal headline size. */
+const LONG_AMOUNT_DIGITS = 10;
+
+function isLongAmount(ore: number): boolean {
+  return formatKronor(ore).replace(/\D/g, "").length >= LONG_AMOUNT_DIGITS;
+}
+
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
   const end = lastPoint(scenario, state.horizon);
 
@@ -67,10 +74,10 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
       h(
         "div",
         {},
-        h("h1", { id: "hero-heading", class: "hero__eyebrow" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}`),
+        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, `${METRIC_LABELS[state.metric]} by ${monthLabel(scenario, end.month)}`),
         h(
           "p",
-          { class: "hero__value" },
+          { class: isLongAmount(end[state.metric]) ? "hero__value hero__value--long" : "hero__value" },
           formatKronor(end[state.metric]),
           h("span", { class: "hero__unit" }, "kr"),
         ),

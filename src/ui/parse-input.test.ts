@@ -230,3 +230,14 @@ describe("parseOneTimeDepositAmount", () => {
     expect(parseOneTimeDepositAmount("abc").ok).toBe(false);
   });
 });
+
+describe("event months (step 0a)", () => {
+  it("lets an event reach the event-year limit, while the plan start keeps its own limit", () => {
+    const start = { year: 2026, month: 1 };
+    expect(parseMonthOnOrAfter(`${PLAN_LIMITS.maxEventYear}-12`, start).ok).toBe(true);
+    expect(parseMonthOnOrAfter(`${PLAN_LIMITS.maxEventYear + 1}-01`, start).ok).toBe(false);
+    expect(parseOptionalMonthNotBefore(`${PLAN_LIMITS.maxEventYear}-12`, start).ok).toBe(true);
+    expect(parseYearMonth(`${PLAN_LIMITS.maxStartYear + 1}-01`).ok).toBe(false);
+  });
+});
+

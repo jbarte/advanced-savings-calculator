@@ -160,6 +160,7 @@ function renderRow(
           class: "btn-text btn-text--danger",
           type: "button",
           "data-key": `event-remove-${entry.key}`,
+          "data-focus-next": "event-add",
           "aria-label": `Remove ${parts.title}`,
           onclick: parts.remove,
         },

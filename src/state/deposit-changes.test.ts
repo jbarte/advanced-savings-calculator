@@ -70,3 +70,10 @@ describe("removeDepositChange", () => {
     expect(removeDepositChange(plan, 9)).toEqual(plan);
   });
 });
+
+describe("labels", () => {
+  it("stores the label trimmed", () => {
+    const draft = { startDate: { year: 2030, month: 1 }, endDate: null, amount: 0, label: "  Pause  " };
+    expect(addDepositChange(createBlankPlan({ year: 2026, month: 1 }), draft).depositChanges[0]?.label).toBe("Pause");
+  });
+});

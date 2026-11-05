@@ -19,12 +19,12 @@ function assertWholeOre(value: number, name: string, min: number, max: number): 
   }
 }
 
-function assertYearMonth(date: YearMonth, name: string): void {
+function assertYearMonth(date: YearMonth, name: string, maxYear: number = PLAN_LIMITS.maxStartYear): void {
   if (!Number.isInteger(date.month) || date.month < 1 || date.month > MONTHS_PER_YEAR) {
     fail(`${name} must have a month from 1 to ${MONTHS_PER_YEAR}, got ${date.month}`);
   }
-  if (!Number.isInteger(date.year) || date.year < PLAN_LIMITS.minStartYear || date.year > PLAN_LIMITS.maxStartYear) {
-    fail(`${name} must have a year from ${PLAN_LIMITS.minStartYear} to ${PLAN_LIMITS.maxStartYear}, got ${date.year}`);
+  if (!Number.isInteger(date.year) || date.year < PLAN_LIMITS.minStartYear || date.year > maxYear) {
+    fail(`${name} must have a year from ${PLAN_LIMITS.minStartYear} to ${maxYear}, got ${date.year}`);
   }
 }
 
@@ -39,7 +39,7 @@ export function validatePlanFields(fields: PlanFields): void {
 }
 
 export function validateWithdrawalDraft(draft: WithdrawalDraft): void {
-  assertYearMonth(draft.date, "Withdrawal date");
+  assertYearMonth(draft.date, "Withdrawal date", PLAN_LIMITS.maxEventYear);
   assertWholeOre(draft.amount, "Withdrawal amount", 1, PLAN_LIMITS.maxStartAmount);
   assertLabel(draft.label, "Withdrawal");
 }
@@ -52,17 +52,17 @@ function assertLabel(label: string, name: string): void {
 }
 
 export function validateDepositChangeDraft(draft: DepositChangeDraft): void {
-  assertYearMonth(draft.startDate, "Deposit change start");
+  assertYearMonth(draft.startDate, "Deposit change start", PLAN_LIMITS.maxEventYear);
   assertWholeOre(draft.amount, "Deposit change amount", 0, PLAN_LIMITS.maxMonthlyDeposit);
   assertLabel(draft.label, "Deposit change");
   if (draft.endDate !== null) {
-    assertYearMonth(draft.endDate, "Deposit change end");
+    assertYearMonth(draft.endDate, "Deposit change end", PLAN_LIMITS.maxEventYear);
     if (monthsBetween(draft.startDate, draft.endDate) < 0) fail("The end month can't be before the start month");
   }
 }
 
 export function validateOneTimeDepositDraft(draft: OneTimeDepositDraft): void {
-  assertYearMonth(draft.date, "One-time deposit date");
+  assertYearMonth(draft.date, "One-time deposit date", PLAN_LIMITS.maxEventYear);
   assertWholeOre(draft.amount, "One-time deposit amount", 1, PLAN_LIMITS.maxOneTimeDepositAmount);
   assertLabel(draft.label, "One-time deposit");
 }
@@ -70,7 +70,10 @@ export function validateOneTimeDepositDraft(draft: OneTimeDepositDraft): void {
 function assertUniqueIds(ids: readonly number[], what: string): void {
   const seen = new Set<number>();
   for (const id of ids) {
-    if (!Number.isInteger(id) || id < 1) fail(`A ${what} id must be a positive whole number, got ${id}`);
+    // Below the largest safe integer, so the next id (one above the highest) is still exact and unique.
+    if (!Number.isSafeInteger(id) || id < 1 || id >= Number.MAX_SAFE_INTEGER) {
+      fail(`A ${what} id must be a positive whole number, got ${id}`);
+    }
     if (seen.has(id)) fail(`Two ${what}s have the id ${id}`);
     seen.add(id);
   }

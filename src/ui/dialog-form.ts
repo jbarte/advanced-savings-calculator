@@ -1,8 +1,18 @@
+import { earlierOf } from "../core/year-month";
+import type { YearMonth } from "../core/year-month";
 import { openModal, renderModal } from "./components";
 import { h } from "./dom";
 
 /** A new event starts one year after the plan start in its dialog. It is a starting point, not a rule. */
 export const DEFAULT_MONTHS_AHEAD = 12;
+
+/**
+ * The earliest month a dialog accepts: the plan start, or an event's own earlier date when editing it, so an
+ * event that started before the plan (allowed by the rules) can be edited without being moved.
+ */
+export function earliestMonth(start: YearMonth, current?: YearMonth): YearMonth {
+  return current === undefined ? start : earlierOf(start, current);
+}
 
 /** The <input> inside a text field made by `renderTextField`. */
 export function inputIn(field: HTMLElement): HTMLInputElement {

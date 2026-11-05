@@ -63,7 +63,13 @@ function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
     isExample
       ? h(
           "button",
-          { class: "btn-text", type: "button", "data-key": "start-from-scratch", onclick: () => actions.startFromScratch() },
+          {
+            class: "btn-text",
+            type: "button",
+            "data-key": "start-from-scratch",
+            "data-focus-next": "start-over",
+            onclick: () => actions.startFromScratch(),
+          },
           "Start from scratch",
         )
       : h(
@@ -72,6 +78,7 @@ function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
             class: "btn-text btn-text--danger",
             type: "button",
             "data-key": "start-over",
+            "data-focus-next": "start-from-scratch",
             onclick: () => openStartOverDialog(() => actions.startOver()),
           },
           "Start over",
