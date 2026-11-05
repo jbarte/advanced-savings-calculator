@@ -143,7 +143,7 @@ describe("validatePlanDocument", () => {
   });
 
   it("rejects an unknown version", () => {
-    expect(() => validatePlanDocument({ ...createBlankPlan({ year: 2026, month: 1 }), version: 1 as unknown as 2 })).toThrow(RangeError);
+    expect(() => validatePlanDocument({ ...createBlankPlan({ year: 2026, month: 1 }), version: 2 as unknown as 3 })).toThrow(RangeError);
   });
 
   it("rejects invalid plan fields and invalid withdrawals", () => {

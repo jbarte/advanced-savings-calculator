@@ -1,12 +1,20 @@
 import { eventEffect, lostGrowthOf, totalEffect } from "../core/event-effect";
 import type { EventRef } from "../core/event-effect";
+import { firstMonthAtLeast, requiredMonthlyDeposit } from "../core/goal";
 import { project } from "../core/project";
 import { inflationAdjustedPoints, toInflationAdjusted } from "../core/inflation-adjusted";
-import type { DepositChangeInput, OneTimeDepositInput, Ore, PlanInput, WithdrawalInput } from "../core/types";
+import type { DepositChangeInput, OneTimeDepositInput, Ore, PlanInput, ProjectionPoint, WithdrawalInput } from "../core/types";
 import { monthsBetween, yearsToMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "./plan-document";
-import type { PlanDocument } from "./plan-document";
-import type { EventStatus, PlannedDepositChange, PlannedOneTimeDeposit, PlannedWithdrawal, ScenarioView } from "./types";
+import type { GoalPlan, PlanDocument } from "./plan-document";
+import type {
+  EventStatus,
+  GoalSummary,
+  PlannedDepositChange,
+  PlannedOneTimeDeposit,
+  PlannedWithdrawal,
+  ScenarioView,
+} from "./types";
 
 /** The id of the single plan shown today. Scenario comparison will add more. */
 export const PLAN_SCENARIO_ID = "plan";
@@ -84,6 +92,48 @@ export function toPlanInput(plan: PlanDocument, months: number): PlanInput {
 function statusOf(month: number, horizonMonths: number): EventStatus {
   if (month < 0) return "before-start";
   return month > horizonMonths ? "after-horizon" : "planned";
+}
+
+/** A goal that is outside the projection has no numbers: only where it falls and what it is worth. */
+function goalWithoutNumbers(goal: GoalPlan, status: "before-start" | "after-projection", month: number, plan: PlanDocument): GoalSummary {
+  return {
+    status,
+    target: goal.amount,
+    date: goal.date,
+    month,
+    withinHorizon: false,
+    balanceAtGoal: 0,
+    percentReached: 0,
+    shortfall: goal.amount,
+    requiredMonthly: null,
+    reachedMonth: null,
+    targetInflationAdjusted: toInflationAdjusted(goal.amount, Math.max(0, month), plan.inflationPct),
+  };
+}
+
+/**
+ * How the plan stands against its goal. The goal date is measured from the plan start. The deposit needed comes
+ * from the core solver, which keeps every planned event as it is and changes only the base monthly deposit.
+ */
+function buildGoalSummary(plan: PlanDocument, goal: GoalPlan, input: PlanInput, points: readonly ProjectionPoint[], horizonMonths: number): GoalSummary {
+  const month = monthsBetween(plan.start, goal.date);
+  if (month < 0) return goalWithoutNumbers(goal, "before-start", month, plan);
+  if (month > PROJECTION_MONTHS) return goalWithoutNumbers(goal, "after-projection", month, plan);
+
+  const balanceAtGoal = points[month]?.balance ?? 0;
+  return {
+    status: "ok",
+    target: goal.amount,
+    date: goal.date,
+    month,
+    withinHorizon: month <= horizonMonths,
+    balanceAtGoal,
+    percentReached: Math.min(100, Math.floor((balanceAtGoal / goal.amount) * 100)),
+    shortfall: Math.max(0, goal.amount - balanceAtGoal),
+    requiredMonthly: requiredMonthlyDeposit(input, { target: goal.amount, month }, PLAN_LIMITS.maxMonthlyDeposit),
+    reachedMonth: firstMonthAtLeast(points, goal.amount),
+    targetInflationAdjusted: toInflationAdjusted(goal.amount, month, plan.inflationPct),
+  };
 }
 
 /**
@@ -178,7 +228,7 @@ export function buildScenarioView(
     totalEffect: totalEffect(input, horizonMonths, balanceWith),
     horizonMonths,
     inflationAdjusted: false,
-    goal: null,
+    goal: plan.goal === null ? null : buildGoalSummary(plan, plan.goal, input, points, horizonMonths),
     points,
   };
 }

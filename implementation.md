@@ -21,7 +21,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Open:** milestone 8B, inflation adjusted (branch `feature/m8b-todays-money`). 8A is merged (PR #20).
 - **Next:** the roadmap in NEXT_STEPS.md, rewritten after a code review on 2026-11-05 (PR #14): bug fixes
   (step 0a), a safety net (0b), cleanup (0c), then milestones 7–12.
-- **Tests:** 448 (`npm test`), typecheck and build pass.
+- **Tests:** 478 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -471,4 +471,29 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** the lost-growth figure is not shown inflation adjusted; the chart's event hover texts and the
   Goal and Compare cards (not built yet) will need the same conversion when they arrive; with the switch on, the
   y-axis labels are inflation adjusted but nothing on the axis says so (the card's title does).
+
+### Milestone 9A: the goal engine (branch `feature/m9a-goal-engine`)
+- **Decisions (user):** the deposit needed is the *base* monthly deposit, with every planned event kept; the goal
+  amount is nominal kronor; the goal is part of the plan (format version 3).
+- **Built:**
+  - `src/core/goal.ts` (test first): `requiredMonthlyDeposit(plan, goal, maxDeposit)` by bisection on whole öre
+    (about 30 projections), `balanceAtMonth`, `firstMonthAtLeast`. The balance never falls when the base deposit
+    rises (a larger balance only covers a withdrawal better), which is what makes bisection valid. 0 when the goal
+    is reached without saving, null when `maxDeposit` isn't enough.
+  - Plan format version 3: `PlanDocument.goal` (`GoalPlan { amount, date }` or null), `PLAN_LIMITS.maxGoalAmount`,
+    `validateGoal`, `setGoal`/`clearGoal` (`src/state/goal.ts`). `readPlanDocument` upgrades version 1 and 2 plans
+    (no goal) and requires `goal` in version 3; unknown fields inside the goal are dropped.
+  - View model: `GoalSummary` now has `status` (`ok`, `before-start`, `after-projection`), `date`, `withinHorizon`,
+    `requiredMonthly` (null when out of reach) and `targetInflationAdjusted`; `buildGoalSummary` fills it. The
+    inflation switch leaves it alone (the goal is nominal). The old goal card's text handles a null deposit.
+- **Checked:** 478 tests (30 new: 12 for the solver, 5 for reading and upgrading the goal, 3 for `setGoal`, 8 for the view,
+  2 reference values), typecheck and build. Values from the independent script, to the öre, and each solver result
+  is the exact minimum (one öre less falls short): for the example plan 4 000 000 kr after 30 years needs
+  3 791,10 kr a month (balance at that deposit 4 000 009,89 kr, one öre less 3 999 998,05 kr), 1 000 000 kr after
+  10 years needs 6 501,11 kr, 2 000 000 kr after 30 years needs 2 080,89 kr; the plan first reaches 1 000 000 kr in
+  month 209, 2 000 000 kr in month 298 and 4 000 000 kr in month 401; the 4 000 000 kr goal is worth 2 208 283,56 kr
+  in today's money at 2 %. Timing: the whole view for a plan with 110 events over 40 years takes about 54 ms with a
+  goal and 32 ms without, once per plan change (the cache hides it otherwise).
+- **Known gaps:** nothing in the UI shows or edits the goal yet (9B); the goal card from the first shell still
+  exists but is hidden until 9B replaces it.
 

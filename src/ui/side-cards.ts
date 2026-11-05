@@ -203,7 +203,7 @@ export function renderGoalCard(scenario: ScenarioView, goal: GoalSummary): HTMLE
       "dl",
       { class: "stats" },
       stat("Projected balance", formatMoney(goal.balanceAtGoal)),
-      stat("Monthly deposit needed", `${formatMoney(goal.requiredMonthly)}/mo`),
+      stat("Monthly deposit needed", goal.requiredMonthly === null ? "Not reachable" : `${formatMoney(goal.requiredMonthly)}/mo`),
       stat("Goal reached", reached),
     ),
   );

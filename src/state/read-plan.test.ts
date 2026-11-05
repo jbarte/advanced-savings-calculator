@@ -32,7 +32,7 @@ describe("readPlanDocument", () => {
   });
 
   it("says when a plan comes from a newer version, and rejects other versions", () => {
-    expect(() => readPlanDocument({ ...asJson(full), version: 3 })).toThrow(/newer version/);
+    expect(() => readPlanDocument({ ...asJson(full), version: 4 })).toThrow(/newer version/);
     expect(() => readPlanDocument({ ...asJson(full), version: "1" })).toThrow(RangeError);
     const { version: _version, ...noVersion } = asJson(full);
     expect(() => readPlanDocument(noVersion)).toThrow(RangeError);
@@ -107,13 +107,13 @@ describe("step 0a", () => {
 describe("upgrading a version 1 plan", () => {
   /** A plan as version 1 wrote it: no horizon and no inflation. */
   function versionOne(plan: PlanDocument): Record<string, unknown> {
-    const { horizonYears: _horizon, inflationPct: _inflation, ...rest } = asJson(plan);
+    const { horizonYears: _horizon, inflationPct: _inflation, goal: _goal, ...rest } = asJson(plan);
     return { ...rest, version: 1 };
   }
 
   it("opens with a 30-year horizon and 2 % inflation, as the page showed before", () => {
     const upgraded = readPlanDocument(versionOne(full));
-    expect(upgraded).toEqual({ ...full, version: 2, horizonYears: 30, inflationPct: 2 });
+    expect(upgraded).toEqual({ ...full, version: 3, horizonYears: 30, inflationPct: 2, goal: null });
   });
 
   it("still checks everything else", () => {
@@ -133,6 +133,39 @@ describe("upgrading a version 1 plan", () => {
     expect(() => readPlanDocument({ ...asJson(full), horizonYears: 41 })).toThrow(RangeError);
     expect(() => readPlanDocument({ ...asJson(full), horizonYears: 2.5 })).toThrow(RangeError);
     expect(() => readPlanDocument({ ...asJson(full), inflationPct: 25 })).toThrow(RangeError);
+  });
+});
+
+describe("the goal in the plan (version 3)", () => {
+  const goal = { amount: 400_000_000, date: { year: 2056, month: 11 } };
+  const withGoal: PlanDocument = { ...full, goal };
+
+  it("round-trips with a goal and with none", () => {
+    expect(readPlanText(serializePlan(withGoal))).toEqual(withGoal);
+    expect(readPlanText(serializePlan(full))).toEqual(full);
+  });
+
+  it("opens a version 2 plan, which had no goal, with no goal", () => {
+    const { goal: _goal, ...v2 } = asJson(withGoal);
+    expect(readPlanDocument({ ...v2, version: 2 })).toEqual({ ...full, goal: null });
+  });
+
+  it("requires the goal field in a version 3 plan, as an object or null", () => {
+    const { goal: _goal, ...noGoal } = asJson(withGoal);
+    expect(() => readPlanDocument(noGoal)).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...asJson(withGoal), goal: "400000000" })).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...asJson(withGoal), goal: { amount: 5 } })).toThrow(RangeError);
+  });
+
+  it("rejects a goal outside the limits", () => {
+    expect(() => readPlanDocument({ ...asJson(full), goal: { ...goal, amount: 0 } })).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...asJson(full), goal: { ...goal, amount: PLAN_LIMITS.maxGoalAmount + 1 } })).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...asJson(full), goal: { ...goal, date: { year: 1999, month: 1 } } })).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...asJson(full), goal: { ...goal, date: { year: 2056, month: 13 } } })).toThrow(RangeError);
+  });
+
+  it("drops unknown fields inside the goal", () => {
+    expect(readPlanDocument({ ...asJson(full), goal: { ...goal, note: "x" } }).goal).toEqual(goal);
   });
 });
 

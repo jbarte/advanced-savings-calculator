@@ -18,7 +18,7 @@ function largestPlan(): PlanDocument {
   const date = { year: 2099, month: 12 };
   const many = <T>(n: number, make: (id: number) => T): T[] => Array.from({ length: n }, (_, i) => make(i + 1));
   return {
-    version: 2,
+    version: 3,
     start: { year: 2000, month: 1 },
     startAmount: PLAN_LIMITS.maxStartAmount,
     monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
@@ -34,6 +34,7 @@ function largestPlan(): PlanDocument {
       label,
     })),
     oneTimeDeposits: many(PLAN_LIMITS.maxOneTimeDeposits, (id) => ({ id, date, amount: 499_999_999 - id, label })),
+    goal: { amount: PLAN_LIMITS.maxGoalAmount, date },
   };
 }
 

@@ -6,7 +6,7 @@ import type { ScenarioView } from "./types";
 import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, applyInflationAdjustment, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
 
 const plan: PlanDocument = {
-  version: 2,
+  version: 3,
   start: { year: 2026, month: 1 },
   startAmount: 5_000_000,
   monthlyDeposit: 300_000,
@@ -16,6 +16,7 @@ const plan: PlanDocument = {
   withdrawals: [],
   depositChanges: [],
   oneTimeDeposits: [],
+  goal: null,
 };
 
 const HORIZON_30 = 360;
@@ -406,6 +407,80 @@ describe("applyInflationAdjustment", () => {
 
   it("changes nothing at 0 % inflation except the flag", () => {
     expect(applyInflationAdjustment(nominal, 0)).toEqual({ ...nominal, inflationAdjusted: true });
+  });
+});
+
+describe("the goal in the view", () => {
+  const example: PlanDocument = {
+    ...plan,
+    withdrawals: [{ id: 1, date: { year: 2031, month: 1 }, amount: 15_000_000, label: "Car" }],
+  };
+  const goalAt = (amount: number, year: number, month: number): PlanDocument => ({ ...example, goal: { amount, date: { year, month } } });
+
+  it("is null without a goal", () => {
+    expect(buildScenarioView(example, "P").goal).toBeNull();
+  });
+
+  it("describes a goal that is not reached: balance, shortfall, share, and the deposit needed (independent script)", () => {
+    const goal = buildScenarioView(goalAt(400_000_000, 2056, 1), "P").goal;
+    expect(goal).toMatchObject({
+      status: "ok",
+      month: 360,
+      withinHorizon: true,
+      balanceAtGoal: 307_485_573,
+      shortfall: 92_514_427,
+      percentReached: 76,
+      requiredMonthly: 379_110,
+      reachedMonth: 401,
+    });
+  });
+
+  it("describes a goal that is reached: no shortfall, 100 %, and a deposit below today's", () => {
+    const goal = buildScenarioView(goalAt(200_000_000, 2056, 1), "P").goal;
+    expect(goal).toMatchObject({ shortfall: 0, percentReached: 100, requiredMonthly: 208_089, reachedMonth: 298 });
+  });
+
+  it("measures from the plan start and keeps the date after the horizon outside the chart", () => {
+    const goal = buildScenarioView({ ...goalAt(100_000_000, 2036, 1), horizonYears: 5 }, "P").goal;
+    expect(goal).toMatchObject({ status: "ok", month: 120, balanceAtGoal: 40_113_003, percentReached: 40, requiredMonthly: 650_111, withinHorizon: false });
+  });
+
+  it("has no numbers for a goal before the plan start or after the 40-year projection, only where it falls", () => {
+    const before = buildScenarioView(goalAt(100_000_000, 2025, 6), "P").goal;
+    expect(before).toMatchObject({ status: "before-start", month: -7, requiredMonthly: null, reachedMonth: null, balanceAtGoal: 0, withinHorizon: false });
+    const after = buildScenarioView(goalAt(100_000_000, 2067, 1), "P").goal;
+    expect(after).toMatchObject({ status: "after-projection", requiredMonthly: null, balanceAtGoal: 0 });
+  });
+
+  it("says when the goal can't be reached even with the largest deposit", () => {
+    // 100 000 000 kr after one month: one deposit of at most 10 000 000 kr can never get there.
+    const goal = buildScenarioView({ ...goalAt(PLAN_LIMITS.maxGoalAmount, 2026, 2), startAmount: 0 }, "P").goal;
+    expect(goal).toMatchObject({ status: "ok", month: 1, requiredMonthly: null });
+    expect(goal?.shortfall).toBeGreaterThan(0);
+    // A year out it is reachable: about 8 077 350 kr a month (100 000 000 kr / the 7 % annuity factor of about 12,4).
+    const reachable = buildScenarioView({ ...goalAt(PLAN_LIMITS.maxGoalAmount, 2027, 1), startAmount: 0, withdrawals: [] }, "P").goal;
+    expect(reachable?.requiredMonthly).toBeGreaterThan(800_000_000);
+    expect(reachable?.requiredMonthly).toBeLessThan(PLAN_LIMITS.maxMonthlyDeposit);
+  });
+
+  it("gives the goal amount divided by the price level at the goal date, and keeps it unchanged by the inflation switch", () => {
+    const nominal = buildScenarioView(goalAt(400_000_000, 2056, 1), "P");
+    expect(nominal.goal?.targetInflationAdjusted).toBe(220_828_356);
+    expect(applyInflationAdjustment(nominal, 2).goal).toEqual(nominal.goal);
+  });
+
+  it("keeps working at the largest plan: the solver stays exact and finishes", () => {
+    const big: PlanDocument = {
+      ...plan,
+      startAmount: PLAN_LIMITS.maxStartAmount,
+      monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
+      annualReturnPct: PLAN_LIMITS.maxReturnPct,
+      horizonYears: PLAN_LIMITS.maxHorizonYears,
+      goal: { amount: PLAN_LIMITS.maxGoalAmount, date: { year: 2066, month: 1 } },
+    };
+    const goal = buildScenarioView(big, "Big").goal;
+    expect(goal?.status).toBe("ok");
+    expect(goal?.requiredMonthly).toBe(0);
   });
 });
 

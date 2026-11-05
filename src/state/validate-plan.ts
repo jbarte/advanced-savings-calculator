@@ -1,7 +1,7 @@
 import { MONTHS_PER_YEAR, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "./plan-document";
-import type { DepositChangeDraft, OneTimeDepositDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
+import type { DepositChangeDraft, GoalPlan, OneTimeDepositDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
 
 /*
  * Hand-written checks of everything a plan is built from. They throw a RangeError that says what is wrong,
@@ -78,6 +78,12 @@ export function validateOneTimeDepositDraft(draft: OneTimeDepositDraft): void {
   assertLabel(draft.label, "One-time deposit");
 }
 
+/** Checks a savings goal: an amount of at least 1 öre up to the limit, and a date in the allowed years. */
+export function validateGoal(goal: GoalPlan): void {
+  assertYearMonth(goal.date, "Goal date", PLAN_LIMITS.maxEventYear);
+  assertWholeOre(goal.amount, "Goal amount", 1, PLAN_LIMITS.maxGoalAmount);
+}
+
 function assertUniqueIds(ids: readonly number[], what: string): void {
   const seen = new Set<number>();
   for (const id of ids) {
@@ -104,7 +110,7 @@ function assertEventList<T extends { readonly id: number }>(
 
 /** Checks a whole plan, for example one read from a save or a link. Throws a RangeError for the first problem. */
 export function validatePlanDocument(plan: PlanDocument): void {
-  if (plan.version !== 2) fail(`Unknown plan version ${String(plan.version)}`);
+  if (plan.version !== 3) fail(`Unknown plan version ${String(plan.version)}`);
   validatePlanFields(plan);
   assertEventList(plan.withdrawals, PLAN_LIMITS.maxWithdrawals, { one: "withdrawal", many: "withdrawals" }, validateWithdrawalDraft);
   assertEventList(
@@ -119,4 +125,5 @@ export function validatePlanDocument(plan: PlanDocument): void {
     { one: "one-time deposit", many: "one-time deposits" },
     validateOneTimeDepositDraft,
   );
+  if (plan.goal !== null) validateGoal(plan.goal);
 }
