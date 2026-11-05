@@ -149,7 +149,7 @@ phone layout of the list.
   `PlanDocument` with migrations), and broken saved data falls back to the example with a message.
 - *Technical work:* `PlanDocument` and its validator in `src/state/`, autosave through the store.
 
-### 6. "Share my plan" (requirement 7)
+### 6. "Share my plan" (requirement 7): done
 
 - "Share link" copies a link that opens the same plan for anyone, with no login.
 - When I open a link, I choose whether to open it as a new copy or replace my own plan. The default

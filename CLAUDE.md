@@ -30,10 +30,10 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–5 are done: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–6 are done: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 their lost growth shown, and the monthly deposit can be changed from a month or for a period
-(including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser. Sharing is not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+(including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -224,12 +224,19 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   (`AppState.storage`: `idle`, `saved`, `blocked`), the app keeps working in memory, and the notice is shown once.
   "Start over" (with a confirmation) clears the save. Add a migration in `readPlanDocument` whenever the format changes.
 - **Sharing is a self-contained link.** A plan is shared by packing its `PlanDocument` into
-  the URL hash: `#plan=<compressed plan>`, using the browser's built-in `CompressionStream`
-  (deflate) and base64url, so there is no dependency and no server. The hash is never sent to
-  a server. `src/state/route.ts` reads the hash, so `#plan=` sits next to `#design-system`.
-  - Data from a link is untrusted: check size, schema and value ranges before using it.
-  - Opening a link never overwrites the user's own plan without asking. Default to opening
-    it as a copy.
+  the URL hash: `<page>#plan=<token>`, token = `z.` + base64url(deflate(JSON)), using the browser's built-in
+  `CompressionStream`, or `u.` + base64url(JSON) when the browser has none (`src/state/share-link.ts`). There is no
+  dependency and no server, and the hash is never sent to a server. `src/state/route.ts` reads the hash
+  (`sharedPlanToken`), so `#plan=` sits next to `#design-system`. The largest allowed plan makes a link of about 1 000
+  characters (a normal plan about 300).
+  - Data from a link is untrusted: `decodePlan` limits the token length (30 000) and the inflated size (100 000
+    bytes, which stops a decompression bomb), then reads it with `readPlanDocument`, the same checks as a saved plan.
+    A bad link gives a RangeError whose message is shown to the user.
+  - Opening a link never overwrites the user's own plan. It opens as a copy (`planOrigin: "shared"`): never saved
+    (`commitPlan` skips `persist`), and edits to it stay in memory. A banner offers "Keep as my plan" (asks first, then
+    replaces the saved plan) and "Back to my plan". The address is cleared of the token when either is used or the link
+    is bad. The Share button shows a dialog with the link, a copy button and the note that anyone with the link can
+    see the plan.
   - A short link like `/<id>` would need a backend. Don't build one without asking
     (see "Open decisions" in NEXT_STEPS.md).
 
@@ -324,7 +331,8 @@ with the toggle.
     │   ├── read-plan.ts      # readPlanDocument/readPlanText: untrusted data → PlanDocument; serializePlan (+ test)
     │   ├── plan-storage.ts   # loadSavedPlan, savePlan, clearSavedPlan on localStorage (+ test)
     │   ├── startup-plan.ts   # resolveStartupPlan: what to show when the page opens (+ test)
-    │   ├── route.ts          # Reads the URL hash (#design-system)
+    │   ├── share-link.ts     # encodePlan/decodePlan, planTokenFromHash, buildShareUrl (+ test)
+    │   ├── route.ts          # Reads and clears the URL hash (#design-system, #plan=)
     │   └── theme.ts          # Theme preference in localStorage
     ├── ui/                   # DOM rendering and events
     │   ├── app.ts            # Page layout (app bar, hero, chart, bento, table), focus restore
@@ -341,6 +349,8 @@ with the toggle.
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
+    │   ├── share-dialog.ts   # "Share this plan": the link, a copy button and the privacy note
+    │   ├── shared-banner.ts  # Banner while a shared plan is open: keep it or go back
     │   ├── start-over-dialog.ts # Confirmation before the saved plan is cleared
     │   ├── event-type-dialog.ts # Asks which kind of event to add
     │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, lost growth

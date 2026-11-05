@@ -44,4 +44,12 @@ describe("withPlanChange", () => {
       }),
     ).toThrow(TypeError);
   });
+
+  it("keeps a shared plan shared when it is changed, so it is not saved by accident", () => {
+    const shared: AppState = { ...state, planOrigin: "shared" };
+    const next = withPlanChange(shared, (plan) => updatePlanFields(plan, { monthlyDeposit: 100 }));
+    expect(next.planOrigin).toBe("shared");
+    expect(next.plan.monthlyDeposit).toBe(100);
+  });
 });
+

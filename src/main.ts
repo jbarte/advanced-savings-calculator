@@ -6,7 +6,8 @@ import type { PlanDocument } from "./state/plan-document";
 import { withPlanChange } from "./state/plan-change";
 import { updatePlanFields } from "./state/plan-fields";
 import { loadSavedPlan, clearSavedPlan, savePlan } from "./state/plan-storage";
-import { currentRoute } from "./state/route";
+import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
+import { buildShareUrl, decodePlan, encodePlan } from "./state/share-link";
 import { STORAGE_BLOCKED_NOTICE, resolveStartupPlan } from "./state/startup-plan";
 import { createStore } from "./state/store";
 import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
@@ -50,7 +51,8 @@ const commitPlan = (change: (plan: PlanDocument) => PlanDocument): void => {
   const before = store.get().plan;
   store.update(withPlanChange(store.get(), change));
   const { plan } = store.get();
-  if (plan !== before) persist(plan);
+  // A plan opened from a share link is a copy: it is only saved when the user chooses to keep it.
+  if (plan !== before && store.get().planOrigin !== "shared") persist(plan);
 };
 
 /** Removing the selected event must not leave its key behind, since a later event can reuse the id. */
@@ -73,6 +75,7 @@ const actions: Actions = {
     const plan = createBlankPlan(currentYearMonth());
     store.update({ plan, planOrigin: "own", selectedEvent: null, notice: null });
     persist(plan);
+    clearShareHash();
   },
   startOver: () => {
     const cleared = clearSavedPlan();
@@ -108,14 +111,45 @@ const actions: Actions = {
     saveThemePreference(theme);
     store.update({ theme });
   },
-  copyShareLink: async () => {
+  createShareLink: async () => buildShareUrl(currentPageUrl(), await encodePlan(store.get().plan)),
+  copyToClipboard: async (text) => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(text);
       return true;
     } catch {
       return false;
     }
   },
+  keepSharedPlan: () => {
+    const saved = savePlan(store.get().plan);
+    store.update({
+      planOrigin: "own",
+      storage: saved ? "saved" : "blocked",
+      notice: saved ? null : STORAGE_BLOCKED_NOTICE,
+    });
+    clearShareHash();
+  },
+  leaveSharedPlan: () => {
+    const back = resolveStartupPlan(loadSavedPlan(), createExamplePlan(currentYearMonth()));
+    store.update({ ...back, selectedEvent: null });
+    clearShareHash();
+  },
+};
+
+/** Opens the plan in a share link as a copy. A bad link leaves the user's own plan alone and says why. */
+const openSharedPlan = async (token: string): Promise<void> => {
+  try {
+    const plan = await decodePlan(token);
+    store.update({ plan, planOrigin: "shared", storage: "idle", selectedEvent: null, notice: null });
+  } catch (error) {
+    if (!(error instanceof RangeError)) {
+      console.error(error);
+      renderErrorState(root, error, actions);
+      return;
+    }
+    clearShareHash();
+    store.update({ notice: `That link could not be opened. ${error.message}. Your own plan is shown instead.` });
+  }
 };
 
 const render = (): void => {
@@ -126,7 +160,7 @@ const render = (): void => {
       renderDesignSystem(root, isDark(), actions);
       return;
     }
-    const name = state.planOrigin === "example" ? "Example plan" : "My plan";
+    const name = { example: "Example plan", own: "My plan", shared: "Shared plan" }[state.planOrigin];
     const scenarios = [buildScenarioView(state.plan, name, yearsToMonths(state.horizon))];
     renderApp(root, { scenarios, state, isDark: isDark() }, actions);
   } catch (error) {
@@ -136,6 +170,13 @@ const render = (): void => {
 };
 
 store.subscribe(createRenderScheduler(render));
-window.addEventListener("hashchange", render);
+window.addEventListener("hashchange", () => {
+  const token = sharedPlanToken();
+  if (token === null) render();
+  else void openSharedPlan(token);
+});
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
-render();
+// A share link is opened before the first draw, so the user's own plan doesn't flash first.
+const linkToken = sharedPlanToken();
+if (linkToken === null) render();
+else void openSharedPlan(linkToken);

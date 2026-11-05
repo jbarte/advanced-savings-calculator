@@ -95,8 +95,11 @@ export interface ScenarioView {
 /** Whether the plan is kept in this browser: not yet (the example), saved, or blocked by the browser. */
 export type StorageStatus = "idle" | "saved" | "blocked";
 
-/** Whether the plan is the built-in example or one the user has started to fill in. */
-export type PlanOrigin = "example" | "own";
+/**
+ * Whether the plan is the built-in example, one the user has started to fill in, or a plan opened from a share
+ * link. A shared plan is a copy: it is never saved until the user chooses to keep it.
+ */
+export type PlanOrigin = "example" | "own" | "shared";
 
 export interface AppState {
   readonly scenarioId: string;
