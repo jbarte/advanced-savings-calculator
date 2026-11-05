@@ -139,7 +139,7 @@ phone layout of the list.
 - Works on a phone and with the keyboard.
 - **Done when:** a plan with ten mixed events is readable at phone width.
 
-### 5. "It is all saved" (requirement 6)
+### 5. "It is all saved" (requirement 6): done (export and import as a JSON file left out)
 
 - My plan is still there when I come back. Nothing is sent anywhere.
 - A small "Saved" indicator, and a clear notice if my browser blocks storage.

@@ -92,6 +92,9 @@ export interface ScenarioView {
   readonly points: readonly ProjectionPoint[];
 }
 
+/** Whether the plan is kept in this browser: not yet (the example), saved, or blocked by the browser. */
+export type StorageStatus = "idle" | "saved" | "blocked";
+
 /** Whether the plan is the built-in example or one the user has started to fill in. */
 export type PlanOrigin = "example" | "own";
 
@@ -99,6 +102,7 @@ export interface AppState {
   readonly scenarioId: string;
   readonly plan: PlanDocument;
   readonly planOrigin: PlanOrigin;
+  readonly storage: StorageStatus;
   readonly horizon: HorizonYears;
   readonly metric: Metric;
   /** The event highlighted in the list (and later on the chart), or null. */

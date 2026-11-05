@@ -7,6 +7,7 @@ import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { errorMessage, monthInputValue, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
+import { openStartOverDialog } from "./start-over-dialog";
 import { lastPoint, monthLabel } from "./view-helpers";
 
 interface ParsedFieldProps<T> {
@@ -41,21 +42,41 @@ function renderParsedField<T>(props: ParsedFieldProps<T>): HTMLElement {
   });
 }
 
-export function renderInputsCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+/** What the Plan card says about where the plan lives. */
+function planStatusText(state: AppState): string {
   const isExample = state.planOrigin === "example";
+  if (state.storage === "blocked") return isExample ? "Example plan · not saved" : "Not saved: storage is blocked";
+  if (state.storage === "saved") return "Saved in this browser";
+  return isExample ? "Example plan" : "My plan";
+}
 
-  const side = h(
+function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
+  const isExample = state.planOrigin === "example";
+  return h(
     "div",
     { class: "card__head-side" },
-    isExample ? h("span", { class: "card__meta" }, "Example plan") : null,
+    h("span", { class: "card__meta" }, planStatusText(state)),
     isExample
       ? h(
           "button",
           { class: "btn-text", type: "button", "data-key": "start-from-scratch", onclick: () => actions.startFromScratch() },
           "Start from scratch",
         )
-      : null,
+      : h(
+          "button",
+          {
+            class: "btn-text btn-text--danger",
+            type: "button",
+            "data-key": "start-over",
+            onclick: () => openStartOverDialog(() => actions.startOver()),
+          },
+          "Start over",
+        ),
   );
+}
+
+export function renderInputsCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+  const side = renderPlanActions(state, actions);
 
   return h(
     "section",

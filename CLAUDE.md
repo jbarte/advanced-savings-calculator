@@ -30,10 +30,10 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–4 are done: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–5 are done: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 their lost growth shown, and the monthly deposit can be changed from a month or for a period
-(including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. Saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+(including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser. Sharing is not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -215,6 +215,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - a withdrawal before the start date
   - zero return
   - a goal that cannot be reached
+- **The plan is saved in `localStorage`, nothing else is.** Key `asc-plan`, value `JSON.stringify(PlanDocument)`
+  (`src/state/plan-storage.ts`). After every change that replaces the plan, `main.ts` saves it (`persist`); the
+  untouched example plan is never written. At startup `loadSavedPlan` reads it, and `readPlanDocument`
+  (`src/state/read-plan.ts`) checks the shape field by field and then runs `validatePlanDocument`, so saved text is
+  treated as untrusted (the same reader will check share links). A broken save falls back to the example with a
+  notice and stays in place until the next change replaces it. Blocked or full storage is reported
+  (`AppState.storage`: `idle`, `saved`, `blocked`), the app keeps working in memory, and the notice is shown once.
+  "Start over" (with a confirmation) clears the save. Add a migration in `readPlanDocument` whenever the format changes.
 - **Sharing is a self-contained link.** A plan is shared by packing its `PlanDocument` into
   the URL hash: `#plan=<compressed plan>`, using the browser's built-in `CompressionStream`
   (deflate) and base64url, so there is no dependency and no server. The hash is never sent to
@@ -313,6 +321,9 @@ with the toggle.
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
     │   ├── timeline.ts       # buildTimeline: both event kinds in date order, numbered; EventKey (+ test)
+    │   ├── read-plan.ts      # readPlanDocument/readPlanText: untrusted data → PlanDocument; serializePlan (+ test)
+    │   ├── plan-storage.ts   # loadSavedPlan, savePlan, clearSavedPlan on localStorage (+ test)
+    │   ├── startup-plan.ts   # resolveStartupPlan: what to show when the page opens (+ test)
     │   ├── route.ts          # Reads the URL hash (#design-system)
     │   └── theme.ts          # Theme preference in localStorage
     ├── ui/                   # DOM rendering and events
@@ -330,6 +341,7 @@ with the toggle.
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
+    │   ├── start-over-dialog.ts # Confirmation before the saved plan is cleared
     │   ├── event-type-dialog.ts # Asks which kind of event to add
     │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, lost growth
     │   ├── deposit-change-dialog.ts # Dialog to add or edit a deposit change
