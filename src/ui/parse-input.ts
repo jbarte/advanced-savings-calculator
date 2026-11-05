@@ -76,6 +76,12 @@ export function parseWithdrawalAmount(text: string): ParseResult<Ore> {
   return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
 }
 
+/** A one-time deposit amount: whole kronor, above 0, up to the one-time deposit limit. */
+export function parseOneTimeDepositAmount(text: string): ParseResult<Ore> {
+  const result = parseKronor(text, PLAN_LIMITS.maxOneTimeDepositAmount);
+  return result.ok && result.value === 0 ? fail("Enter an amount above 0") : result;
+}
+
 /** A short name for an event. Empty text becomes `fallback`. */
 export function parseLabel(text: string, fallback = "Withdrawal"): ParseResult<string> {
   const label = text.trim();

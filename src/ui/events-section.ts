@@ -6,23 +6,28 @@ import { renderEmptyState } from "./components";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { h } from "./dom";
 import { openEventTypeDialog } from "./event-type-dialog";
+import type { EventType } from "./event-type-dialog";
+import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
 import { openWithdrawalDialog } from "./withdrawal-dialog";
 import { renderTimelineList } from "./timeline-list";
 
-/** Everything that happens in the plan besides the monthly saving: withdrawals and deposit changes. */
+/** Everything that happens in the plan besides the monthly saving: withdrawals, deposit changes and one-time deposits. */
 export function renderEventsSection(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
-  const { withdrawals, depositChanges } = scenario;
-  const total = withdrawals.length + depositChanges.length;
-  const full = {
+  const { withdrawals, depositChanges, oneTimeDeposits } = scenario;
+  const total = withdrawals.length + depositChanges.length + oneTimeDeposits.length;
+  const full: Record<EventType, boolean> = {
     withdrawal: withdrawals.length >= PLAN_LIMITS.maxWithdrawals,
     "deposit-change": depositChanges.length >= PLAN_LIMITS.maxDepositChanges,
+    "one-time-deposit": oneTimeDeposits.length >= PLAN_LIMITS.maxOneTimeDeposits,
   };
-  const everythingFull = full.withdrawal && full["deposit-change"];
+  const everythingFull = Object.values(full).every(Boolean);
 
-  const choose = (type: "withdrawal" | "deposit-change"): void =>
-    type === "withdrawal"
-      ? openWithdrawalDialog({ start: scenario.start, onSave: (draft) => actions.addWithdrawal(draft) })
-      : openDepositChangeDialog({ start: scenario.start, onSave: (draft) => actions.addDepositChange(draft) });
+  const choose = (type: EventType): void => {
+    const { start } = scenario;
+    if (type === "withdrawal") openWithdrawalDialog({ start, onSave: (draft) => actions.addWithdrawal(draft) });
+    else if (type === "deposit-change") openDepositChangeDialog({ start, onSave: (draft) => actions.addDepositChange(draft) });
+    else openOneTimeDepositDialog({ start, onSave: (draft) => actions.addOneTimeDeposit(draft) });
+  };
 
   const addButton = h(
     "button",
@@ -40,7 +45,7 @@ export function renderEventsSection(scenario: ScenarioView, state: AppState, act
   const body =
     total === 0
       ? h("div", { class: "table-card" }, renderEmptyState("No events yet", "Add a withdrawal or a change to your monthly deposit to see what it does."))
-      : renderTimelineList(scenario, buildTimeline(withdrawals, depositChanges), state, actions);
+      : renderTimelineList(scenario, buildTimeline(withdrawals, depositChanges, oneTimeDeposits), state, actions);
 
   return h(
     "section",

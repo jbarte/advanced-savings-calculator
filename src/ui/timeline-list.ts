@@ -3,6 +3,7 @@ import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { AppState, PlannedDepositChange, PlannedWithdrawal, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
+import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
 import { h } from "./dom";
 import { formatMoney, formatMoneyCompact } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
@@ -10,6 +11,7 @@ import { openWithdrawalDialog } from "./withdrawal-dialog";
 
 type WithdrawalEntry = Extract<TimelineEntry, { kind: "withdrawal" }>;
 type DepositChangeEntry = Extract<TimelineEntry, { kind: "deposit-change" }>;
+type OneTimeDepositEntry = Extract<TimelineEntry, { kind: "one-time-deposit" }>;
 
 interface RowParts {
   readonly title: string;
@@ -74,6 +76,35 @@ function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, a
   };
 }
 
+function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry, actions: Actions): RowParts {
+  const { deposit } = entry;
+  return {
+    title: deposit.label,
+    sub: `One-time deposit · ${formatYearMonth(deposit.date)}`,
+    amount: `+${formatMoney(deposit.amount)}`,
+    chips: [h("span", { class: "chip" }, STATUS_LABELS[deposit.status])],
+    impact: h("div", { role: "cell" }),
+    edit: () =>
+      openOneTimeDepositDialog({
+        start: scenario.start,
+        initial: { label: deposit.label, amount: deposit.amount, date: deposit.date },
+        onSave: (draft) => actions.updateOneTimeDeposit(deposit.id, draft),
+      }),
+    remove: () => actions.removeOneTimeDeposit(deposit.id),
+  };
+}
+
+function rowParts(scenario: ScenarioView, entry: TimelineEntry, maxCost: number, actions: Actions): RowParts {
+  switch (entry.kind) {
+    case "withdrawal":
+      return withdrawalParts(scenario, entry, maxCost, actions);
+    case "deposit-change":
+      return depositChangeParts(scenario, entry, actions);
+    case "one-time-deposit":
+      return oneTimeDepositParts(scenario, entry, actions);
+  }
+}
+
 function renderRow(
   scenario: ScenarioView,
   entry: TimelineEntry,
@@ -81,8 +112,7 @@ function renderRow(
   maxCost: number,
   actions: Actions,
 ): HTMLElement {
-  const parts =
-    entry.kind === "withdrawal" ? withdrawalParts(scenario, entry, maxCost, actions) : depositChangeParts(scenario, entry, actions);
+  const parts = rowParts(scenario, entry, maxCost, actions);
   const isSelected = entry.key === selected;
 
   return h(

@@ -49,6 +49,16 @@ export interface PlannedDepositChange {
   readonly status: EventStatus;
 }
 
+/** A one-time deposit as the UI shows it. `month` is after the plan start, and can be negative. */
+export interface PlannedOneTimeDeposit {
+  readonly id: number;
+  readonly label: string;
+  readonly date: YearMonth;
+  readonly month: number;
+  readonly amount: Ore;
+  readonly status: EventStatus;
+}
+
 export interface GoalSummary {
   readonly target: Ore;
   readonly month: number;
@@ -74,6 +84,7 @@ export interface ScenarioView {
   readonly annualReturnPct: number;
   readonly withdrawals: readonly PlannedWithdrawal[];
   readonly depositChanges: readonly PlannedDepositChange[];
+  readonly oneTimeDeposits: readonly PlannedOneTimeDeposit[];
   /** The months where the monthly deposit changes, with the new amount. */
   readonly depositLevels: readonly DepositLevel[];
   /** Null until the user has set a goal. */

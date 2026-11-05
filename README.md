@@ -25,6 +25,7 @@ long-term cost of a decision like that visible.
   growth you lose by the end of the period.
 - **Change your monthly saving over time.** Raise, lower or pause your deposit from a date
   onward, or for a period only (for example during parental leave).
+- **One-time deposits.** Add a bonus or an inheritance in a specific month.
 - **Everything on one chart.** Withdrawals and deposit changes are shown on the graph and in
   one timeline, and the graph updates with every change.
 - **Saved automatically, shareable with a link.** Your plan stays in your browser, and a link

@@ -1,11 +1,11 @@
 import { depositLevelChanges } from "../core/deposit-schedule";
 import { lostGrowth } from "../core/lost-growth";
 import { project } from "../core/project";
-import type { DepositChangeInput, PlanInput, WithdrawalInput } from "../core/types";
+import type { DepositChangeInput, OneTimeDepositInput, PlanInput, WithdrawalInput } from "../core/types";
 import { monthsBetween, yearsToMonths } from "../core/year-month";
 import type { PlanDocument } from "./plan-document";
 import { HORIZONS } from "./types";
-import type { EventStatus, PlannedDepositChange, PlannedWithdrawal, ScenarioView } from "./types";
+import type { EventStatus, PlannedDepositChange, PlannedOneTimeDeposit, PlannedWithdrawal, ScenarioView } from "./types";
 
 /** The id of the single plan shown today. Scenario comparison will add more. */
 export const PLAN_SCENARIO_ID = "plan";
@@ -33,6 +33,14 @@ function mapDepositChanges(plan: PlanDocument): DepositChangeInput[] {
   });
 }
 
+/** A one-time deposit before the start can't be projected, so it is left out. */
+function mapOneTimeDeposits(plan: PlanDocument): OneTimeDepositInput[] {
+  return plan.oneTimeDeposits.flatMap((deposit) => {
+    const month = monthsBetween(plan.start, deposit.date);
+    return month < 0 ? [] : [{ month, amount: deposit.amount, label: deposit.label }];
+  });
+}
+
 /** Dates become months after the start. A withdrawal before the start can't be projected, so it is left out. */
 function mapPlan(plan: PlanDocument, months: number): MappedPlan {
   const included = plan.withdrawals.flatMap((withdrawal) => {
@@ -49,6 +57,7 @@ function mapPlan(plan: PlanDocument, months: number): MappedPlan {
       annualReturnPct: plan.annualReturnPct,
       withdrawals: included.map((entry) => entry.input),
       depositChanges: mapDepositChanges(plan),
+      oneTimeDeposits: mapOneTimeDeposits(plan),
       months,
     },
     ids: included.map((entry) => entry.id),
@@ -98,6 +107,13 @@ export function buildScenarioView(plan: PlanDocument, name: string, horizonMonth
     })
     .sort((a, b) => a.startMonth - b.startMonth || a.id - b.id);
 
+  const oneTimeDeposits: PlannedOneTimeDeposit[] = plan.oneTimeDeposits
+    .map((deposit) => {
+      const month = monthsBetween(plan.start, deposit.date);
+      return { id: deposit.id, label: deposit.label, date: deposit.date, month, amount: deposit.amount, status: statusOf(month, horizonMonths) };
+    })
+    .sort((a, b) => a.month - b.month || a.id - b.id);
+
   return {
     id: PLAN_SCENARIO_ID,
     name,
@@ -107,6 +123,7 @@ export function buildScenarioView(plan: PlanDocument, name: string, horizonMonth
     annualReturnPct: plan.annualReturnPct,
     withdrawals,
     depositChanges,
+    oneTimeDeposits,
     depositLevels: depositLevelChanges(plan.monthlyDeposit, input.depositChanges, PROJECTION_MONTHS),
     goal: null,
     points,

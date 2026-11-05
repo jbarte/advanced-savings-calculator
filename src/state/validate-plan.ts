@@ -1,7 +1,7 @@
 import { MONTHS_PER_YEAR, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "./plan-document";
-import type { DepositChangeDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
+import type { DepositChangeDraft, OneTimeDepositDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
 
 /*
  * Hand-written checks of everything a plan is built from. They throw a RangeError that says what is wrong,
@@ -61,6 +61,12 @@ export function validateDepositChangeDraft(draft: DepositChangeDraft): void {
   }
 }
 
+export function validateOneTimeDepositDraft(draft: OneTimeDepositDraft): void {
+  assertYearMonth(draft.date, "One-time deposit date");
+  assertWholeOre(draft.amount, "One-time deposit amount", 1, PLAN_LIMITS.maxOneTimeDepositAmount);
+  assertLabel(draft.label, "One-time deposit");
+}
+
 function assertUniqueIds(ids: readonly number[], what: string): void {
   const seen = new Set<number>();
   for (const id of ids) {
@@ -84,4 +90,10 @@ export function validatePlanDocument(plan: PlanDocument): void {
   }
   assertUniqueIds(plan.depositChanges.map((change) => change.id), "deposit change");
   plan.depositChanges.forEach(validateDepositChangeDraft);
+
+  if (plan.oneTimeDeposits.length > PLAN_LIMITS.maxOneTimeDeposits) {
+    fail(`A plan can have at most ${PLAN_LIMITS.maxOneTimeDeposits} one-time deposits`);
+  }
+  assertUniqueIds(plan.oneTimeDeposits.map((deposit) => deposit.id), "one-time deposit");
+  plan.oneTimeDeposits.forEach(validateOneTimeDepositDraft);
 }

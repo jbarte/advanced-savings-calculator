@@ -9,6 +9,7 @@ import {
   parseMonthOnOrAfter,
   parseOptionalMonthNotBefore,
   parseReturnPct,
+  parseOneTimeDepositAmount,
   parseWithdrawalAmount,
   parseYearMonth,
 } from "./parse-input";
@@ -214,5 +215,18 @@ describe("parseLabel with a fallback", () => {
   it("uses the given fallback for empty text", () => {
     expect(parseLabel("", "Deposit change")).toEqual({ ok: true, value: "Deposit change" });
     expect(parseLabel("Raise", "Deposit change")).toEqual({ ok: true, value: "Raise" });
+  });
+});
+
+describe("parseOneTimeDepositAmount", () => {
+  it("accepts whole kronor from 1 up to the limit", () => {
+    expect(parseOneTimeDepositAmount("100 000")).toEqual({ ok: true, value: 10_000_000 });
+    expect(parseOneTimeDepositAmount("5 000 000")).toEqual({ ok: true, value: 500_000_000 });
+  });
+
+  it("rejects 0, more than the limit, and text", () => {
+    expect(parseOneTimeDepositAmount("0")).toEqual({ ok: false, message: "Enter an amount above 0" });
+    expect(parseOneTimeDepositAmount("5 000 001").ok).toBe(false);
+    expect(parseOneTimeDepositAmount("abc").ok).toBe(false);
   });
 });

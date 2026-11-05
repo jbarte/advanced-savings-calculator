@@ -33,7 +33,7 @@ stays in the user's browser.
 **Status:** milestones 1–3 are done: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 their lost growth shown, and the monthly deposit can be changed from a month or for a period
-(including a pause). Saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
+(including a pause); one-time deposits are being added. Saving and sharing are not built yet. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
 
 ## Tech stack
 
@@ -116,7 +116,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   displayed.
 - **The plan is a document.** `src/state/` defines one versioned, JSON-friendly
   `PlanDocument` (start capital, return, base deposit and two lists of events, withdrawals
-  and deposit changes, numbered apart, with real
+  and deposit changes and one-time deposits, numbered apart, with real
   `YearMonth` dates rather than month offsets). It is the only thing that gets saved to
   `localStorage` or put in a share link. A mapper turns it into the engine's `PlanInput`
   (dates become month offsets there). Every document has a `version`, and loading goes
@@ -167,6 +167,13 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     with an end month goes back to whatever applied before it. If two active changes have the
     same start month, the one later in the list wins. A change dated in month 0 first takes
     effect in month 1, since month 0 has no deposit.
+  - **One-time deposit:** a single extra amount in one month. It is added after the monthly deposit and before
+    that month's withdrawals, so it earns no growth in its own month and is available to a withdrawal in the
+    same month. It counts as deposited. It can be dated in month 0. One dated before the plan start is
+    `before-start` and left out of the engine input; one after the horizon is `after-horizon`. Its limits are
+    smaller than the monthly deposit's (`maxOneTimeDepositAmount` 5 000 000 kr, `maxOneTimeDeposits` 10),
+    because one in month 0 compounds for all 30 years and the largest plan must stay below
+    `Number.MAX_SAFE_INTEGER` (a test checks this).
   - **Edge cases of deposit changes:** an end month before the start month is rejected by the
     dialog and by `validate-plan.ts`, and the engine treats such a change as never active. A
     change that started before the plan start still applies from month 1 if it has no end or
@@ -174,10 +181,11 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     of the engine input (as for withdrawals). One that starts after the horizon is
     `after-horizon` and has no effect within it. Every amount is capped by `maxMonthlyDeposit`,
     so changes can never raise the worst case behind `PLAN_LIMITS`.
-- **Events are one numbered timeline.** `buildTimeline` (`src/state/timeline.ts`) merges withdrawals and
-  deposit changes in date order (same month: deposit change first, then by id) and numbers them from 1.
-  `AppState.selectedEvent` holds the selected `EventKey` (`withdrawal-<id>` or `deposit-change-<id>`; the
-  two id series are numbered apart). The list rows select through a real button with `aria-pressed`.
+- **Events are one numbered timeline.** `buildTimeline` (`src/state/timeline.ts`) merges withdrawals,
+  deposit changes and one-time deposits in date order (same month: deposit change, then one-time deposit,
+  then withdrawal, then by id) and numbers them from 1. `AppState.selectedEvent` holds the selected
+  `EventKey` (`withdrawal-<id>`, `deposit-change-<id>` or `one-time-deposit-<id>`; the id series are
+  numbered apart). The list rows select through a real button with `aria-pressed`.
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
   to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
   types, and nothing reaches the store until Save. `openFormDialog` (`src/ui/dialog-form.ts`)
@@ -298,6 +306,7 @@ with the toggle.
     │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
     │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals, validated (+ test)
     │   ├── deposit-changes.ts # Pure add/update/remove of deposit changes, validated (+ test)
+    │   ├── one-time-deposits.ts # Pure add/update/remove of one-time deposits, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
@@ -321,6 +330,7 @@ with the toggle.
     │   ├── event-type-dialog.ts # Asks which kind of event to add
     │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, lost growth
     │   ├── deposit-change-dialog.ts # Dialog to add or edit a deposit change
+    │   ├── one-time-deposit-dialog.ts # Dialog to add or edit a one-time deposit
     │   ├── withdrawal-dialog.ts # Dialog to add or edit a withdrawal
     │   ├── side-cards.ts     # Bento cards: plan inputs, goal gauge, scenario comparison
     │   ├── components.ts     # Design-system components (toggle, slider, toast, modal …)

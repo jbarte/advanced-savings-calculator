@@ -1,4 +1,4 @@
-import type { DepositChangeDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
+import type { DepositChangeDraft, OneTimeDepositDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
 import type { EventKey } from "../state/timeline";
 import type { HorizonYears, Metric } from "../state/types";
 
@@ -16,6 +16,9 @@ export interface Actions {
   addDepositChange(draft: DepositChangeDraft): void;
   updateDepositChange(id: number, draft: DepositChangeDraft): void;
   removeDepositChange(id: number): void;
+  addOneTimeDeposit(draft: OneTimeDepositDraft): void;
+  updateOneTimeDeposit(id: number, draft: OneTimeDepositDraft): void;
+  removeOneTimeDeposit(id: number): void;
   dismissNotice(): void;
   toggleTheme(): void;
   copyShareLink(): Promise<boolean>;

@@ -17,11 +17,13 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
+- **Open:** 4A is [PR #8](https://github.com/jbarte/advanced-savings-calculator/pull/8). One-time deposit is on
+  `feature/one-time-deposit`, based on the 4A branch (PR targets `main`).
 - **In progress:** milestone 4 in two PRs. The five decisions were confirmed ("go ahead"): numbered
   badges, `depositLevels` kept, badges outside the tab order, no automatic scrolling on mobile, two PRs.
   4A (timeline list, branch `feature/m4-timeline`, based on `feature/contrast-fix` because #7 was still
   open; its PR targets `main`) is done. 4B (chart) is next. Then milestone 5 (saving) and 6 (sharing).
-- **Tests:** 264 (`npm test`), typecheck and build pass.
+- **Tests:** 283 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -161,3 +163,25 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   later event).
 - **Known gaps:** the table still scrolls
   sideways below about 780 px (the phone layout is 4B); nothing on the chart reacts to the selection yet.
+
+### One-time deposit (branch `feature/one-time-deposit`)
+- **Built:**
+  - Engine: `PlanInput.oneTimeDeposits`. In every month, after the monthly deposit (and in month 0), the month's
+    one-time deposits are added and counted as deposited; then withdrawals are taken out.
+  - State: `OneTimeDepositEvent`/`Draft`, `PlanDocument.oneTimeDeposits` (still version 1: nothing is saved yet,
+    so no migration), `validateOneTimeDepositDraft`, `one-time-deposits.ts`, `PlannedOneTimeDeposit` and
+    `ScenarioView.oneTimeDeposits` with a status, and a third kind in `buildTimeline`.
+  - UI: a "One-time deposit" choice in the Add event dialog, `one-time-deposit-dialog.ts`, a third row kind in
+    the list (amount shown as `+100 000 kr`), three new actions.
+- **Decision (changed from the plan):** the limits are `maxOneTimeDepositAmount` 5 000 000 kr and
+  `maxOneTimeDeposits` 10, not the monthly deposit's amount and 50. Fifty deposits of 10 000 000 kr in month 0
+  at 50 % for 30 years would give about 9.6e15 öre, above `Number.MAX_SAFE_INTEGER`; the chosen limits fit
+  (a test builds the largest plan, with 50 deposit changes too).
+- **Checked:** 19 new tests (engine: month 0, same-month withdrawal, two in one month, after the horizon,
+  invalid input, closed form within 40 öre; state: add/update/remove/limits/duplicate ids; view model: closed
+  form +10 000 000·(1+m)^348, statuses, largest plan; timeline order; amount parser). 283 tests, typecheck.
+  In the browser the example plan's end balance went from 3 074 856 kr to 3 617 599 kr with a 100 000 kr
+  deposit in month 60: +542 743 kr, equal to 100 000 · 1.07^25. "Deposited" rose by 100 000 kr, the new row is
+  numbered before the car (same month), and the amount limit message shows in the dialog.
+  Edit (20 000 to 30 000 kr) and remove were clicked through too.
+- **Known gaps:** no marker on the chart yet (4B).
