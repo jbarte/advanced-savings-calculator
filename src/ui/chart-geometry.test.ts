@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { areaPath, axisTicks, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
+import {
+  areaPath,
+  assignLanes,
+  axisTicks,
+  bandExtent,
+  isAllZero,
+  linePath,
+  monthToPercent,
+  nearestIndex,
+  niceScale,
+  toPoints,
+  zeroLine,
+} from "./chart-geometry";
 
 describe("niceScale", () => {
   it("picks a round step and a max with headroom for positive values", () => {
@@ -137,5 +149,60 @@ describe("nearestIndex", () => {
     expect(nearestIndex(1.4, 5)).toBe(4);
     expect(nearestIndex(-1, 5)).toBe(0);
     expect(nearestIndex(0.5, 1)).toBe(0);
+  });
+});
+
+describe("monthToPercent", () => {
+  it("maps months onto 0–100 and clamps outside the range", () => {
+    expect(monthToPercent(0, 120)).toBe(0);
+    expect(monthToPercent(60, 120)).toBe(50);
+    expect(monthToPercent(120, 120)).toBe(100);
+    expect(monthToPercent(-5, 120)).toBe(0);
+    expect(monthToPercent(500, 120)).toBe(100);
+  });
+});
+
+describe("bandExtent", () => {
+  it("gives the left edge and width of a period inside the horizon", () => {
+    expect(bandExtent(12, 24, 120)).toEqual({ left: 10, width: 10 });
+  });
+
+  it("clips a period that starts before the plan or ends after the horizon", () => {
+    expect(bandExtent(-6, 12, 120)).toEqual({ left: 0, width: 10 });
+    expect(bandExtent(108, 300, 120)).toEqual({ left: 90, width: 10 });
+  });
+
+  it("is null when the period is entirely outside the horizon", () => {
+    expect(bandExtent(-10, -1, 120)).toBeNull();
+    expect(bandExtent(121, 130, 120)).toBeNull();
+  });
+});
+
+describe("assignLanes", () => {
+  it("keeps well-spaced items in the first lane", () => {
+    expect(assignLanes([5, 30, 70], 6, 4)).toEqual([0, 0, 0]);
+  });
+
+  it("moves an item that is too close to the previous one into the next lane", () => {
+    expect(assignLanes([10, 12], 6, 4)).toEqual([0, 1]);
+    expect(assignLanes([10, 16], 6, 4)).toEqual([0, 0]);
+  });
+
+  it("reuses a lane once there is room again", () => {
+    expect(assignLanes([10, 11, 12, 40], 6, 4)).toEqual([0, 1, 2, 0]);
+  });
+
+  it("returns lanes in the order of the input, whatever its order", () => {
+    expect(assignLanes([12, 10, 11], 6, 4)).toEqual([2, 0, 1]);
+  });
+
+  it("never uses more lanes than allowed, even when everything overlaps", () => {
+    const lanes = assignLanes([10, 10, 10, 10, 10, 10], 6, 3);
+    expect(Math.max(...lanes)).toBe(2);
+    expect(lanes).toHaveLength(6);
+  });
+
+  it("handles no items", () => {
+    expect(assignLanes([], 6, 4)).toEqual([]);
   });
 });

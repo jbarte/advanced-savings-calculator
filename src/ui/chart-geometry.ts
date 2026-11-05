@@ -69,3 +69,44 @@ export function nearestIndex(fraction: number, count: number): number {
   const clamped = Math.min(1, Math.max(0, fraction));
   return Math.round(clamped * (count - 1));
 }
+
+/** Where a month falls along the x axis, as 0–100. Months outside the horizon are clamped to the edges. */
+export function monthToPercent(month: number, totalMonths: number): number {
+  return Math.min(100, Math.max(0, (month / totalMonths) * 100));
+}
+
+export interface Band {
+  readonly left: number;
+  readonly width: number;
+}
+
+/** The part of a period (both months included) that lies inside the horizon, or null when none of it does. */
+export function bandExtent(startMonth: number, endMonth: number, totalMonths: number): Band | null {
+  if (endMonth < 0 || startMonth > totalMonths) return null;
+  const left = monthToPercent(startMonth, totalMonths);
+  return { left, width: monthToPercent(endMonth, totalMonths) - left };
+}
+
+/**
+ * Gives each badge a lane (a row, counted from 0) so that badges closer than `minGap` (in percent of the
+ * width) do not sit on top of each other. First fit from the left; when every allowed lane is taken, the one
+ * whose last badge is furthest away is shared. Lanes come back in the order of the input.
+ */
+export function assignLanes(positions: readonly number[], minGap: number, maxLanes: number): number[] {
+  const lastInLane: number[] = [];
+  const lanes: number[] = new Array<number>(positions.length).fill(0);
+  const order = positions.map((_, index) => index).sort((a, b) => (positions[a] ?? 0) - (positions[b] ?? 0) || a - b);
+
+  for (const index of order) {
+    const x = positions[index] ?? 0;
+    let lane = lastInLane.findIndex((last) => x - last >= minGap);
+    if (lane === -1) {
+      if (lastInLane.length < maxLanes) lane = lastInLane.length;
+      else lane = lastInLane.indexOf(Math.min(...lastInLane));
+    }
+    lastInLane[lane] = x;
+    lanes[index] = lane;
+  }
+  return lanes;
+}
+

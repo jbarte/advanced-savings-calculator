@@ -2,7 +2,10 @@ import { yearsToMonths } from "../core/year-month";
 import { HORIZONS, METRICS } from "../state/types";
 import type { AppState, Metric, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
+import { buildTimeline } from "../state/timeline";
+import type { TimelineEntry } from "../state/timeline";
 import { areaPath, axisTicks, isAllZero, linePath, nearestIndex, niceScale, toPoints, zeroLine } from "./chart-geometry";
+import { renderChartEvents, renderChartLegend } from "./chart-events";
 import { renderEmptyState } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
@@ -79,7 +82,8 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
   );
 }
 
-export function renderChartCard(scenario: ScenarioView, state: AppState): HTMLElement {
+export function renderChartCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+  const timeline = buildTimeline(scenario.withdrawals, scenario.depositChanges, scenario.oneTimeDeposits);
   return h(
     "section",
     { class: "card card--chart", "aria-labelledby": "chart-heading" },
@@ -89,21 +93,32 @@ export function renderChartCard(scenario: ScenarioView, state: AppState): HTMLEl
       h("h2", { id: "chart-heading" }, `${METRIC_LABELS[state.metric]} over time`),
       h("span", { class: "card__meta" }, `${scenario.start.year}–${scenario.start.year + state.horizon}`),
     ),
-    renderChartOrEmptyState(scenario, state),
+    renderChartOrEmptyState(scenario, state, timeline, actions),
+    renderChartLegend(timeline),
   );
 }
 
-function renderChartOrEmptyState(scenario: ScenarioView, state: AppState): HTMLElement {
+function renderChartOrEmptyState(
+  scenario: ScenarioView,
+  state: AppState,
+  timeline: readonly TimelineEntry[],
+  actions: Actions,
+): HTMLElement {
   if (!scenario.points.some((p) => p.balance > 0)) {
     return renderEmptyState("Nothing to show yet", "Enter a start amount or a monthly deposit to see your projection.");
   }
   if (isAllZero(visiblePoints(scenario, state.horizon).map((p) => p[state.metric]))) {
     return renderEmptyState(EMPTY_METRIC_TITLES[state.metric], "This shows up here once your plan includes it.");
   }
-  return renderChart(scenario, state);
+  return renderChart(scenario, state, timeline, actions);
 }
 
-function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
+function renderChart(
+  scenario: ScenarioView,
+  state: AppState,
+  timeline: readonly TimelineEntry[],
+  actions: Actions,
+): HTMLElement {
   const points = visiblePoints(scenario, state.horizon);
   const values = points.map((p) => p[state.metric]);
   const scale = niceScale(Math.min(...values), Math.max(...values));
@@ -128,26 +143,6 @@ function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
     s("path", { class: "chart__area", d: areaPath(coords, zeroY) }),
     s("path", { class: "chart__line", d: linePath(coords) }),
   );
-
-  const markers = scenario.withdrawals
-    .filter((w) => w.status === "planned")
-    .map((w) =>
-      h(
-        "div",
-        { class: "chart__marker", style: `left:${(w.month / totalMonths) * 100}%` },
-        h("span", {}, `−${formatMoneyCompact(w.applied)}`),
-      ),
-    );
-
-  const depositMarkers = scenario.depositLevels
-    .filter((level) => level.month <= totalMonths)
-    .map((level) =>
-      h(
-        "div",
-        { class: "chart__marker chart__marker--deposit", style: `left:${(level.month / totalMonths) * 100}%` },
-        h("span", {}, level.amount === 0 ? "Paused" : `${formatMoneyCompact(level.amount)}/mo`),
-      ),
-    );
 
   const cursor = h("div", { class: "chart__cursor" });
   const dot = h("div", { class: "chart__dot" });
@@ -195,8 +190,7 @@ function renderChart(scenario: ScenarioView, state: AppState): HTMLElement {
     h("div", { class: "chart__grid", "aria-hidden": "true" }, ...ticks.map(() => h("div"))),
     scale.min < 0 ? h("div", { class: "chart__zero", style: `top:${zeroY}%`, "aria-hidden": "true" }) : null,
     svg,
-    ...markers,
-    ...depositMarkers,
+    ...renderChartEvents(timeline, totalMonths, state.selectedEvent, actions),
     cursor,
     dot,
     tooltip,

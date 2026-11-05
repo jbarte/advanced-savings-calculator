@@ -548,55 +548,6 @@ button {
   font-size: var(--text-xl);
 }
 
-.chart__marker--deposit {
-  border-left-style: dotted;
-}
-
-/* Same specificity as the base marker label, so it is written as two classes to win regardless of order. */
-.chart__marker.chart__marker--deposit span {
-  top: auto;
-  bottom: var(--space-1);
-}
-
-.choices {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
-.choice {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  box-shadow: var(--shadow-raised);
-  text-align: left;
-}
-
-.choice:hover:not(:disabled) {
-  box-shadow: var(--shadow-float);
-}
-
-.choice:disabled {
-  opacity: 0.5;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-.choice:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-lift), var(--glow-focus);
-}
-
-.choice__hint {
-  font-size: var(--text-sm);
-  color: var(--muted);
-}
-
 .chart__zero {
   position: absolute;
   left: 0;
@@ -619,21 +570,112 @@ button {
   top: 0;
   bottom: 0;
   width: 0;
-  border-left: 1px dashed var(--accent);
+  border-left: var(--border-1) dashed var(--elevated);
   pointer-events: none;
 }
 
-.chart__marker span {
+.chart__marker--deposit-change {
+  border-left: var(--border-1) dotted var(--solid);
+}
+
+.chart__marker--one-time-deposit {
+  border-left: var(--border-1) dotted var(--accent-ink);
+}
+
+.chart__marker[aria-current="true"] {
+  border-left-style: solid;
+  border-left-width: var(--border-3);
+}
+
+.chart__band {
   position: absolute;
   top: 0;
-  left: 6px;
+  bottom: 0;
+  background: color-mix(in oklab, var(--solid) 14%, transparent);
+  pointer-events: none;
+}
+
+.chart__band[aria-current="true"] {
+  background: color-mix(in oklab, var(--solid) 28%, transparent);
+  box-shadow: inset 0 0 0 var(--border-1) var(--solid);
+}
+
+/* Numbered badges. The colours match the badges in the list. */
+.chart__badge {
+  position: absolute;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  transform: translateX(-50%);
+  border: 0;
+  border-radius: var(--radius-pill);
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent-ink);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-on-color);
+}
+
+.chart__badge[aria-pressed="true"] {
+  box-shadow: var(--glow-focus);
+}
+
+.chart__badge--withdrawal {
+  background: var(--elevated);
+  color: var(--on-solid);
+}
+
+.chart__badge--deposit-change {
+  background: var(--solid);
+  color: var(--on-solid);
+}
+
+.chart__badge--one-time-deposit {
   background: var(--accent-soft);
-  padding: 2px 6px;
-  border-radius: 6px;
-  white-space: nowrap;
+  color: var(--accent-ink);
+  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink);
+}
+
+.chart__badge--one-time-deposit[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink), var(--glow-focus);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--ink2);
+}
+
+.legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legend__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+}
+
+.legend__swatch--withdrawal {
+  background: var(--elevated);
+}
+
+.legend__swatch--deposit-change {
+  background: var(--solid);
+}
+
+.legend__swatch--one-time-deposit {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink);
 }
 
 .chart__cursor {
@@ -778,6 +820,23 @@ button {
   font-family: var(--font-mono);
   font-weight: 600;
   font-size: var(--text-sm);
+}
+
+/* The same colours as the badges on the chart. */
+.table__badge--withdrawal {
+  background: var(--elevated);
+  color: var(--on-solid);
+}
+
+.table__badge--deposit-change {
+  background: var(--solid);
+  color: var(--on-solid);
+}
+
+.table__badge--one-time-deposit {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  box-shadow: inset 0 0 0 var(--border-2) var(--accent-ink);
 }
 
 .table__title {
@@ -1730,5 +1789,52 @@ button {
 
   .ds {
     padding: var(--space-3);
+  }
+}
+
+/* ---------- Events list on a phone ---------- */
+
+/* Each row becomes a small card: the title and actions on top, then amount, status and lost growth. */
+@media (max-width: 760px) {
+  .table {
+    min-width: 0;
+  }
+
+  .table__row--head {
+    display: none;
+  }
+
+  .table__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "who actions"
+      "amount chips"
+      "impact impact";
+    row-gap: var(--space-2);
+  }
+
+  .table__who {
+    grid-area: who;
+  }
+
+  .table__actions {
+    grid-area: actions;
+  }
+
+  .table__amount {
+    grid-area: amount;
+  }
+
+  .table__chips {
+    grid-area: chips;
+    justify-content: flex-end;
+  }
+
+  .impact {
+    grid-area: impact;
+  }
+
+  .impact-empty {
+    display: none;
   }
 }
