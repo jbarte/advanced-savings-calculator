@@ -204,3 +204,8 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   (lanes run out); the first badge at the far left or right edge can reach past the plot by half its width;
   badges are not reachable with Tab by design; no automated test for the DOM (no jsdom), so the chart layer was
   checked by hand.
+- **Fix found after review:** my CSS cleanup for the old chart marker labels deleted everything between two
+  selectors by position, which also removed the `.choice` and `.choices` rules of the Add event dialog (the
+  options lost their cards and ran together). Restored from `main`. Only this branch was affected. Lesson: after
+  removing CSS by range, list every removed line (`git diff main -- src/styles/app.css | grep '^-'`).
+
