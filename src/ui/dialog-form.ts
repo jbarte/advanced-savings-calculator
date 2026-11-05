@@ -2,6 +2,7 @@ import { MONTHS_PER_YEAR, earlierOf } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { openModal, renderModal } from "./components";
 import { h } from "./dom";
+import { messages } from "./i18n";
 
 /** A new event starts one year after the plan start in its dialog. It is a starting point, not a rule. */
 export const DEFAULT_MONTHS_AHEAD = MONTHS_PER_YEAR;
@@ -52,7 +53,7 @@ export function openFormDialog(props: FormDialogProps): void {
     title: props.title,
     body,
     primaryLabel: props.primaryLabel,
-    secondaryLabel: "Cancel",
+    secondaryLabel: messages.common.cancel,
     onPrimary: props.save,
   });
   body.addEventListener("keydown", (event) => {

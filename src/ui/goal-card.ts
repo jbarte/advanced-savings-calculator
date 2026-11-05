@@ -8,6 +8,7 @@ import { formatMoney, formatMoneyCompact } from "./format";
 import { horizonEndOf, openGoalDialog } from "./goal-dialog";
 import { requiredDepositText } from "./goal-text";
 import { monthLabel } from "./view-helpers";
+import { messages } from "./i18n";
 
 /* The gauge is an arc whose length is drawn as 100 units, so a share of 62 % is a dash of 62. */
 const GAUGE_ARC = "M22 104 A78 78 0 0 1 178 104";
@@ -37,7 +38,7 @@ function renderGauge(goal: GoalSummary): HTMLElement {
       "div",
       { class: "gauge__label" },
       h("div", { class: "gauge__number" }, h("strong", {}, String(pct)), h("span", {}, "%")),
-      h("span", { class: "card__meta" }, `of ${formatMoney(goal.target)}`),
+      h("span", { class: "card__meta" }, messages.goalCard.ofTarget(formatMoney(goal.target))),
     ),
   );
 }
@@ -58,8 +59,8 @@ function editGoal(scenario: ScenarioView, goal: GoalSummary, actions: Actions): 
 /** What to say about a goal date the calculator can't project. */
 function outsideMessage(goal: GoalSummary): string {
   return goal.status === "before-start"
-    ? "The goal date is before the plan starts. Edit the goal to see how you stand."
-    : `The goal date is more than ${PLAN_LIMITS.maxHorizonYears} years after the plan starts, further than the calculator looks.`;
+    ? messages.goalCard.beforeStart
+    : messages.goalCard.afterProjection(PLAN_LIMITS.maxHorizonYears);
 }
 
 function renderGoalDetails(scenario: ScenarioView, goal: GoalSummary): HTMLElement[] {
@@ -68,20 +69,20 @@ function renderGoalDetails(scenario: ScenarioView, goal: GoalSummary): HTMLEleme
   const deposit = requiredDepositText(goal.requiredMonthly, scenario.monthlyDeposit);
   const reached =
     goal.reachedMonth === null
-      ? `Not within ${PLAN_LIMITS.maxHorizonYears} years`
+      ? messages.goalCard.notWithin(PLAN_LIMITS.maxHorizonYears)
       : formatYearMonth(addMonths(scenario.start, goal.reachedMonth));
   return [
     renderGauge(goal),
     h(
       "dl",
       { class: "stats" },
-      stat("Projected balance", formatMoney(goal.balanceAtGoal)),
-      stat("Monthly deposit needed", deposit.value),
-      stat("Goal reached", reached),
-      stat("Goal, inflation adjusted", formatMoney(goal.targetInflationAdjusted)),
+      stat(messages.goalCard.projected, formatMoney(goal.balanceAtGoal)),
+      stat(messages.goalCard.depositNeeded, deposit.value),
+      stat(messages.goalCard.reached, reached),
+      stat(messages.goalCard.adjusted, formatMoney(goal.targetInflationAdjusted)),
     ),
     h("p", { class: "card__meta goal__message" }, deposit.note),
-    goal.withinHorizon ? null : h("p", { class: "card__meta goal__message" }, "The goal date is after your end year, so it is not on the chart."),
+    goal.withinHorizon ? null : h("p", { class: "card__meta goal__message" }, messages.goalCard.afterEndYear),
   ].filter((element): element is HTMLElement => element !== null);
 }
 
@@ -91,7 +92,7 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
 
   if (goal === null) {
     const setGoalButton = renderButton({
-      label: "Set a goal",
+      label: messages.goalCard.setButton,
       onClick: () =>
         openGoalDialog({
           start: scenario.start,
@@ -104,21 +105,21 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
     return h(
       "section",
       { class: "card", "aria-labelledby": "goal-heading", role: "group" },
-      h("div", { class: "card__head" }, h("h2", { id: "goal-heading" }, "Savings goal")),
-      h("p", { class: "card__meta goal__message" }, "Pick an amount and a date to see how much you need to save each month."),
+      h("div", { class: "card__head" }, h("h2", { id: "goal-heading" }, messages.goalCard.heading)),
+      h("p", { class: "card__meta goal__message" }, messages.goalCard.prompt),
       setGoalButton,
     );
   }
 
   const chip =
-    goal.status !== "ok" ? null : h("span", { class: "status" }, goal.shortfall === 0 ? "On track" : `Short ${formatMoneyCompact(goal.shortfall)}`);
+    goal.status !== "ok" ? null : h("span", { class: "status" }, goal.shortfall === 0 ? messages.goalCard.onTrack : messages.goalCard.short(formatMoneyCompact(goal.shortfall)));
   return h(
     "section",
     { class: "card", "aria-labelledby": "goal-heading", role: "group" },
     h(
       "div",
       { class: "card__head" },
-      h("h2", { id: "goal-heading" }, `Goal by ${monthLabel(scenario, goal.month)}`),
+      h("h2", { id: "goal-heading" }, messages.goalCard.title(monthLabel(scenario, goal.month))),
       h(
         "div",
         { class: "card__head-side" },
@@ -126,7 +127,7 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
         h(
           "button",
           { class: "btn-text", type: "button", "data-key": "goal-edit", onclick: () => editGoal(scenario, goal, actions) },
-          "Edit",
+          messages.common.edit,
         ),
         h(
           "button",
@@ -135,10 +136,10 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
             type: "button",
             "data-key": "goal-remove",
             "data-focus-next": "goal-set",
-            "aria-label": "Remove goal",
+            "aria-label": messages.goalCard.removeAria,
             onclick: () => actions.clearGoal(),
           },
-          "Remove",
+          messages.common.remove,
         ),
       ),
     ),

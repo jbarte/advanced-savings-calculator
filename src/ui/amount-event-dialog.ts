@@ -6,6 +6,7 @@ import { DEFAULT_MONTHS_AHEAD, earliestMonth, inputIn, openFormDialog, showError
 import { formatKronor } from "./format";
 import { errorMessage, monthInputValue, parseLabel, parseMonthOnOrAfter } from "./parse-input";
 import type { ParseResult } from "./parse-input";
+import { messages } from "./i18n";
 
 /** An event made of a label, an amount and one month: a withdrawal or a one-time deposit. */
 export interface AmountEventDraft {
@@ -18,8 +19,10 @@ export interface AmountEventDraft {
 export interface AmountEventKind {
   /** Prefix for the field ids and focus keys, e.g. "withdrawal". */
   readonly key: string;
-  /** Used for the label when the field is left empty, and in the titles ("Add withdrawal"). */
+  /** Used for the label when the field is left empty. */
   readonly name: string;
+  /** The dialog titles when adding and when editing. */
+  readonly titles: { readonly add: string; readonly edit: string };
   readonly parseAmount: (text: string) => ParseResult<Ore>;
 }
 
@@ -42,7 +45,7 @@ export function openAmountEventDialog(kind: AmountEventKind, props: AmountEventD
 
   const label = renderTextField({
     id: `${kind.key}-label`,
-    label: "Label",
+    label: messages.common.label,
     unit: "",
     value: initial?.label ?? "",
     dataKey: `${kind.key}-label`,
@@ -52,8 +55,8 @@ export function openAmountEventDialog(kind: AmountEventKind, props: AmountEventD
   });
   const amount = renderTextField({
     id: `${kind.key}-amount`,
-    label: "Amount",
-    unit: "KR",
+    label: messages.common.amount,
+    unit: messages.units.currencyField,
     value: initial ? formatKronor(initial.amount) : "",
     dataKey: `${kind.key}-amount`,
     inputMode: "numeric",
@@ -62,12 +65,12 @@ export function openAmountEventDialog(kind: AmountEventKind, props: AmountEventD
   });
   const month = renderTextField({
     id: `${kind.key}-month`,
-    label: "Month",
+    label: messages.common.month,
     unit: "",
     type: "month",
     value: monthInputValue(initial?.date ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
     dataKey: `${kind.key}-month`,
-    placeholder: "YYYY-MM",
+    placeholder: messages.common.yearMonthPlaceholder,
     validate: errorMessage((text) => parseMonthOnOrAfter(text, earliest)),
     onCommit: nothing,
   });
@@ -85,10 +88,9 @@ export function openAmountEventDialog(kind: AmountEventKind, props: AmountEventD
     return true;
   };
 
-  const lowerName = kind.name.charAt(0).toLowerCase() + kind.name.slice(1);
   openFormDialog({
-    title: initial ? `Edit ${lowerName}` : `Add ${lowerName}`,
-    primaryLabel: initial ? "Save" : "Add",
+    title: initial ? kind.titles.edit : kind.titles.add,
+    primaryLabel: initial ? messages.common.save : messages.common.add,
     fields: [label, amount, month],
     save,
   });

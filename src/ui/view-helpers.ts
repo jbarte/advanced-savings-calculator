@@ -1,10 +1,11 @@
 import { addMonths, formatYearMonth } from "../core/year-month";
 import type { EventStatus, ProjectionPoint, ScenarioView } from "../state/types";
+import { messages } from "./i18n";
 
 export const STATUS_LABELS: Record<EventStatus, string> = {
-  planned: "Planned",
-  "after-horizon": "After the end year",
-  "before-start": "Before start",
+  planned: messages.status.planned,
+  "after-horizon": messages.status.afterHorizon,
+  "before-start": messages.status.beforeStart,
 };
 
 /** The points up to the plan's horizon, which is where the chart and the headline end. */

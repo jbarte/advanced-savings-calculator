@@ -5,15 +5,16 @@ import type { Actions } from "./actions";
 import { assignLanes, bandExtent, monthToPercent } from "./chart-geometry";
 import { h } from "./dom";
 import { formatMoney } from "./format";
+import { messages } from "./i18n";
 
 /** Badges closer than this (percent of the plot width) go in different lanes. About one badge on a phone. */
 const MIN_BADGE_GAP = 8;
 const MAX_LANES = 6;
 
 const KIND_LABELS: Record<TimelineEntry["kind"], string> = {
-  withdrawal: "Withdrawal",
-  "deposit-change": "Deposit change",
-  "one-time-deposit": "One-time deposit",
+  withdrawal: messages.kinds.withdrawal,
+  "deposit-change": messages.kinds.depositChange,
+  "one-time-deposit": messages.kinds.oneTimeDeposit,
 };
 
 /** One short sentence about an event, used as the hover text and the accessible name of its badge. */
@@ -21,17 +22,21 @@ function describe(entry: TimelineEntry): string {
   switch (entry.kind) {
     case "withdrawal": {
       const { withdrawal } = entry;
-      return `${withdrawal.label}: take out ${formatMoney(withdrawal.applied)} in ${formatYearMonth(withdrawal.date)}`;
+      return messages.chart.withdrawal(withdrawal.label, formatMoney(withdrawal.applied), formatYearMonth(withdrawal.date));
     }
     case "deposit-change": {
       const { change } = entry;
-      const what = change.amount === 0 ? "pause saving" : `save ${formatMoney(change.amount)} a month`;
-      const until = change.endDate === null ? "" : ` until ${formatYearMonth(change.endDate)}`;
-      return `${change.label}: ${what} from ${formatYearMonth(change.startDate)}${until}`;
+      return messages.chart.depositChange(
+        change.label,
+        change.amount === 0,
+        formatMoney(change.amount),
+        formatYearMonth(change.startDate),
+        change.endDate === null ? null : formatYearMonth(change.endDate),
+      );
     }
     case "one-time-deposit": {
       const { deposit } = entry;
-      return `${deposit.label}: add ${formatMoney(deposit.amount)} in ${formatYearMonth(deposit.date)}`;
+      return messages.chart.oneTimeDeposit(deposit.label, formatMoney(deposit.amount), formatYearMonth(deposit.date));
     }
   }
 }
@@ -59,7 +64,7 @@ function marker(entry: TimelineEntry, x: number, selected: boolean): HTMLElement
 
 function badge(entry: TimelineEntry, x: number, lane: number, selected: EventKey | null, actions: Actions): HTMLElement {
   const isSelected = entry.key === selected;
-  const text = describe(entry);
+  const description = describe(entry);
   // Outside the tab order on purpose: the list rows are the keyboard path to the same events.
   return h(
     "button",
@@ -69,8 +74,8 @@ function badge(entry: TimelineEntry, x: number, lane: number, selected: EventKey
       tabindex: -1,
       style: `left:${x}%;--lane:${lane}`,
       "aria-pressed": String(isSelected),
-      "aria-label": `Event ${entry.number}: ${text}`,
-      title: text,
+      "aria-label": messages.chart.eventLabel(entry.number, description),
+      title: description,
       onclick: () => actions.selectEvent(isSelected ? null : entry.key, chartMonthOf(entry)),
     },
     String(entry.number),
@@ -112,7 +117,7 @@ export function renderChartLegend(timeline: readonly TimelineEntry[], showGoal: 
       ),
     );
   const goal = showGoal
-    ? h("li", { class: "legend__item" }, h("span", { class: "legend__swatch legend__swatch--goal", "aria-hidden": "true" }), "Goal")
+    ? h("li", { class: "legend__item" }, h("span", { class: "legend__swatch legend__swatch--goal", "aria-hidden": "true" }), messages.chart.goalLegend)
     : null;
-  return h("ul", { class: "legend", "aria-label": "On the chart" }, ...items, goal);
+  return h("ul", { class: "legend", "aria-label": messages.chart.legendLabel }, ...items, goal);
 }

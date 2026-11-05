@@ -9,6 +9,7 @@ import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKr
 import type { ParseResult } from "./parse-input";
 import { openStartOverDialog } from "./start-over-dialog";
 import { lastPoint } from "./view-helpers";
+import { messages } from "./i18n";
 
 interface ParsedFieldProps<T> {
   readonly id: string;
@@ -44,11 +45,12 @@ function renderParsedField<T>(props: ParsedFieldProps<T>): HTMLElement {
 
 /** What the Plan card says about where the plan lives. */
 function planStatusText(state: AppState): string {
-  if (state.planOrigin === "shared") return "Shared plan · not saved";
+  const status = messages.planCard.status;
+  if (state.planOrigin === "shared") return status.shared;
   const isExample = state.planOrigin === "example";
-  if (state.storage === "blocked") return isExample ? "Example plan · not saved" : "Not saved: storage is blocked";
-  if (state.storage === "saved") return "Saved in this browser";
-  return isExample ? "Example plan" : "My plan";
+  if (state.storage === "blocked") return isExample ? status.exampleUnsaved : status.ownUnsaved;
+  if (state.storage === "saved") return status.saved;
+  return isExample ? status.example : status.own;
 }
 
 function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
@@ -70,7 +72,7 @@ function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
             "data-focus-next": "start-over",
             onclick: () => actions.startFromScratch(),
           },
-          "Start from scratch",
+          messages.plan.startFromScratch,
         )
       : h(
           "button",
@@ -81,7 +83,7 @@ function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
             "data-focus-next": "start-from-scratch",
             onclick: () => openStartOverDialog(() => actions.startOver()),
           },
-          "Start over",
+          messages.planCard.startOver,
         ),
   );
 }
@@ -92,14 +94,14 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
   return h(
     "section",
     { class: "card", "aria-labelledby": "inputs-heading" },
-    h("div", { class: "card__head" }, h("h2", { id: "inputs-heading" }, "Plan"), side),
+    h("div", { class: "card__head" }, h("h2", { id: "inputs-heading" }, messages.planCard.heading), side),
     h(
       "div",
       { class: "fields" },
       renderParsedField({
         id: "start-amount",
-        label: "Start amount",
-        unit: "KR",
+        label: messages.planCard.fields.startAmount,
+        unit: messages.units.currencyField,
         value: formatKronor(scenario.startAmount),
         dataKey: "plan-start-amount",
         inputMode: "numeric",
@@ -108,8 +110,8 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
       }),
       renderParsedField({
         id: "monthly-deposit",
-        label: "Monthly deposit",
-        unit: "KR/MO",
+        label: messages.planCard.fields.monthlyDeposit,
+        unit: messages.units.perMonthField,
         value: formatKronor(scenario.monthlyDeposit),
         dataKey: "plan-monthly-deposit",
         inputMode: "numeric",
@@ -118,8 +120,8 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
       }),
       renderParsedField({
         id: "annual-return",
-        label: "Expected return",
-        unit: "%/YR",
+        label: messages.planCard.fields.expectedReturn,
+        unit: messages.units.percentPerYearField,
         value: String(scenario.annualReturnPct),
         dataKey: "plan-annual-return",
         inputMode: "decimal",
@@ -128,8 +130,8 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
       }),
       renderParsedField({
         id: "inflation",
-        label: "Inflation",
-        unit: "%/YR",
+        label: messages.planCard.fields.inflation,
+        unit: messages.units.percentPerYearField,
         value: String(scenario.inflationPct),
         dataKey: "plan-inflation",
         inputMode: "decimal",
@@ -138,19 +140,19 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
       }),
       renderParsedField({
         id: "start-date",
-        label: "Start",
+        label: messages.planCard.fields.start,
         unit: "",
         value: monthInputValue(scenario.start),
         dataKey: "plan-start-date",
         type: "month",
-        placeholder: "YYYY-MM",
+        placeholder: messages.common.yearMonthPlaceholder,
         parse: parseYearMonth,
         apply: (start) => actions.updatePlan({ start }),
       }),
       renderParsedField({
         id: "end-year",
-        label: "End year",
-        unit: `${scenario.horizonMonths / MONTHS_PER_YEAR} YRS`,
+        label: messages.planCard.fields.endYear,
+        unit: messages.units.yearsField(scenario.horizonMonths / MONTHS_PER_YEAR),
         value: String(addMonths(scenario.start, scenario.horizonMonths).year),
         dataKey: "plan-end-year",
         inputMode: "numeric",
@@ -191,8 +193,8 @@ export function renderComparisonCard(
     h(
       "div",
       { class: "card__head" },
-      h("h2", { id: "compare-heading" }, "Compare"),
-      h("span", { class: "card__meta" }, `End balance · ${active.horizonMonths / MONTHS_PER_YEAR} yrs`),
+      h("h2", { id: "compare-heading" }, messages.compare.heading),
+      h("span", { class: "card__meta" }, messages.compare.endBalance(active.horizonMonths / MONTHS_PER_YEAR)),
     ),
     ...rows,
   );

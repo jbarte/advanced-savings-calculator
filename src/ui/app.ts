@@ -10,6 +10,7 @@ import { renderGoalCard } from "./goal-card";
 import { renderComparisonCard, renderInputsCard } from "./side-cards";
 import { renderAppBar } from "./topbar";
 import { renderEventsSection } from "./events-section";
+import { messages } from "./i18n";
 
 export interface AppView {
   readonly scenarios: readonly ScenarioView[];
@@ -49,11 +50,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
         scenarios.length > 1 ? renderComparisonCard(scenarios, active, actions) : null,
       ),
       renderEventsSection(active, timeline, state, actions),
-      h(
-        "p",
-        { class: "disclaimer" },
-        "Projections assume a constant return and are estimates only. This is not financial advice.",
-      ),
+      h("p", { class: "disclaimer" }, messages.app.disclaimer),
     ),
   );
 

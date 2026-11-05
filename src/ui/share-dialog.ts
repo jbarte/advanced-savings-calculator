@@ -1,10 +1,7 @@
 import type { Actions } from "./actions";
 import { openModal, renderModal } from "./components";
 import { h } from "./dom";
-
-const PRIVACY_NOTE =
-  "Anyone with this link can see your plan: the amounts, dates and labels. The plan is inside the link itself, " +
-  "and this app has no server. The link does stay in your browser history and wherever you paste it.";
+import { messages } from "./i18n";
 
 /** Runs `action` and returns false, which keeps the dialog open so the result of the action can be read. */
 function keepOpenAfter(action: () => Promise<void>): () => boolean {
@@ -33,29 +30,29 @@ export async function openShareDialog(actions: Actions): Promise<void> {
           readonly: true,
           value: link,
           "data-key": "share-link",
-          "aria-label": "Share link",
+          "aria-label": messages.share.linkLabel,
           onfocus: (event: Event) => (event.target as HTMLInputElement).select(),
         });
 
   const copy = async (): Promise<void> => {
     if (link === null) return;
     const copied = await actions.copyToClipboard(link);
-    status.textContent = copied ? "Link copied" : "Could not copy. Select the link and copy it yourself.";
+    status.textContent = copied ? messages.share.copied : messages.share.copyFailed;
     field?.focus();
   };
 
   openModal(
     renderModal({
-      title: "Share this plan",
+      title: messages.share.title,
       body: h(
         "div",
         { class: "modal__body" },
-        h("p", { class: "modal__text share__note" }, link === null ? "The link could not be created." : PRIVACY_NOTE),
+        h("p", { class: "modal__text share__note" }, link === null ? messages.share.couldNotCreate : messages.share.privacyNote),
         field,
         status,
       ),
-      ...(link === null ? {} : { primaryLabel: "Copy link", onPrimary: keepOpenAfter(copy) }),
-      secondaryLabel: "Close",
+      ...(link === null ? {} : { primaryLabel: messages.share.copyLink, onPrimary: keepOpenAfter(copy) }),
+      secondaryLabel: messages.common.close,
     }),
   );
 }

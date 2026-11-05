@@ -13,6 +13,7 @@ import {
   parseOptionalMonthNotBefore,
   parseYearMonth,
 } from "./parse-input";
+import { messages } from "./i18n";
 
 export interface DepositChangeDialogProps {
   /** The plan's start month. A change can't start earlier. */
@@ -21,8 +22,6 @@ export interface DepositChangeDialogProps {
   readonly initial?: DepositChangeDraft;
   readonly onSave: (draft: DepositChangeDraft) => void;
 }
-
-const DEFAULT_LABEL = "Deposit change";
 
 /**
  * A dialog to change the monthly deposit from a month onward, or only for a period. An amount of 0 pauses
@@ -35,18 +34,18 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
 
   const label = renderTextField({
     id: "deposit-label",
-    label: "Label",
+    label: messages.common.label,
     unit: "",
     value: initial?.label ?? "",
     dataKey: "deposit-label",
-    placeholder: DEFAULT_LABEL,
-    validate: errorMessage((text) => parseLabel(text, DEFAULT_LABEL)),
+    placeholder: messages.kinds.depositChange,
+    validate: errorMessage((text) => parseLabel(text, messages.kinds.depositChange)),
     onCommit: nothing,
   });
   const amount = renderTextField({
     id: "deposit-amount",
-    label: "New monthly deposit (0 pauses saving)",
-    unit: "KR/MO",
+    label: messages.dialogs.depositChange.amount,
+    unit: messages.units.perMonthField,
     value: initial ? formatKronor(initial.amount) : "",
     dataKey: "deposit-amount",
     inputMode: "numeric",
@@ -55,12 +54,12 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
   });
   const from = renderTextField({
     id: "deposit-from",
-    label: "From month",
+    label: messages.dialogs.depositChange.from,
     unit: "",
     type: "month",
     value: monthInputValue(initial?.startDate ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
     dataKey: "deposit-from",
-    placeholder: "YYYY-MM",
+    placeholder: messages.common.yearMonthPlaceholder,
     validate: errorMessage((text) => parseMonthOnOrAfter(text, earliest)),
     onCommit: nothing,
   });
@@ -74,12 +73,12 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
 
   const until = renderTextField({
     id: "deposit-until",
-    label: "Until month (optional, leave empty for no end)",
+    label: messages.dialogs.depositChange.until,
     unit: "",
     type: "month",
     value: initial?.endDate ? monthInputValue(initial.endDate) : "",
     dataKey: "deposit-until",
-    placeholder: "YYYY-MM",
+    placeholder: messages.common.yearMonthPlaceholder,
     validate: errorMessage((text) => parseOptionalMonthNotBefore(text, typedStart())),
     onCommit: nothing,
   });
@@ -92,7 +91,7 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
   /** Returns true when the change was valid and has been handed over. */
   const save = (): boolean => {
     if (!showErrors(inputs)) return false;
-    const parsedLabel = parseLabel(inputs[0]?.value ?? "", DEFAULT_LABEL);
+    const parsedLabel = parseLabel(inputs[0]?.value ?? "", messages.kinds.depositChange);
     const parsedAmount = parseDepositAmount(inputs[1]?.value ?? "");
     const parsedFrom = parseMonthOnOrAfter(inputs[2]?.value ?? "", earliest);
     if (!parsedLabel.ok || !parsedAmount.ok || !parsedFrom.ok) return false;
@@ -103,8 +102,8 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
   };
 
   openFormDialog({
-    title: initial ? "Edit deposit change" : "Change monthly deposit",
-    primaryLabel: initial ? "Save" : "Add",
+    title: initial ? messages.dialogs.depositChange.edit : messages.dialogs.depositChange.add,
+    primaryLabel: initial ? messages.common.save : messages.common.add,
     fields: [label, amount, from, until],
     save,
   });

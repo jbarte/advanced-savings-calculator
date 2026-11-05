@@ -1,4 +1,5 @@
 import { h, s } from "./dom";
+import { messages } from "./i18n";
 
 export const checkIcon = (size?: string): SVGSVGElement =>
   s(
@@ -178,7 +179,7 @@ export function renderToast(message: string, onDismiss?: () => void): HTMLElemen
       {
         class: "toast__close",
         type: "button",
-        "aria-label": "Dismiss",
+        "aria-label": messages.common.dismiss,
         onclick: () => {
           toast.remove();
           onDismiss?.();
