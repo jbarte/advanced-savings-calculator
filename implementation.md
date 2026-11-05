@@ -568,8 +568,7 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   - `public/favicon.svg` with the same shape and a `prefers-color-scheme` block for dark browser chrome.
   - `index.html`: the title "Life Ledger: long-term financial planner", a broader description, `og:title`,
     `og:description` and `og:type`, `theme-color` for light and dark, the icon link (Vite adds the base path).
-  - Texts: wordmark "Life" + " Ledger" (bold + muted, as before); hero subtitle "How your money grows" instead
-    of "How your savings grow".
+  - Texts: wordmark "Life" + " Ledger" (bold + muted, as before). No other interface text changed.
 - **Decisions:**
   - The name was picked by the user from several rounds: brand-like names were declined, plain descriptive ones were
     too dull.
@@ -586,5 +585,5 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   - Browser: the app bar in Linen and Dusk, the computed fills of the tile and the stub in each theme, 375 px with no
     horizontal scroll, `document.title`, and 5 new metas. The mark has no accessible name, and the brand reads
     "Life Ledger".
-  - Text changes: only the wordmark and the hero subtitle (`git diff src/ui/i18n/en.ts`). The 49-state comparison
+  - Text changes: only the wordmark (`git diff src/ui/i18n/en.ts`). The 49-state comparison
     from 10A was not rerun.

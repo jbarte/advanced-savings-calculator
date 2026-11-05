@@ -160,7 +160,7 @@ export const en = {
     withdrawn: "No withdrawals yet",
   },
   hero: {
-    subtitle: (name: string): string => `${name} · How your money grows, and what each event adds or costs.`,
+    subtitle: (name: string): string => `${name} · How your savings grow, and what each event adds or costs.`,
     subtitleAdjusted: (name: string, inflationPct: number): string =>
       `${name} · Inflation adjusted at ${inflationPct} % a year. What you enter stays as entered.`,
     eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>
