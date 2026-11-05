@@ -548,6 +548,45 @@ button {
   font-size: var(--text-xl);
 }
 
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  text-align: left;
+}
+
+.choice:hover:not(:disabled) {
+  box-shadow: var(--shadow-float);
+}
+
+.choice:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.choice:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-lift), var(--glow-focus);
+}
+
+.choice__hint {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
 .chart__zero {
   position: absolute;
   left: 0;
