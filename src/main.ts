@@ -7,6 +7,7 @@ import { withPlanChange } from "./state/plan-change";
 import { updatePlanFields } from "./state/plan-fields";
 import { currentRoute } from "./state/route";
 import { createStore } from "./state/store";
+import { depositChangeKey, withdrawalKey } from "./state/timeline";
 import { loadThemePreference, saveThemePreference, systemPrefersDark } from "./state/theme";
 import { PLAN_SCENARIO_ID, buildScenarioView } from "./state/view-model";
 import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
@@ -27,11 +28,17 @@ const store = createStore({
   planOrigin: "example",
   horizon: 30,
   metric: "balance",
+  selectedEvent: null,
   theme: loadThemePreference(),
   notice: null,
 });
 
 const commitPlan = (change: (plan: PlanDocument) => PlanDocument): void => store.update(withPlanChange(store.get(), change));
+
+/** Removing the selected event must not leave its key behind, since a later event can reuse the id. */
+const deselectIf = (key: string): void => {
+  if (store.get().selectedEvent === key) store.update({ selectedEvent: null });
+};
 
 const isDark = (): boolean => {
   const { theme } = store.get();
@@ -42,14 +49,21 @@ const actions: Actions = {
   selectScenario: (scenarioId) => store.update({ scenarioId }),
   selectMetric: (metric) => store.update({ metric }),
   setHorizon: (horizon) => store.update({ horizon }),
+  selectEvent: (selectedEvent) => store.update({ selectedEvent }),
   updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
-  startFromScratch: () => store.update({ plan: createBlankPlan(currentYearMonth()), planOrigin: "own", notice: null }),
+  startFromScratch: () => store.update({ plan: createBlankPlan(currentYearMonth()), planOrigin: "own", selectedEvent: null, notice: null }),
   addWithdrawal: (draft) => commitPlan((plan) => addWithdrawal(plan, draft)),
   updateWithdrawal: (id, draft) => commitPlan((plan) => updateWithdrawal(plan, id, draft)),
-  removeWithdrawal: (id) => commitPlan((plan) => removeWithdrawal(plan, id)),
+  removeWithdrawal: (id) => {
+    commitPlan((plan) => removeWithdrawal(plan, id));
+    deselectIf(withdrawalKey(id));
+  },
   addDepositChange: (draft) => commitPlan((plan) => addDepositChange(plan, draft)),
   updateDepositChange: (id, draft) => commitPlan((plan) => updateDepositChange(plan, id, draft)),
-  removeDepositChange: (id) => commitPlan((plan) => removeDepositChange(plan, id)),
+  removeDepositChange: (id) => {
+    commitPlan((plan) => removeDepositChange(plan, id));
+    deselectIf(depositChangeKey(id));
+  },
   dismissNotice: () => store.update({ notice: null }),
   toggleTheme: () => {
     const theme = isDark() ? "light" : "dark";

@@ -10,6 +10,7 @@ const state: AppState = {
   planOrigin: "example",
   horizon: 30,
   metric: "balance",
+  selectedEvent: null,
   theme: "system",
   notice: "An old notice",
 };

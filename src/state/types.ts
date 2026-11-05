@@ -2,6 +2,7 @@ import type { DepositLevel } from "../core/deposit-schedule";
 import type { Ore, ProjectionPoint } from "../core/types";
 import type { YearMonth } from "../core/year-month";
 import type { PlanDocument } from "./plan-document";
+import type { EventKey } from "./timeline";
 
 export type { DepositLevel, Ore, ProjectionPoint };
 
@@ -89,6 +90,8 @@ export interface AppState {
   readonly planOrigin: PlanOrigin;
   readonly horizon: HorizonYears;
   readonly metric: Metric;
+  /** The event highlighted in the list (and later on the chart), or null. */
+  readonly selectedEvent: EventKey | null;
   readonly theme: ThemePreference;
   /** Why the last change was not applied, shown until the next change or until dismissed. */
   readonly notice: string | null;

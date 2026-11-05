@@ -17,10 +17,11 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Next:** milestone 4 (overview) is planned in two PRs (timeline list, then chart). The plan waits for
-  confirmation of five decisions (numbered badges, `depositLevels` kept, badges outside the tab order,
-  no automatic scrolling on mobile, two PRs). Then milestone 5 (saving) and 6 (sharing).
-- **Tests:** 258 (`npm test`), typecheck and build pass.
+- **In progress:** milestone 4 in two PRs. The five decisions were confirmed ("go ahead"): numbered
+  badges, `depositLevels` kept, badges outside the tab order, no automatic scrolling on mobile, two PRs.
+  4A (timeline list, branch `feature/m4-timeline`, based on `feature/contrast-fix` because #7 was still
+  open; its PR targets `main`) is done. 4B (chart) is next. Then milestone 5 (saving) and 6 (sharing).
+- **Tests:** 264 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -140,3 +141,23 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   flatter than the original neo-tactile look; only a visual check in two themes and one width; the edge is about 1.7 : 1, below the
   3 : 1 that WCAG 1.4.11 asks for on component boundaries. Chosen on purpose to keep the soft look, and open
   to a darker edge if wanted.
+
+### Milestone 4A: one timeline list (branch `feature/m4-timeline`)
+- **Built:**
+  - `src/state/timeline.ts`: `buildTimeline` merges withdrawals and deposit changes in date order (same
+    month: deposit change first, then by id) and numbers them from 1, plus `EventKey` helpers. The number
+    is what 4B will show on the chart.
+  - `AppState.selectedEvent` and the `selectEvent` action. Selection is cleared by "Start from scratch" and when the selected event is removed.
+  - `src/ui/timeline-list.ts` replaces `withdrawals-table.ts` and `deposit-changes-table.ts`: one table with
+    a numbered badge, title and kind/date line, amount, status, lost growth (withdrawals only), Edit and
+    Remove. The title is a real button with `aria-pressed`; the selected row gets the existing blue
+    selection style (`:has([aria-pressed="true"])`).
+  - Removed the `.events*` and `.table__row--deposit` CSS.
+- **Checked:** 6 new unit tests for `buildTimeline` (order, tie-breaks, negative months, input not
+  changed, unique keys); 264 tests, typecheck pass. In the browser: the example plan's single event
+  selects and deselects; adding a deposit change dated before the car renumbers them (1 Pause, 2 New car)
+  and keeps the selection on the car.
+  Removing the selected event clears the selection (ids can be reused, so a stale key could select a
+  later event).
+- **Known gaps:** the table still scrolls
+  sideways below about 780 px (the phone layout is 4B); nothing on the chart reacts to the selection yet.
