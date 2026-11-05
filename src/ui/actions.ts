@@ -1,4 +1,5 @@
 import type { DepositChangeDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
+import type { EventKey } from "../state/timeline";
 import type { HorizonYears, Metric } from "../state/types";
 
 /** Everything the UI can ask the app to do. Wired to the store in main.ts. */
@@ -6,6 +7,7 @@ export interface Actions {
   selectScenario(id: string): void;
   selectMetric(metric: Metric): void;
   setHorizon(horizon: HorizonYears): void;
+  selectEvent(key: EventKey | null): void;
   updatePlan(patch: Partial<PlanFields>): void;
   startFromScratch(): void;
   addWithdrawal(draft: WithdrawalDraft): void;

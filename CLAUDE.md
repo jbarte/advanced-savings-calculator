@@ -174,6 +174,10 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
     of the engine input (as for withdrawals). One that starts after the horizon is
     `after-horizon` and has no effect within it. Every amount is capped by `maxMonthlyDeposit`,
     so changes can never raise the worst case behind `PLAN_LIMITS`.
+- **Events are one numbered timeline.** `buildTimeline` (`src/state/timeline.ts`) merges withdrawals and
+  deposit changes in date order (same month: deposit change first, then by id) and numbers them from 1.
+  `AppState.selectedEvent` holds the selected `EventKey` (`withdrawal-<id>` or `deposit-change-<id>`; the
+  two id series are numbered apart). The list rows select through a real button with `aria-pressed`.
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
   to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
   types, and nothing reaches the store until Save. `openFormDialog` (`src/ui/dialog-form.ts`)
@@ -297,6 +301,7 @@ with the toggle.
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
+    │   ├── timeline.ts       # buildTimeline: both event kinds in date order, numbered; EventKey (+ test)
     │   ├── route.ts          # Reads the URL hash (#design-system)
     │   └── theme.ts          # Theme preference in localStorage
     ├── ui/                   # DOM rendering and events
@@ -312,10 +317,9 @@ with the toggle.
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
-    │   ├── events-section.ts # "Planned events": Add event button, withdrawals and deposit changes
+    │   ├── events-section.ts # "Planned events": Add event button and the timeline list
     │   ├── event-type-dialog.ts # Asks which kind of event to add
-    │   ├── withdrawals-table.ts # Withdrawals table: edit, remove, lost growth
-    │   ├── deposit-changes-table.ts # Deposit changes table: edit, remove
+    │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, lost growth
     │   ├── deposit-change-dialog.ts # Dialog to add or edit a deposit change
     │   ├── withdrawal-dialog.ts # Dialog to add or edit a withdrawal
     │   ├── side-cards.ts     # Bento cards: plan inputs, goal gauge, scenario comparison

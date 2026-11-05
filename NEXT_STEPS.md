@@ -5,7 +5,7 @@ Status as of 2026-11-03. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and 
 ## Where things stand
 
 - **Done:** project setup (Vite, strict TypeScript, Vitest), light/dark themes, and the full UI shell:
-  scenario tabs, projection chart with withdrawal markers, withdrawals table, goal gauge, scenario
+  scenario tabs, projection chart with withdrawal markers, events list, goal gauge, scenario
   comparison. The shell is restyled with the "Neo-Tactile Soft UI" design system (merged into `main`).
 - **Live:** https://jbarte.github.io/advanced-savings-calculator/ (deploys on every push to `main`).
 - **Milestones 1 and 2 are done** (see below): the calculation engine in `src/core/project.ts` drives
@@ -18,7 +18,7 @@ Status as of 2026-11-03. Read [CLAUDE.md](CLAUDE.md) first for goals, stack and 
   render shows an error view instead of a blank page, `MONTHS_PER_YEAR` replaces the magic 12, and the
   duplicated "parse → error message" logic and the dialog helpers are shared.
 - **Milestone 3 is done** (see below): the monthly deposit can be changed from a month or for a period
-  (including a pause), shown as dotted markers on the chart and in a "Deposit changes" table. "Add
+  (including a pause), shown as dotted markers on the chart and in the events list. "Add
   event" asks which kind of event to add.
 - **Not built yet:** saving, sharing. A reload resets the plan. Hidden until their
   milestones: scenario tabs, the comparison card and the goal card. The Share button is disabled.
@@ -124,7 +124,11 @@ Each milestone gives a visitor something new they can do.
     1 144 000 kr), and about 246 944 kr at 7 %. For the example plan the end balance goes from
     3 074 856 kr to 2 827 912 kr, and the car's lost growth stays 664 115 kr.
 
-### 4. "See everything at a glance" (requirement 4)
+### 4. "See everything at a glance" (requirement 4): in progress
+
+Two PRs. **4A (done in its PR):** one numbered timeline list replaces the two tables, rows can be selected.
+**4B (next):** chart bands, numbered badges, lanes for overlapping labels, legend, and highlighting the
+selected event on the chart.
 
 - Every event is visible on the graph: withdrawals as drops with labels, deposit changes as shaded
   periods or step markers, each with a hover or focus description.

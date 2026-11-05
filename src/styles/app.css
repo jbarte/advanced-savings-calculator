@@ -558,29 +558,6 @@ button {
   bottom: var(--space-1);
 }
 
-.events {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.events__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.events__title {
-  margin: 0;
-  font-size: var(--text-md);
-  font-weight: 600;
-  color: var(--ink2);
-}
-
-.table__row--deposit {
-  grid-template-columns: minmax(200px, 2fr) minmax(110px, 1fr) minmax(130px, 1fr) auto;
-}
-
 .choices {
   display: flex;
   flex-direction: column;
@@ -739,12 +716,12 @@ button {
   border-bottom: 0;
 }
 
-.table__row:not(.table__row--head):not([aria-selected="true"]):hover,
+.table__row:not(.table__row--head):not(:has([aria-pressed="true"])):hover,
 .table__row[data-state="hover"] {
   background: var(--fill);
 }
 
-.table__row[aria-selected="true"] {
+.table__row:has([aria-pressed="true"]) {
   margin: var(--space-1) 6px;
   padding: 10px 14px;
   border-bottom-color: transparent;
@@ -777,6 +754,29 @@ button {
   display: grid;
   place-items: center;
   font-size: 16px;
+}
+
+.table__select {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-1);
+}
+
+.table__select > span {
+  display: block;
+}
+
+.table__badge--withdrawal,
+.table__badge--deposit-change {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--text-sm);
 }
 
 .table__title {
