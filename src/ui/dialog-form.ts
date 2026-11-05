@@ -1,10 +1,10 @@
-import { earlierOf } from "../core/year-month";
+import { MONTHS_PER_YEAR, earlierOf } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { openModal, renderModal } from "./components";
 import { h } from "./dom";
 
 /** A new event starts one year after the plan start in its dialog. It is a starting point, not a rule. */
-export const DEFAULT_MONTHS_AHEAD = 12;
+export const DEFAULT_MONTHS_AHEAD = MONTHS_PER_YEAR;
 
 /**
  * The earliest month a dialog accepts: the plan start, or an event's own earlier date when editing it, so an

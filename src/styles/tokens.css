@@ -55,6 +55,13 @@
   /* A dialog sits on a dimmed page, so it gets a dark drop shadow and an edge, not the light glow of --shadow-float. */
   --shadow-dialog: 0 20px 50px rgb(0 0 0 / 0.5), 0 0 0 var(--border-1) var(--edge);
 
+  /* Event kinds: one set of colours for the chart, the list and the legend. They point at theme colours, so
+     the dark themes follow without their own copies. */
+  --kind-withdrawal: var(--elevated);
+  --kind-deposit-change: var(--solid);
+  --kind-one-time-deposit: var(--accent-ink);
+  --kind-one-time-deposit-fill: var(--accent-soft);
+
   --thumb: linear-gradient(145deg, #ffffff, #ebe6df);
   --on-color-fill: rgb(255 255 255 / 0.18);
   --on-color-fill-hover: rgb(255 255 255 / 0.26);

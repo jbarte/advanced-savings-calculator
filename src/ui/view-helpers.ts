@@ -21,11 +21,3 @@ export function lastPoint(scenario: ScenarioView, horizon: HorizonYears): Projec
 export function monthLabel(scenario: ScenarioView, month: number): string {
   return formatYearMonth(addMonths(scenario.start, month));
 }
-
-export function initials(text: string): string {
-  return text
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}

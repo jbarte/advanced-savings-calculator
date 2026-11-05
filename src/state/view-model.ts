@@ -1,4 +1,3 @@
-import { depositLevelChanges } from "../core/deposit-schedule";
 import { lostGrowth } from "../core/lost-growth";
 import { project } from "../core/project";
 import type { DepositChangeInput, OneTimeDepositInput, PlanInput, WithdrawalInput } from "../core/types";
@@ -102,7 +101,8 @@ export function buildScenarioView(plan: PlanDocument, name: string, horizonMonth
     .map((change) => {
       const startMonth = monthsBetween(plan.start, change.startDate);
       const endMonth = change.endDate === null ? null : monthsBetween(plan.start, change.endDate);
-      const status: EventStatus = endsBeforePlanStart(endMonth) ? "before-start" : startMonth > horizonMonths ? "after-horizon" : "planned";
+      // A change that began before the plan still applies if it hasn't ended, so it counts from month 0.
+      const status: EventStatus = endsBeforePlanStart(endMonth) ? "before-start" : statusOf(Math.max(0, startMonth), horizonMonths);
       return { id: change.id, label: change.label, startDate: change.startDate, endDate: change.endDate, startMonth, endMonth, amount: change.amount, status };
     })
     .sort((a, b) => a.startMonth - b.startMonth || a.id - b.id);
@@ -124,7 +124,6 @@ export function buildScenarioView(plan: PlanDocument, name: string, horizonMonth
     withdrawals,
     depositChanges,
     oneTimeDeposits,
-    depositLevels: depositLevelChanges(plan.monthlyDeposit, input.depositChanges, PROJECTION_MONTHS),
     goal: null,
     points,
   };

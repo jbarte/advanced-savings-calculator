@@ -1,5 +1,5 @@
 import type { Ore } from "../core/types";
-import { addMonths } from "../core/year-month";
+import { addMonths, yearsToMonths } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 
 /** A planned one-off withdrawal. `id` is unique within the plan and stays the same when it is edited. */
@@ -90,7 +90,7 @@ export function createExamplePlan(today: YearMonth): PlanDocument {
     startAmount: 5_000_000,
     monthlyDeposit: 300_000,
     annualReturnPct: DEFAULT_RETURN_PCT,
-    withdrawals: [{ id: 1, date: addMonths(today, 60), amount: 15_000_000, label: "New car" }],
+    withdrawals: [{ id: 1, date: addMonths(today, yearsToMonths(5)), amount: 15_000_000, label: "New car" }],
     depositChanges: [],
     oneTimeDeposits: [],
   };

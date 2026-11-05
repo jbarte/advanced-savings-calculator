@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { depositInMonth, depositLevelChanges } from "./deposit-schedule";
+import { depositInMonth } from "./deposit-schedule";
 import type { DepositChangeInput } from "./types";
 
 const change = (startMonth: number, endMonth: number | null, amount: number, label = "c"): DepositChangeInput => ({
@@ -67,36 +67,5 @@ describe("depositInMonth", () => {
 
   it("allows a deposit of 0 to pause saving", () => {
     expect(depositInMonth(3_000, [change(1, null, 0)], 5)).toBe(0);
-  });
-});
-
-describe("depositLevelChanges", () => {
-  it("is empty when nothing changes", () => {
-    expect(depositLevelChanges(3_000, [], 360)).toEqual([]);
-    expect(depositLevelChanges(3_000, [change(5, null, 3_000)], 360)).toEqual([]);
-  });
-
-  it("lists the months where the level changes", () => {
-    expect(depositLevelChanges(3_000, [change(13, 24, 0)], 36)).toEqual([
-      { month: 13, amount: 0 },
-      { month: 25, amount: 3_000 },
-    ]);
-  });
-
-  it("follows a period inside an open-ended change", () => {
-    const changes = [change(12, null, 5_000), change(24, 35, 0)];
-    expect(depositLevelChanges(3_000, changes, 360)).toEqual([
-      { month: 12, amount: 5_000 },
-      { month: 24, amount: 0 },
-      { month: 36, amount: 5_000 },
-    ]);
-  });
-
-  it("reports a first month that differs from the base", () => {
-    expect(depositLevelChanges(3_000, [change(-5, null, 1_000)], 12)).toEqual([{ month: 1, amount: 1_000 }]);
-  });
-
-  it("stops at the given number of months", () => {
-    expect(depositLevelChanges(3_000, [change(50, null, 0)], 40)).toEqual([]);
   });
 });

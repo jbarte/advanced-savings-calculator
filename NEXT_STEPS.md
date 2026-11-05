@@ -207,7 +207,7 @@ All confirmed in the code:
   `validateOneTimeDepositDraft` directly.
 - `noFallthroughCasesInSwitch` and `noImplicitReturns` in `tsconfig.json`; `"engines": { "node": ">=22.12" }`.
 
-### Step 0c: cleanup (no change in behaviour; can ride along with milestone 7)
+### Step 0c: cleanup (done)
 
 - **Dead code:** `initials()`, the CSS classes `.mono`, `.muted`, `.tiles` and `.table__empty`, and
   `depositLevels` with `depositLevelChanges`, which the chart no longer uses but which still cost 360 × C

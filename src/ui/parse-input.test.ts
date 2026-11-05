@@ -127,17 +127,17 @@ describe("parseWithdrawalAmount", () => {
 
 describe("parseLabel", () => {
   it("trims the text", () => {
-    expect(parseLabel("  New car ")).toEqual({ ok: true, value: "New car" });
+    expect(parseLabel("  New car ", "Withdrawal")).toEqual({ ok: true, value: "New car" });
   });
 
   it("falls back to a default when empty", () => {
-    expect(parseLabel("")).toEqual({ ok: true, value: "Withdrawal" });
-    expect(parseLabel("   ")).toEqual({ ok: true, value: "Withdrawal" });
+    expect(parseLabel("", "Withdrawal")).toEqual({ ok: true, value: "Withdrawal" });
+    expect(parseLabel("   ", "Withdrawal")).toEqual({ ok: true, value: "Withdrawal" });
   });
 
   it("accepts exactly 40 characters and rejects 41", () => {
-    expect(parseLabel("x".repeat(40))).toEqual({ ok: true, value: "x".repeat(40) });
-    expect(parseLabel("x".repeat(41))).toEqual({ ok: false, message: "Use 40 characters or fewer" });
+    expect(parseLabel("x".repeat(40), "Withdrawal")).toEqual({ ok: true, value: "x".repeat(40) });
+    expect(parseLabel("x".repeat(41), "Withdrawal")).toEqual({ ok: false, message: "Use 40 characters or fewer" });
   });
 });
 
