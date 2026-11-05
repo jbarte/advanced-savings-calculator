@@ -293,6 +293,29 @@ the notices built in `main.ts` and `state/`.
 - Validation errors get codes, so the notices can be translated. Today a broken save or link shows the raw
   validator text ("a whole number of öre from 0 to 10000000000").
 
+### Backlog request: a name for the plan (before milestone 11)
+
+A plan gets a name the user picks ("House 2031", "Anna's pension"), so it can be referred to, also when it is
+shared. Today the hero line says "Example plan", "My plan" or "Shared plan", fixed texts chosen from where the plan
+came from.
+
+- **In the plan:** `PlanDocument.name: string | null` (version 4; versions 1–3 upgrade with `null`). It is saved
+  and travels in the share link, so the person who opens the link sees the same name. It is validated in
+  `validate-plan.ts`: trimmed, 1–40 characters, no control characters. Naming the example makes it the user's own
+  plan, like any other change.
+- **Where it shows:**
+  - The hero line uses the name in place of "My plan". The rest of the line stays as it is:
+    `House 2031 · How your savings grow, and what each event adds or costs.`
+  - Without a name, the hero line falls back to today's texts.
+  - The page title becomes `House 2031 · Life Ledger`, so tabs and bookmarks tell plans apart.
+  - The share dialog names the plan it shares.
+- **A shared plan keeps its name**, and the hero line shows that name instead of "Shared plan". The banner and the
+  Plan card status still say it is a shared copy that is not saved.
+- **Editing:** a "Name" field at the top of the Plan card, committed on `change` like the other fields, with
+  "My plan" as the placeholder. Clearing the field removes the name.
+- **Why before milestone 11:** the names become the labels of the plan tabs and the comparison table there. The
+  name's limits are also the place to fix the review finding about control characters in labels.
+
 ### Milestone 11: compare plans
 
 - Several plans: create, rename, duplicate and delete, as tabs (the "+" button is already in the header), and
