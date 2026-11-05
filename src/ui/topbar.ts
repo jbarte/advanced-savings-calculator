@@ -1,6 +1,7 @@
 import type { ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h, s } from "./dom";
+import { openShareDialog } from "./share-dialog";
 
 const sunIcon = (): SVGSVGElement =>
   s(
@@ -56,23 +57,17 @@ export function renderAppBar(
   isDark: boolean,
   actions: Actions,
 ): HTMLElement {
-  const shareLabel = h("span", { class: "appbar__share-label" }, "Share");
   const share = h(
     "button",
     {
       class: "btn-solid",
       type: "button",
       "data-key": "share",
-      disabled: true,
-      title: "Sharing is coming soon",
-      "aria-label": "Copy share link (coming soon)",
-      onclick: async () => {
-        shareLabel.textContent = (await actions.copyShareLink()) ? "Copied" : "Copy failed";
-        setTimeout(() => (shareLabel.textContent = "Share"), 2000);
-      },
+      "aria-label": "Share this plan",
+      onclick: () => void openShareDialog(actions),
     },
     h("span", { class: "btn-solid__icon", "aria-hidden": "true" }, "↗"),
-    shareLabel,
+    h("span", { class: "appbar__share-label" }, "Share"),
   );
 
   return h(

@@ -23,5 +23,11 @@ export interface Actions {
   removeOneTimeDeposit(id: number): void;
   dismissNotice(): void;
   toggleTheme(): void;
-  copyShareLink(): Promise<boolean>;
+  /** The link that opens the current plan for anyone. */
+  createShareLink(): Promise<string>;
+  copyToClipboard(text: string): Promise<boolean>;
+  /** Saves the plan opened from a link as the user's own, replacing any saved plan. */
+  keepSharedPlan(): void;
+  /** Drops the plan opened from a link and goes back to the user's own plan. */
+  leaveSharedPlan(): void;
 }

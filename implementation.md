@@ -9,16 +9,16 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged into `main`:** milestone 1 (PR #1), milestone 2 (PR #2), foundation fixes (PR #3), milestone 3
   "Change my saving over time" (PR #5), the contrast of raised surfaces and dialogs (PR #6), the removal of the
   white glow (PR #7), milestone 4A "one numbered timeline list" (PR #8), one-time deposits (PR #9), milestone 4B
-  "events on the chart" (PR #10) and the Add event dialog styles fix (PR #11). PR #4 had
+  "events on the chart" (PR #10) the Add event dialog styles fix (PR #11) and milestone 5 "saved in the browser" (PR #12). PR #4 had
   been merged into its base `feature/foundation-fixes` after #3 was already in `main`, so it never reached
   `main`; PR #5 carried the same commits there.
 - **Lessons:** (1) a stacked PR does not retarget to `main` by itself when its base branch is not deleted.
   Retarget it (or open a new PR to `main`) before merging. (2) Before pushing more commits to a PR branch,
   check that the PR is still open (`gh pr view`), and afterwards check with `git merge-base --is-ancestor`
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
-- **Open:** milestone 5 (saving) on `feature/m5-saving`. Next: milestone 6 (sharing), goal planning,
-  scenario comparison, Swedish, custom horizon, polish.
-- **Tests:** 316 (`npm test`), typecheck and build pass.
+- **Open:** milestone 6 (sharing) on `feature/m6-sharing`. Next: goal planning, scenario comparison, Swedish,
+  custom horizon, polish.
+- **Tests:** 335 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -236,4 +236,39 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** two tabs do not see each other's changes (last write wins); the invalid-save notice shows the
   validator's wording ("whole number of öre"); no test of the DOM wiring (no jsdom), so `main.ts` and the Plan card
   were checked by hand; the selected event and horizon are not saved on purpose.
+
+### Milestone 6: "Share my plan" (branch `feature/m6-sharing`)
+- **Built:**
+  - `src/state/share-link.ts`: `encodePlan` (deflate through `CompressionStream`, base64url, `z.` prefix; `u.` prefix
+    without compression when the browser has none), `decodePlan`, `planTokenFromHash`, `buildShareUrl`. Decoding
+    limits the token (30 000 characters) and the inflated size (100 000 bytes, read as a stream and stopped early),
+    rejects non-base64url text, bad deflate, bad UTF-8 and anything `readPlanDocument` rejects.
+  - `route.ts`: `sharedPlanToken`, `currentPageUrl`, `clearShareHash`.
+  - `PlanOrigin` has a third value, `shared`. `withPlanChange` keeps it, and `commitPlan` does not save a shared
+    plan, so a link can never overwrite the user's own plan. Banner: "Keep as my plan" (asks first) and "Back to my
+    plan". The Plan card says "Shared plan · not saved".
+  - Share button is on: a dialog with the link, "Copy link", and the note that anyone with the link can see the plan.
+    Without clipboard access it says so and the link can be selected by hand.
+  - `main.ts`: a link in the address is decoded before the first draw (no flash of the own plan), and a `hashchange`
+    opens a link pasted into an already open tab. A bad link keeps the own plan, shows a notice with the reason and
+    clears the address.
+- **Decision:** with one plan, "open as a copy" means a preview that is never saved unless kept (a separate saved
+  copy would need several plans, which come with scenario comparison, milestone 8).
+- **Checked:** 19 new tests (round trips of a plan with every event kind and non-ASCII labels, of the largest
+  allowed plan, compressed and uncompressed; link length of the largest plan 1 022 characters, 19 365 uncompressed;
+  rejects too-long, wrong prefix, bad characters, bad length, cut-off, not deflate, not JSON, not a plan, values
+  outside the limits, an 8 MB decompression bomb in a token of under 30 000 characters, invalid UTF-8; hash and
+  URL helpers; a shared plan stays shared). 335 tests, typecheck and build pass. In the browser: a plan with a
+  one-time deposit and a label with åäö went through plan, link, plan unchanged (the end balance 4 422 165 kr is
+  the same on both sides); the link is 321 characters; opening it with an own plan saved left the saved plan
+  untouched, also after editing the shared copy; "Back to my plan" restored it and cleared the address; "Keep as
+  my plan" asked first (Cancel changed nothing) and then replaced the saved plan; a link pasted into the open tab
+  and a cold load both worked; six bad links (empty, junk, cut off, tampered, wrong prefix, 40 000 characters) each
+  showed a notice, kept the own plan and cleared the address; no console errors; the banner reads well at 375 px
+  with no horizontal scroll.
+- **Known gaps:** the clipboard could not be tested here (the automated page has no clipboard permission), only
+  the "Could not copy" fallback, so copying should be tried by hand; the link is a snapshot, so changing the plan
+  afterwards does not change an already shared link; a tampered link that still inflates to a valid plan opens as
+  that plan (there is no signature, and none is needed since the data is checked like any input); the
+  uncompressed (`u.`) path is only tested through the functions, not in a browser without `CompressionStream`.
 

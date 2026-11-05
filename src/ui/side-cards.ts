@@ -44,6 +44,7 @@ function renderParsedField<T>(props: ParsedFieldProps<T>): HTMLElement {
 
 /** What the Plan card says about where the plan lives. */
 function planStatusText(state: AppState): string {
+  if (state.planOrigin === "shared") return "Shared plan · not saved";
   const isExample = state.planOrigin === "example";
   if (state.storage === "blocked") return isExample ? "Example plan · not saved" : "Not saved: storage is blocked";
   if (state.storage === "saved") return "Saved in this browser";
@@ -52,10 +53,13 @@ function planStatusText(state: AppState): string {
 
 function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
   const isExample = state.planOrigin === "example";
+  const status = h("span", { class: "card__meta" }, planStatusText(state));
+  // A shared plan is kept or dropped from the banner above the chart.
+  if (state.planOrigin === "shared") return h("div", { class: "card__head-side" }, status);
   return h(
     "div",
     { class: "card__head-side" },
-    h("span", { class: "card__meta" }, planStatusText(state)),
+    status,
     isExample
       ? h(
           "button",
