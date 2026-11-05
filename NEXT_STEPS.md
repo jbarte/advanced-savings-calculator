@@ -277,9 +277,14 @@ event; the goal amount is nominal; the goal lives in the plan (version 3).
 - The goal in the plan (version 3), a goal line on the chart, and the existing goal card wired up (it uses
   `GoalInput` and `GoalSummary`, which exist but are unused today).
 
+### Rebrand: Life Ledger (in its branch)
+
+The app is now **Life Ledger**, described as a long-term financial planner, with a new logo (ledger bars, one cut
+down to a stub) and a matching favicon. The visible brand changed; the repo, the URL and the storage keys did not.
+
 ### Milestone 10: strings out (prepares Swedish, no visible change)
 
-**10A (in its PR):** all text in `src/ui` (about 180 texts) moved into the typed `src/ui/i18n/en.ts`, and the
+**10A (merged, PR #24):** all text in `src/ui` (about 180 texts) moved into the typed `src/ui/i18n/en.ts`, and the
 scenario names in `main.ts`. **10B (next):** `formatYearMonth` out of the core, error codes for the validators, and
 the notices built in `main.ts` and `state/`.
 
@@ -287,6 +292,29 @@ the notices built in `main.ts` and `state/`.
 - `formatYearMonth` moves out of the core into `ui/format.ts` and uses `Intl` (month names are display text).
 - Validation errors get codes, so the notices can be translated. Today a broken save or link shows the raw
   validator text ("a whole number of öre from 0 to 10000000000").
+
+### Backlog request: a name for the plan (before milestone 11)
+
+A plan gets a name the user picks ("House 2031", "Anna's pension"), so it can be referred to, also when it is
+shared. Today the hero line says "Example plan", "My plan" or "Shared plan", fixed texts chosen from where the plan
+came from.
+
+- **In the plan:** `PlanDocument.name: string | null` (version 4; versions 1–3 upgrade with `null`). It is saved
+  and travels in the share link, so the person who opens the link sees the same name. It is validated in
+  `validate-plan.ts`: trimmed, 1–40 characters, no control characters. Naming the example makes it the user's own
+  plan, like any other change.
+- **Where it shows:**
+  - The hero line uses the name in place of "My plan". The rest of the line stays as it is:
+    `House 2031 · How your savings grow, and what each event adds or costs.`
+  - Without a name, the hero line falls back to today's texts.
+  - The page title becomes `House 2031 · Life Ledger`, so tabs and bookmarks tell plans apart.
+  - The share dialog names the plan it shares.
+- **A shared plan keeps its name**, and the hero line shows that name instead of "Shared plan". The banner and the
+  Plan card status still say it is a shared copy that is not saved.
+- **Editing:** a "Name" field at the top of the Plan card, committed on `change` like the other fields, with
+  "My plan" as the placeholder. Clearing the field removes the name.
+- **Why before milestone 11:** the names become the labels of the plan tabs and the comparison table there. The
+  name's limits are also the place to fix the review finding about control characters in labels.
 
 ### Milestone 11: compare plans
 
@@ -302,8 +330,8 @@ the notices built in `main.ts` and `state/`.
   `apr. 2031`, `1.7M kr` / `1,7 mn kr`), a language switch remembered in `localStorage`, and `<html lang>`.
 - **Privacy:** self-hosted Geist fonts. Loading them from Google sends every visitor's IP address to Google,
   which contradicts "no tracking". Then a Content-Security-Policy meta tag (`default-src 'self'`).
-- **Page basics:** a favicon, `theme-color` for both themes, Open Graph tags so a shared link shows a title in
-  chats, and a `<noscript>` message.
+- **Page basics:** an Open Graph image for shared links, and a `<noscript>` message (the favicon, `theme-color`
+  and Open Graph text came with the rebrand).
 - **Accessibility:** `--muted` text is about 3.1–3.4 : 1 against its backgrounds and white on the rose badge
   about 3.8 : 1 (4.5 : 1 is needed for small text); reduced motion misses some transitions; some explanations
   are only in `title` on disabled buttons; a hidden table of yearly values as an alternative to the chart; the

@@ -71,22 +71,24 @@ button {
   padding: 0 8px;
 }
 
-.brand__mark {
+.brand__logo {
   width: 30px;
   height: 30px;
+  flex: none;
   border-radius: var(--radius-2);
-  background: var(--solid);
   box-shadow: var(--shadow-lift-sm);
-  display: grid;
-  place-items: center;
 }
 
-.brand__mark::after {
-  content: "";
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--on-solid);
+.logo__tile {
+  fill: var(--solid);
+}
+
+.logo__bar {
+  fill: var(--on-solid);
+}
+
+.logo__gap {
+  fill: var(--logo-gap);
 }
 
 .brand__name {

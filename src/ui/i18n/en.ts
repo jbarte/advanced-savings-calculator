@@ -38,8 +38,8 @@ export const en = {
     oneTimeDeposit: "One-time deposit",
   },
   app: {
-    brandName: "Savings",
-    brandSuffix: "calc",
+    brandName: "Life",
+    brandSuffix: " Ledger",
     scenarios: "Scenarios",
     newScenarioSoon: "New scenario (coming soon)",
     disclaimer: "Projections assume a constant return and are estimates only. This is not financial advice.",

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The same mark as src/ui/logo.ts, with the Linen and Dusk colours fixed in, since a favicon can't read the page's tokens. -->
+  <style>
+    .tile { fill: #5f7f6a; }
+    .gap { fill: #a8786b; }
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #5f8a6c; }
+      .gap { fill: #c08a7e; }
+    }
+  </style>
+  <rect class="tile" width="32" height="32" rx="8" />
+  <rect x="6" y="17" width="4" height="9" fill="#fff" />
+  <rect x="11.5" y="9" width="4" height="17" fill="#fff" />
+  <rect class="gap" x="17" y="22.5" width="4" height="3.5" />
+  <rect x="22.5" y="13" width="4" height="13" fill="#fff" />
+</svg>

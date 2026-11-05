@@ -65,6 +65,9 @@
   /* The goal line on the chart. */
   --goal-line: var(--ink2);
 
+  /* The cut-down bar in the logo: the withdrawal colour, lightened in the dark themes so it reads on the green tile. */
+  --logo-gap: var(--kind-withdrawal);
+
   /* The effect of an event: a loss in the danger colour, a gain in green. */
   --effect-loss: var(--danger);
   --effect-gain: var(--accent-ink);
@@ -140,6 +143,7 @@
 
     --elevated: #8d625a;
     --elevated-deep: #794f48;
+    --logo-gap: #c08a7e;
 
     --accent: oklch(0.8 0.07 150);
     --accent-soft: oklch(0.35 0.04 150);
@@ -188,6 +192,7 @@
 
   --elevated: #8d625a;
   --elevated-deep: #794f48;
+  --logo-gap: #c08a7e;
 
   --accent: oklch(0.8 0.07 150);
   --accent-soft: oklch(0.35 0.04 150);

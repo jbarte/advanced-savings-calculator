@@ -1,16 +1,15 @@
-# Advanced Savings Calculator
+# Life Ledger
 
-A free, browser-based savings calculator for people whose plans are more than "save X per
-month". You can see what a withdrawal on a specific date really costs in the long run,
-compare several savings plans side by side, and work out how much you need to save each
-month to reach a goal.
+A free, browser-based long-term financial planner for people whose plans are more than "save X per month". You can
+see what a withdrawal on a specific date really costs years later, change or pause your saving for a period, add
+one-time deposits, set a goal and see the monthly deposit it needs, and share the whole plan with a link.
 
-**Live:** https://jbarte.github.io/advanced-savings-calculator/
+**Live:** https://jbarte.github.io/advanced-savings-calculator/ (the address keeps the project's first name, so
+existing links keep working).
 
-> **Status:** in development. Your plan is saved in your browser and can be shared with a link. You can already enter your own start amount, monthly deposit,
-> return and start date, add planned withdrawals and see what each one costs you in lost
-> growth, and raise, lower or pause your monthly deposit from a date or for a period. Saving and
-> sharing are next. See [NEXT_STEPS.md](NEXT_STEPS.md).
+> **Status:** in development. Planning, saving, sharing, a custom horizon, an inflation adjusted view and goal
+> planning work. Comparing several plans side by side and a Swedish version are next. See
+> [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## The problem
 
