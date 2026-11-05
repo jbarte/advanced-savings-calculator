@@ -2,86 +2,98 @@ import { MONTHS_PER_YEAR, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "./plan-document";
 import type { DepositChangeDraft, GoalPlan, OneTimeDepositDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
+import { failWith } from "./plan-problem";
+import type { AmountField, DateField, PlanEventKind } from "./plan-problem";
 
 /*
- * Hand-written checks of everything a plan is built from. They throw a RangeError that says what is wrong,
- * so a bad value can never reach the engine, whether it came from a form, a saved plan or a link. The form
+ * Hand-written checks of everything a plan is built from. They throw a PlanError (a RangeError) that says what is
+ * wrong, as a problem code for the user and as English text for developers, so a bad value can never reach the engine, whether it came from a form, a saved plan or a link. The form
  * parsers in src/ui/ give friendlier messages while typing, but this is the check that counts.
  */
 
 function fail(message: string): never {
-  throw new RangeError(message);
+  return failWith({ code: "damaged" }, message);
 }
 
-function assertWholeOre(value: number, name: string, min: number, max: number): void {
+function assertWholeOre(value: number, name: string, field: AmountField, min: number, max: number): void {
   if (!Number.isSafeInteger(value) || value < min || value > max) {
-    fail(`${name} must be a whole number of öre from ${min} to ${max}, got ${value}`);
+    failWith({ code: "amount", field, min, max }, `${name} must be a whole number of öre from ${min} to ${max}, got ${value}`);
   }
 }
 
-function assertYearMonth(date: YearMonth, name: string, maxYear: number = PLAN_LIMITS.maxStartYear): void {
+function assertYearMonth(date: YearMonth, name: string, field: DateField, maxYear: number = PLAN_LIMITS.maxStartYear): void {
+  const problem = { code: "date", field, minYear: PLAN_LIMITS.minStartYear, maxYear } as const;
   if (!Number.isInteger(date.month) || date.month < 1 || date.month > MONTHS_PER_YEAR) {
-    fail(`${name} must have a month from 1 to ${MONTHS_PER_YEAR}, got ${date.month}`);
+    failWith(problem, `${name} must have a month from 1 to ${MONTHS_PER_YEAR}, got ${date.month}`);
   }
   if (!Number.isInteger(date.year) || date.year < PLAN_LIMITS.minStartYear || date.year > maxYear) {
-    fail(`${name} must have a year from ${PLAN_LIMITS.minStartYear} to ${maxYear}, got ${date.year}`);
+    failWith(problem, `${name} must have a year from ${PLAN_LIMITS.minStartYear} to ${maxYear}, got ${date.year}`);
   }
 }
 
-/** Checks the plan's single values (start, amounts, return, horizon, inflation). Throws a RangeError for the first problem. */
+/** Checks the plan's single values (start, amounts, return, horizon, inflation). Throws a PlanError for the first problem. */
 export function validatePlanFields(fields: PlanFields): void {
-  assertYearMonth(fields.start, "Start date");
-  assertWholeOre(fields.startAmount, "Start amount", 0, PLAN_LIMITS.maxStartAmount);
-  assertWholeOre(fields.monthlyDeposit, "Monthly deposit", 0, PLAN_LIMITS.maxMonthlyDeposit);
+  assertYearMonth(fields.start, "Start date", "startDate");
+  assertWholeOre(fields.startAmount, "Start amount", "startAmount", 0, PLAN_LIMITS.maxStartAmount);
+  assertWholeOre(fields.monthlyDeposit, "Monthly deposit", "monthlyDeposit", 0, PLAN_LIMITS.maxMonthlyDeposit);
   const { annualReturnPct } = fields;
   if (!Number.isFinite(annualReturnPct) || annualReturnPct < PLAN_LIMITS.minReturnPct || annualReturnPct > PLAN_LIMITS.maxReturnPct) {
-    fail(`Expected return must be from ${PLAN_LIMITS.minReturnPct} % to ${PLAN_LIMITS.maxReturnPct} %, got ${annualReturnPct}`);
+    failWith(
+      { code: "percent", field: "annualReturn", min: PLAN_LIMITS.minReturnPct, max: PLAN_LIMITS.maxReturnPct },
+      `Expected return must be from ${PLAN_LIMITS.minReturnPct} % to ${PLAN_LIMITS.maxReturnPct} %, got ${annualReturnPct}`,
+    );
   }
   const { horizonYears, inflationPct } = fields;
   if (!Number.isInteger(horizonYears) || horizonYears < PLAN_LIMITS.minHorizonYears || horizonYears > PLAN_LIMITS.maxHorizonYears) {
-    fail(`The horizon must be ${PLAN_LIMITS.minHorizonYears} to ${PLAN_LIMITS.maxHorizonYears} whole years, got ${horizonYears}`);
+    failWith(
+      { code: "horizon", min: PLAN_LIMITS.minHorizonYears, max: PLAN_LIMITS.maxHorizonYears },
+      `The horizon must be ${PLAN_LIMITS.minHorizonYears} to ${PLAN_LIMITS.maxHorizonYears} whole years, got ${horizonYears}`,
+    );
   }
   if (!Number.isFinite(inflationPct) || inflationPct < PLAN_LIMITS.minInflationPct || inflationPct > PLAN_LIMITS.maxInflationPct) {
-    fail(`Inflation must be from ${PLAN_LIMITS.minInflationPct} % to ${PLAN_LIMITS.maxInflationPct} %, got ${inflationPct}`);
+    failWith(
+      { code: "percent", field: "inflation", min: PLAN_LIMITS.minInflationPct, max: PLAN_LIMITS.maxInflationPct },
+      `Inflation must be from ${PLAN_LIMITS.minInflationPct} % to ${PLAN_LIMITS.maxInflationPct} %, got ${inflationPct}`,
+    );
   }
 }
 
 /** Checks a withdrawal. Its amount is capped like the start amount, since it can't take out more than there is. */
 export function validateWithdrawalDraft(draft: WithdrawalDraft): void {
-  assertYearMonth(draft.date, "Withdrawal date", PLAN_LIMITS.maxEventYear);
-  assertWholeOre(draft.amount, "Withdrawal amount", 1, PLAN_LIMITS.maxStartAmount);
-  assertLabel(draft.label, "Withdrawal");
+  assertYearMonth(draft.date, "Withdrawal date", "withdrawalDate", PLAN_LIMITS.maxEventYear);
+  assertWholeOre(draft.amount, "Withdrawal amount", "withdrawalAmount", 1, PLAN_LIMITS.maxStartAmount);
+  assertLabel(draft.label, "Withdrawal", "withdrawal");
 }
 
-function assertLabel(label: string, name: string): void {
+function assertLabel(label: string, name: string, kind: PlanEventKind): void {
   const trimmed = label.trim();
   if (trimmed === "" || trimmed.length > PLAN_LIMITS.maxLabelLength) {
-    fail(`${name} label must be 1 to ${PLAN_LIMITS.maxLabelLength} characters`);
+    failWith({ code: "label", kind, max: PLAN_LIMITS.maxLabelLength }, `${name} label must be 1 to ${PLAN_LIMITS.maxLabelLength} characters`);
   }
 }
 
 /** Checks a deposit change, including that it doesn't end before it starts. */
 export function validateDepositChangeDraft(draft: DepositChangeDraft): void {
-  assertYearMonth(draft.startDate, "Deposit change start", PLAN_LIMITS.maxEventYear);
-  assertWholeOre(draft.amount, "Deposit change amount", 0, PLAN_LIMITS.maxMonthlyDeposit);
-  assertLabel(draft.label, "Deposit change");
+  assertYearMonth(draft.startDate, "Deposit change start", "depositChangeStart", PLAN_LIMITS.maxEventYear);
+  assertWholeOre(draft.amount, "Deposit change amount", "depositChangeAmount", 0, PLAN_LIMITS.maxMonthlyDeposit);
+  assertLabel(draft.label, "Deposit change", "deposit-change");
   if (draft.endDate !== null) {
-    assertYearMonth(draft.endDate, "Deposit change end", PLAN_LIMITS.maxEventYear);
-    if (monthsBetween(draft.startDate, draft.endDate) < 0) fail("The end month can't be before the start month");
+    assertYearMonth(draft.endDate, "Deposit change end", "depositChangeEnd", PLAN_LIMITS.maxEventYear);
+    if (monthsBetween(draft.startDate, draft.endDate) < 0) failWith({ code: "end-before-start" }, "The end month can't be before the start month");
   }
 }
 
 /** Checks a one-time deposit against its own, smaller limits (see `PLAN_LIMITS`). */
 export function validateOneTimeDepositDraft(draft: OneTimeDepositDraft): void {
-  assertYearMonth(draft.date, "One-time deposit date", PLAN_LIMITS.maxEventYear);
-  assertWholeOre(draft.amount, "One-time deposit amount", 1, PLAN_LIMITS.maxOneTimeDepositAmount);
-  assertLabel(draft.label, "One-time deposit");
+  assertYearMonth(draft.date, "One-time deposit date", "oneTimeDepositDate", PLAN_LIMITS.maxEventYear);
+  assertWholeOre(draft.amount, "One-time deposit amount", "oneTimeDepositAmount", 1, PLAN_LIMITS.maxOneTimeDepositAmount);
+  assertLabel(draft.label, "One-time deposit", "one-time-deposit");
 }
 
 /** Checks a savings goal: an amount of at least 1 öre up to the limit, and a date in the allowed years. */
 export function validateGoal(goal: GoalPlan): void {
-  assertYearMonth(goal.date, "Goal date", PLAN_LIMITS.maxEventYear);
-  assertWholeOre(goal.amount, "Goal amount", 1, PLAN_LIMITS.maxGoalAmount);
+  assertYearMonth(goal.date, "Goal date", "goalDate", PLAN_LIMITS.maxEventYear);
+  assertWholeOre(goal.amount, "Goal amount", "goalAmount", 1, PLAN_LIMITS.maxGoalAmount);
 }
 
 function assertUniqueIds(ids: readonly number[], what: string): void {
@@ -100,29 +112,29 @@ function assertUniqueIds(ids: readonly number[], what: string): void {
 function assertEventList<T extends { readonly id: number }>(
   list: readonly T[],
   max: number,
-  names: { readonly one: string; readonly many: string },
+  names: { readonly kind: PlanEventKind; readonly one: string; readonly many: string },
   validate: (event: T) => void,
 ): void {
-  if (list.length > max) fail(`A plan can have at most ${max} ${names.many}`);
+  if (list.length > max) failWith({ code: "too-many", kind: names.kind, max }, `A plan can have at most ${max} ${names.many}`);
   assertUniqueIds(list.map((event) => event.id), names.one);
   list.forEach(validate);
 }
 
-/** Checks a whole plan, for example one read from a save or a link. Throws a RangeError for the first problem. */
+/** Checks a whole plan, for example one read from a save or a link. Throws a PlanError for the first problem. */
 export function validatePlanDocument(plan: PlanDocument): void {
   if (plan.version !== 3) fail(`Unknown plan version ${String(plan.version)}`);
   validatePlanFields(plan);
-  assertEventList(plan.withdrawals, PLAN_LIMITS.maxWithdrawals, { one: "withdrawal", many: "withdrawals" }, validateWithdrawalDraft);
+  assertEventList(plan.withdrawals, PLAN_LIMITS.maxWithdrawals, { kind: "withdrawal", one: "withdrawal", many: "withdrawals" }, validateWithdrawalDraft);
   assertEventList(
     plan.depositChanges,
     PLAN_LIMITS.maxDepositChanges,
-    { one: "deposit change", many: "deposit changes" },
+    { kind: "deposit-change", one: "deposit change", many: "deposit changes" },
     validateDepositChangeDraft,
   );
   assertEventList(
     plan.oneTimeDeposits,
     PLAN_LIMITS.maxOneTimeDeposits,
-    { one: "one-time deposit", many: "one-time deposits" },
+    { kind: "one-time-deposit", one: "one-time deposit", many: "one-time deposits" },
     validateOneTimeDepositDraft,
   );
   if (plan.goal !== null) validateGoal(plan.goal);

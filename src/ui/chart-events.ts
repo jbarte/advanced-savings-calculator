@@ -1,10 +1,9 @@
-import { formatYearMonth } from "../core/year-month";
 import { chartMonthOf, isPlanned } from "../state/timeline";
 import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
 import { assignLanes, bandExtent, monthToPercent } from "./chart-geometry";
 import { h } from "./dom";
-import { formatMoney } from "./format";
+import { formatMoney, formatYearMonth } from "./format";
 import { messages } from "./i18n";
 
 /** Badges closer than this (percent of the plot width) go in different lanes. About one badge on a phone. */

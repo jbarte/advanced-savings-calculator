@@ -1,4 +1,5 @@
 import type { PlanDocument } from "./plan-document";
+import { failWith } from "./plan-problem";
 import { readPlanText, serializePlan } from "./read-plan";
 
 /*
@@ -12,8 +13,10 @@ const MAX_TOKEN_LENGTH = 30_000;
 /** The largest allowed plan is about 10 kB of JSON; this leaves room and still stops a decompression bomb. */
 const MAX_JSON_BYTES = 100_000;
 
-function fail(message: string): never {
-  throw new RangeError(message);
+type LinkProblemCode = "link-damaged" | "link-too-large" | "link-unsupported" | "not-a-plan-link";
+
+function fail(code: LinkProblemCode, message: string): never {
+  return failWith({ code }, message);
 }
 
 function toBase64Url(bytes: Uint8Array): string {
@@ -23,13 +26,13 @@ function toBase64Url(bytes: Uint8Array): string {
 }
 
 function fromBase64Url(text: string): Uint8Array {
-  if (!/^[A-Za-z0-9_-]*$/.test(text)) return fail("The link has characters that don't belong in it");
+  if (!/^[A-Za-z0-9_-]*$/.test(text)) return fail("link-damaged", "The link has characters that don't belong in it");
   const base64 = text.replace(/-/g, "+").replace(/_/g, "/");
   try {
     const binary = atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4));
     return Uint8Array.from(binary, (char) => char.charCodeAt(0));
   } catch {
-    return fail("The link is damaged");
+    return fail("link-damaged", "The link is damaged");
   }
 }
 
@@ -53,13 +56,13 @@ async function runStream(
       total += value.length;
       if (total > maxBytes) {
         await reader.cancel().catch(() => undefined);
-        return fail("The link holds too large a plan");
+        return fail("link-too-large", "The link holds too large a plan");
       }
       chunks.push(value);
     }
   } catch (error) {
     if (error instanceof RangeError) throw error;
-    return fail("The link is damaged or cut off");
+    return fail("link-damaged", "The link is damaged or cut off");
   }
   const out = new Uint8Array(total);
   let offset = 0;
@@ -83,28 +86,28 @@ export async function encodePlan(plan: PlanDocument, options: EncodeOptions = {}
   return `z.${toBase64Url(await runStream(bytes, new CompressionStream("deflate"), MAX_JSON_BYTES * 2))}`;
 }
 
-/** Reads a plan from a link token. Throws a RangeError with a message fit for the user when the link is bad. */
+/** Reads a plan from a link token. Throws a PlanError that says what is wrong when the link is bad. */
 export async function decodePlan(token: string): Promise<PlanDocument> {
-  if (token.length > MAX_TOKEN_LENGTH) return fail("The link is too long to be a plan");
+  if (token.length > MAX_TOKEN_LENGTH) return fail("link-too-large", "The link is too long to be a plan");
   const kind = token.slice(0, 2);
   const body = token.slice(2);
 
   let bytes: Uint8Array;
   if (kind === "u.") {
     bytes = fromBase64Url(body);
-    if (bytes.length > MAX_JSON_BYTES) return fail("The link holds too large a plan");
+    if (bytes.length > MAX_JSON_BYTES) return fail("link-too-large", "The link holds too large a plan");
   } else if (kind === "z.") {
-    if (typeof DecompressionStream === "undefined") return fail("This browser can't open compressed links");
+    if (typeof DecompressionStream === "undefined") return fail("link-unsupported", "This browser can't open compressed links");
     bytes = await runStream(fromBase64Url(body), new DecompressionStream("deflate"), MAX_JSON_BYTES);
   } else {
-    return fail("This is not a plan link");
+    return fail("not-a-plan-link", "This is not a plan link");
   }
 
   let json: string;
   try {
     json = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
-    return fail("The link is damaged");
+    return fail("link-damaged", "The link is damaged");
   }
   return readPlanText(json);
 }

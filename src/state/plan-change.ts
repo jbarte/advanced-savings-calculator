@@ -1,4 +1,5 @@
 import type { PlanDocument } from "./plan-document";
+import { problemOf } from "./plan-problem";
 import { serializePlan } from "./read-plan";
 import type { AppState } from "./types";
 
@@ -15,7 +16,7 @@ export function withPlanChange(state: AppState, change: (plan: PlanDocument) => 
     if (serializePlan(plan) === serializePlan(state.plan)) return { ...state, notice: null };
     return { ...state, plan, planOrigin: state.planOrigin === "shared" ? "shared" : "own", notice: null };
   } catch (error) {
-    if (error instanceof RangeError) return { ...state, notice: `That change was not applied. ${error.message}` };
+    if (error instanceof RangeError) return { ...state, notice: { kind: "change-rejected", problem: problemOf(error) } };
     throw error;
   }
 }

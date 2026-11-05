@@ -1,3 +1,6 @@
+import { failWith } from "./plan-problem";
+import type { PlanEventKind } from "./plan-problem";
+
 /*
  * Shared add/update/remove for the plan's event lists (withdrawals, deposit changes, one-time deposits). Each
  * list numbers its own ids; validation of the event itself stays with the caller.
@@ -7,8 +10,9 @@ interface WithId {
   readonly id: number;
 }
 
-/** How an event kind is named in messages, for example { one: "withdrawal", many: "withdrawals" }. */
+/** Which kind of event a list holds, and how it is named in developer messages ("withdrawal", "withdrawals"). */
 export interface EventNames {
+  readonly kind: PlanEventKind;
   readonly one: string;
   readonly many: string;
 }
@@ -18,15 +22,16 @@ export function nextId(list: readonly WithId[]): number {
   return Math.max(0, ...list.map((item) => item.id)) + 1;
 }
 
-/** Appends an event built with the next id. Throws a RangeError when the list is full. */
+/** Appends an event built with the next id. Throws a PlanError when the list is full. */
 export function appendEvent<T extends WithId>(list: readonly T[], max: number, names: EventNames, make: (id: number) => T): T[] {
-  if (list.length >= max) throw new RangeError(`A plan can have at most ${max} ${names.many}`);
+  if (list.length >= max) failWith({ code: "too-many", kind: names.kind, max }, `A plan can have at most ${max} ${names.many}`);
   return [...list, make(nextId(list))];
 }
 
 /** Replaces the event with `id`, keeping its place. Throws a RangeError when there is none. */
 export function replaceEvent<T extends WithId>(list: readonly T[], id: number, names: EventNames, make: (id: number) => T): T[] {
-  if (!list.some((item) => item.id === id)) throw new RangeError(`There is no ${names.one} with id ${id}`);
+  // The UI only edits events it shows, so a missing one means the plan changed underneath it.
+  if (!list.some((item) => item.id === id)) failWith({ code: "damaged" }, `There is no ${names.one} with id ${id}`);
   return list.map((item) => (item.id === id ? make(id) : item));
 }
 

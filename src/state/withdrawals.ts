@@ -1,9 +1,10 @@
 import { appendEvent, removeEvent, replaceEvent } from "./event-list";
+import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { PlanDocument, WithdrawalDraft, WithdrawalEvent } from "./plan-document";
 import { validateWithdrawalDraft } from "./validate-plan";
 
-const NAMES = { one: "withdrawal", many: "withdrawals" };
+const NAMES: EventNames = { kind: "withdrawal", one: "withdrawal", many: "withdrawals" };
 
 const toEvent = (draft: WithdrawalDraft) => (id: number): WithdrawalEvent => ({
   id,

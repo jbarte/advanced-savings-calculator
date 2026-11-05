@@ -4,6 +4,7 @@ import { currentYearMonth } from "./state/clock";
 import { createBlankPlan, createExamplePlan } from "./state/plan-document";
 import type { PlanDocument } from "./state/plan-document";
 import { withPlanChange } from "./state/plan-change";
+import { problemOf } from "./state/plan-problem";
 import { updatePlanFields } from "./state/plan-fields";
 import { loadSavedPlan, clearSavedPlan, savePlan } from "./state/plan-storage";
 import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
@@ -155,7 +156,7 @@ const openSharedPlan = async (token: string): Promise<void> => {
       return;
     }
     clearShareHash();
-    store.update({ notice: `That link could not be opened. ${error.message}. Your own plan is shown instead.` });
+    store.update({ notice: { kind: "link-unreadable", problem: problemOf(error) } });
   }
 };
 

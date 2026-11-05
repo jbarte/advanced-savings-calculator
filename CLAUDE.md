@@ -31,7 +31,7 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–9 are done, and milestone 10 (strings out) is under way: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–10 are done (10: all interface text in one typed file, ready for a second language): the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 the effect of every event shown, and the monthly deposit can be changed from a month or for a period
 (including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. The horizon can be set freely, results can be shown inflation adjusted, and a savings goal shows the monthly deposit needed. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
@@ -237,7 +237,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   (amounts and dates), so a language can order them as it needs. `Messages` (`messages.ts`) is *derived from* `en`,
   so another language is a file that is typed `Messages`: a missing text or a wrong shape is a compile error
   (`messages.test.ts` checks that). `i18n/index.ts` is the one place that picks the language. Not in `en.ts`: the
-  developer-only design-system page, and the notices built outside `src/ui/` (milestone 10B moves them).
+  developer-only design-system page. Month names come from `Intl` (`formatYearMonth` in `src/ui/format.ts`, locale
+  `messages.locale.dates`), so the core holds no display text.
+- **Notices are data, worded by the UI.** `src/state/` never builds a sentence for the user. A check that fails throws a
+  `PlanError` (`src/state/plan-problem.ts`, a `RangeError`) with a `PlanProblem`: a code plus the parts to fill in
+  (which field, the limits in öre, which kind of event). Its `message` stays English and is for developers and tests.
+  `AppState.notice` is a `Notice` (`change-rejected`, `saved-plan-unreadable` and `link-unreadable` carry a problem;
+  `storage-blocked`), and `noticeText` (`src/ui/notice-text.ts`) turns it into words from `messages.notices` and
+  `messages.problems`, formatting amounts as kronor. Saved or shared data that is not a plan at all is `damaged`.
 - **Focus and announcements across re-renders.** Focus is restored by `data-key`. When the focused element
   disappears (a removed row, a swapped button, a dismissed notice), its `data-focus-next` names the element that
   gets focus instead. Notices are read out once through the `#announcer` live region in `index.html`
@@ -261,7 +268,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   wrapped in `try/catch` and has a fallback. Never swallow an error silently: if ignoring
   it is intentional, add a comment saying why (see `src/state/theme.ts`).
 - **Validation lives in `src/state/`.** `validate-plan.ts` is the check that counts: it
-  throws a `RangeError` for any value outside `PLAN_LIMITS`, whether it came from a form, a
+  throws a `PlanError` (a `RangeError` with a problem code) for any value outside `PLAN_LIMITS`, whether it came from a form, a
   saved plan or a link. The parsers in `src/ui/parse-input.ts` only give friendlier messages
   while typing. Every change to the plan goes through `withPlanChange`
   (`src/state/plan-change.ts`): an invalid change leaves the plan alone and sets
@@ -388,7 +395,7 @@ with the toggle.
     │   ├── deposit-schedule.ts # depositInMonth: the deposit in a given month (+ test)
     │   ├── money.ts          # monthlyRate, roundToOre (+ money.test.ts)
     │   ├── inflation-adjusted.ts   # priceLevel, toInflationAdjusted, inflationAdjustedPoints: inflation-adjusted display (+ test)
-    │   ├── year-month.ts     # YearMonth type, addMonths, formatYearMonth
+    │   ├── year-month.ts     # YearMonth type, addMonths, monthsBetween
     │   └── year-month.test.ts
     ├── state/                # State, data models, storage
     │   ├── types.ts          # ScenarioView, AppState, HORIZON_PRESETS, METRICS
@@ -396,6 +403,7 @@ with the toggle.
     │   ├── validate-plan.ts  # Checks plan fields, withdrawals and whole documents (+ test)
     │   ├── plan-fields.ts    # updatePlanFields: change the plan's single values, validated (+ test)
     │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
+    │   ├── plan-problem.ts   # PlanProblem, PlanError, problemOf: what is wrong with a plan, as data (+ test)
     │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals, validated (+ test)
     │   ├── event-list.ts     # Shared add/update/remove for the three event lists (+ test)
     │   ├── deposit-changes.ts # Pure add/update/remove of deposit changes, validated (+ test)
@@ -417,7 +425,8 @@ with the toggle.
     │   ├── app.ts            # Page layout (app bar, hero, chart, bento, table), focus restore
     │   ├── actions.ts        # Actions interface (UI → state)
     │   ├── dom.ts            # h() / s() element helpers
-    │   ├── format.ts         # Money formatting (öre → "1 234 kr")
+    │   ├── format.ts         # Money and month formatting (öre → "1 234 kr", { 2031, 4 } → "Apr 2031") (+ test)
+    │   ├── notice-text.ts    # noticeText, problemText: a Notice or PlanProblem in words (+ test)
     │   ├── parse-input.ts    # Typed text → öre, percent, year-month; errorMessage (+ test)
     │   ├── dialog-form.ts    # Shared dialog shell and helpers (openFormDialog, inputIn, showErrors)
     │   ├── error-state.ts    # Notice banner and the error view shown instead of a blank page

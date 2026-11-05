@@ -277,16 +277,18 @@ event; the goal amount is nominal; the goal lives in the plan (version 3).
 - The goal in the plan (version 3), a goal line on the chart, and the existing goal card wired up (it uses
   `GoalInput` and `GoalSummary`, which exist but are unused today).
 
-### Rebrand: Life Ledger (in its branch)
+### Rebrand: Life Ledger (done, PR #25)
 
 The app is now **Life Ledger**, described as a long-term financial planner, with a new logo (ledger bars, one cut
 down to a stub) and a matching favicon. The visible brand changed; the repo, the URL and the storage keys did not.
 
-### Milestone 10: strings out (prepares Swedish, no visible change)
+### Milestone 10: strings out (prepares Swedish): done
 
 **10A (merged, PR #24):** all text in `src/ui` (about 180 texts) moved into the typed `src/ui/i18n/en.ts`, and the
-scenario names in `main.ts`. **10B (next):** `formatYearMonth` out of the core, error codes for the validators, and
-the notices built in `main.ts` and `state/`.
+scenario names in `main.ts`. **10B (in its PR):** `formatYearMonth` moved to `ui/format.ts` on `Intl`, the checks throw
+problem codes, and notices are data that the UI words. A broken save now says "Start amount must be from 0 kr to
+100 000 000 kr" instead of the raw "a whole number of öre from 0 to 10000000000". Left for milestone 12: number
+formats per language, and the example plan's "New car" label (plan data, made in `src/state`).
 
 - All UI text in a typed `src/ui/i18n/en.ts`, so a missing translation will be a type error.
 - `formatYearMonth` moves out of the core into `ui/format.ts` and uses `Intl` (month names are display text).

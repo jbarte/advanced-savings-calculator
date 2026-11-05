@@ -1,9 +1,10 @@
 import { appendEvent, removeEvent, replaceEvent } from "./event-list";
+import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { OneTimeDepositDraft, OneTimeDepositEvent, PlanDocument } from "./plan-document";
 import { validateOneTimeDepositDraft } from "./validate-plan";
 
-const NAMES = { one: "one-time deposit", many: "one-time deposits" };
+const NAMES: EventNames = { kind: "one-time-deposit", one: "one-time deposit", many: "one-time deposits" };
 
 const toEvent = (draft: OneTimeDepositDraft) => (id: number): OneTimeDepositEvent => ({
   id,

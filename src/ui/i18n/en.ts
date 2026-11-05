@@ -5,6 +5,10 @@
  * amounts and dates follow the number and date formats, and a language can order them as it needs).
  */
 export const en = {
+  /** The locale used for month names ("Apr 2031"). */
+  locale: {
+    dates: "en",
+  },
   common: {
     add: "Add",
     cancel: "Cancel",
@@ -257,5 +261,53 @@ export const en = {
     labelLength: (max: number): string => `Use ${max} characters or fewer`,
     pickOrLater: (month: string): string => `Pick ${month} or later`,
     endBeforeStart: "The end month can't be before the start month",
+  },
+  /** Messages shown in the notice banner. `reason` is a sentence from `problems` below. */
+  notices: {
+    changeRejected: (reason: string): string => `That change was not applied. ${reason}`,
+    savedPlanUnreadable: (reason: string): string =>
+      `Your saved plan could not be read, so the example plan is shown. ${reason}. Your next change replaces the saved plan.`,
+    linkUnreadable: (reason: string): string => `That link could not be opened. ${reason}. Your own plan is shown instead.`,
+    storageBlocked: "Your browser is blocking storage, so your changes will not be kept after you close this page.",
+  },
+  /** What is wrong with a plan, from the checks in src/state. Amounts and years are formatted by the caller. */
+  problems: {
+    fields: {
+      startAmount: "Start amount",
+      monthlyDeposit: "Monthly deposit",
+      withdrawalAmount: "Withdrawal amount",
+      depositChangeAmount: "Deposit change amount",
+      oneTimeDepositAmount: "One-time deposit amount",
+      goalAmount: "Goal amount",
+      startDate: "Start date",
+      withdrawalDate: "Withdrawal date",
+      depositChangeStart: "Deposit change start",
+      depositChangeEnd: "Deposit change end",
+      oneTimeDepositDate: "One-time deposit date",
+      goalDate: "Goal date",
+      annualReturn: "Expected return",
+      inflation: "Inflation",
+    },
+    amount: (field: string, min: string, max: string): string => `${field} must be from ${min} to ${max}`,
+    date: (field: string, minYear: number, maxYear: number): string => `${field} must be a month from ${minYear} to ${maxYear}`,
+    percent: (field: string, min: number, max: number): string => `${field} must be from ${min} % to ${max} %`,
+    horizon: (min: number, max: number): string => `The horizon must be ${min} to ${max} whole years`,
+    label: {
+      withdrawal: (max: number): string => `A withdrawal label must be 1 to ${max} characters`,
+      depositChange: (max: number): string => `A deposit change label must be 1 to ${max} characters`,
+      oneTimeDeposit: (max: number): string => `A one-time deposit label must be 1 to ${max} characters`,
+    },
+    tooMany: {
+      withdrawal: (max: number): string => `A plan can have at most ${max} withdrawals`,
+      depositChange: (max: number): string => `A plan can have at most ${max} deposit changes`,
+      oneTimeDeposit: (max: number): string => `A plan can have at most ${max} one-time deposits`,
+    },
+    endBeforeStart: "The end month can't be before the start month",
+    newerVersion: "It was made by a newer version of this app",
+    damaged: "It is damaged",
+    linkDamaged: "The link is damaged or cut off",
+    linkTooLarge: "The link holds too large a plan",
+    linkUnsupported: "This browser can't open compressed links",
+    notAPlanLink: "This is not a plan link",
   },
 } as const;

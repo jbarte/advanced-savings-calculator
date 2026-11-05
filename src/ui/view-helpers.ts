@@ -1,5 +1,6 @@
-import { addMonths, formatYearMonth } from "../core/year-month";
+import { addMonths } from "../core/year-month";
 import type { EventStatus, ProjectionPoint, ScenarioView } from "../state/types";
+import { formatYearMonth } from "./format";
 import { messages } from "./i18n";
 
 export const STATUS_LABELS: Record<EventStatus, string> = {
