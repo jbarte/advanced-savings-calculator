@@ -21,10 +21,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** milestones 7–9, 10A (PR #24) and the rebrand to **Life Ledger** (PR #25; the repo, URL and storage
   keys keep the old name).
 - **Merged since:** milestone 10B (PR #26).
-- **Merged since:** the plan name (PR #27).
-- **Open:** milestone 11A, several plans (branch `feature/m11-compare-plans`).
-- **Next:** 11B (compare plans in a chart and a table), then milestone 12 (Swedish and polish), see NEXT_STEPS.md.
-- **Tests:** 574 (`npm test`), typecheck and build pass.
+- **Merged since:** the plan name (PR #27) and milestone 11A, several plans (PR #28).
+- **Open:** milestone 11B, compare plans (branch `feature/m11b-compare`).
+- **Next:** milestone 12 (Swedish and polish), see NEXT_STEPS.md.
+- **Tests:** 585 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -699,3 +699,36 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     row scrolls inside itself). No console errors.
 - **Known gaps:** two plans can have the same name (the tab shows both); the example's own name stays "Example plan" until
   it is changed; blocked storage with several plans is covered by the existing unit tests only.
+
+### Milestone 11B: compare plans (branch `feature/m11b-compare`)
+- **Built:**
+  - `src/state/comparison.ts`: `buildComparison(views, openId, metric)` gives a `ComparisonLine` per plan (its values from the
+    start month through the horizon, for the metric), a `ComparisonRow` per plan (end balance, deposited, growth, withdrawn, the
+    end month, and the balance difference to the open plan), and the calendar span of the chart. `monthIndex` and
+    `yearMonthOf` put months of different plans on one axis; `valueAtMonth` reads a line at a month.
+  - `src/ui/compare-card.ts`: the Compare card, shown after the chart card with two or more plans. A chart reusing the
+    main chart's geometry and classes (`calendarPoints` in `chart-geometry.ts` places lines by calendar month), a slider
+    role with arrow, Page and Home/End keys, a light tooltip with every plan's value, a legend, and a table
+    (`<table>` in a horizontal scroller) whose plan names select the plan. The open plan is thicker and its row highlighted.
+  - `main.ts` builds a view for every plan (cached per id) when there is more than one, with the inflation switch applied
+    to each plan's own rate. Tokens `--compare-1`…`--compare-6` (light and dark); the old `.compare*` styles are replaced.
+- **Decisions:**
+  - The lines follow the chart's metric (the KPI tiles), and the table always shows all four figures.
+  - Plans with different starts and horizons share a calendar axis and are compared at the end of their own horizon, so the
+    table has an "Ends" column. The difference column is the balance difference at those ends.
+  - The shared plan is compared too (it is a tab), and the last of six colours is for it.
+  - The card's cursor is local to the card: it is not kept in the store, and rests at the end after a redraw.
+- **Checked:**
+  - 585 tests (11 new): months on one axis, lines and rows for the metric, the difference measured from the open plan
+    (and from another plan when it is open), plans with different starts and horizons, inflation adjusted views,
+    empty plans, `valueAtMonth` before and after a line, and `calendarPoints`. Typecheck and build pass; pinned reference
+    values did not move.
+  - Browser: no card with one plan; three plans give three lines (the open one thicker), the legend, and the rows (the
+    figures match each plan on its own, e.g. the doubled deposit ends at 6 583 214 kr, +3 508 358 kr); the slider's value text
+    names every plan and moves with Home; clicking a plan name opens it and the differences are measured from it, with focus
+    kept; the inflation switch divides every plan by its own price level (3 074 856 to 1 697 538 kr at 2 % over 30 years) and
+    the meta line says so; deleting down to one plan hides the card; dark theme and 375 px (the table scrolls inside its card,
+    not the page). No console errors.
+- **Known gaps:** line colours are the only way to tell lines apart on the chart (the legend, the tooltip and the table name
+  them); the card has no keyboard shortcut for selecting a plan from the chart (the table does); a Swedish number format
+  comes with milestone 12.

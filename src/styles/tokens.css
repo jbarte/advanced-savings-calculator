@@ -65,6 +65,14 @@
   /* The goal line on the chart. */
   --goal-line: var(--ink2);
 
+  /* Line colours of the plans in the Compare card, in tab order. Each is at least 3 : 1 against the card. */
+  --compare-1: #5f7f6a;
+  --compare-2: #a8786b;
+  --compare-3: #4f7fa8;
+  --compare-4: #9a7425;
+  --compare-5: #7d6a9a;
+  --compare-6: #5a5650;
+
   /* The cut-down bar in the logo: the withdrawal colour, lightened in the dark themes so it reads on the green tile. */
   --logo-gap: var(--kind-withdrawal);
 
@@ -165,6 +173,13 @@
     --on-color-fill-hover: rgb(255 255 255 / 0.24);
     --on-color-track: rgb(0 0 0 / 0.25);
     --backdrop: rgb(0 0 0 / 0.5);
+    --compare-1: #7fae8c;
+    --compare-2: #c08a7e;
+    --compare-3: #7aa6cf;
+    --compare-4: #d0a95a;
+    --compare-5: #a692c8;
+    --compare-6: #b5aea4;
+
   }
 }
 
@@ -214,4 +229,11 @@
   --on-color-fill-hover: rgb(255 255 255 / 0.24);
   --on-color-track: rgb(0 0 0 / 0.25);
   --backdrop: rgb(0 0 0 / 0.5);
+  --compare-1: #7fae8c;
+  --compare-2: #c08a7e;
+  --compare-3: #7aa6cf;
+  --compare-4: #d0a95a;
+  --compare-5: #a692c8;
+  --compare-6: #b5aea4;
+
 }

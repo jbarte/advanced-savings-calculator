@@ -3,11 +3,12 @@ import { en } from "./en";
 import { messages } from "./index";
 import type { Messages } from "./messages";
 
-/** Dummy arguments for texts with parts to fill in: numbers and words, and a list of words for the one that wants a list. */
+/** Dummy arguments for texts with parts to fill in: numbers and words, and lists of words for the ones that want a list. */
 const DUMMY_ARGUMENT_SETS: readonly (readonly unknown[])[] = [
   [1, 2, 3, 4, 5],
   ["a", "b", "c", "d", "e"],
   ["a", "b", ["c"], "d", "e"],
+  ["a", ["b"], "c", "d", "e"],
 ];
 
 function callWithDummies(fn: (...args: unknown[]) => unknown): string {

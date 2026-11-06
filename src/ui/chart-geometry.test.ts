@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   areaPath,
+  calendarPoints,
   axisMonths,
   assignLanes,
   axisTicks,
@@ -67,6 +68,22 @@ describe("axisTicks", () => {
 
   it("goes down to min for a scale below zero", () => {
     expect(axisTicks({ min: -3, max: 1, step: 1 })).toEqual([1, 0, -1, -2, -3]);
+  });
+});
+
+describe("calendarPoints", () => {
+  const scale = { min: 0, max: 100, step: 25 };
+
+  it("spans the whole width for a line that covers the whole calendar span", () => {
+    expect(calendarPoints([0, 100], 10, 10, 11, scale)).toEqual([[0, 100], [100, 0]]);
+  });
+
+  it("starts a line that begins later part of the way in, and ends one that stops early", () => {
+    expect(calendarPoints([50, 50], 12, 10, 14, scale)).toEqual([[50, 50], [75, 50]]);
+  });
+
+  it("does not divide by zero when everything is one month", () => {
+    expect(calendarPoints([100], 5, 5, 5, scale)).toEqual([[0, 0]]);
   });
 });
 

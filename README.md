@@ -8,8 +8,8 @@ one-time deposits, set a goal and see the monthly deposit it needs, and share th
 existing links keep working).
 
 > **Status:** in development. Planning, saving, sharing, a custom horizon, an inflation adjusted view and goal
-> planning work, a plan can have a name, and you can keep several plans as tabs. Comparing them side by side and a
-> Swedish version are next. See
+> planning work, a plan can have a name, you can keep several plans as tabs, and the Compare card puts them side by
+> side. A Swedish version is next. See
 > [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## The problem
@@ -32,7 +32,9 @@ long-term cost of a decision like that visible.
 - **Saved automatically, shareable with a link.** Your plan stays in your browser, and a link
   opens the same plan for anyone, with no login.
 - **Several plans.** Keep up to five plans as tabs: add an empty one, copy the open one, or copy it without one event
-  ("what if I skipped this?"). Comparing them in one chart and one table is next.
+  ("what if I skipped this?").
+- **Compare plans.** With two or more plans, a card shows one line per plan on a shared chart and a table of each plan's end
+  balance, deposits, growth and withdrawals, with the difference to the plan you have open.
 - **Goal planning.** How much do you need to save each month to reach X kr by a given date,
   and when do you get there?
 - **Inflation adjusted view.** A switch shows the results adjusted for inflation (2 % a year by default, you can

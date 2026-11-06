@@ -8,6 +8,7 @@ import { noticeText } from "./notice-text";
 import { renderNotice } from "./error-state";
 import { renderSharedBanner } from "./shared-banner";
 import { renderChartCard, renderHero } from "./projection-card";
+import { renderCompareCard } from "./compare-card";
 import { renderGoalCard } from "./goal-card";
 import { renderInputsCard } from "./side-cards";
 import { renderAppBar } from "./topbar";
@@ -18,13 +19,15 @@ import { messages } from "./i18n";
 export interface AppView {
   /** The open plan, ready to draw. */
   readonly view: ScenarioView;
+  /** Every plan, ready to draw, in tab order. The Compare card shows when there are two or more. */
+  readonly views: readonly ScenarioView[];
   readonly tabs: readonly PlanTab[];
   readonly state: AppState;
   readonly isDark: boolean;
 }
 
 export function renderApp(root: HTMLElement, view: AppView, actions: Actions): void {
-  const { view: active, tabs, state, isDark } = view;
+  const { view: active, views, tabs, state, isDark } = view;
   const origin = activeEntry(state).origin;
 
   // Re-rendering replaces every element, so restore keyboard focus afterwards. When the focused element is
@@ -46,6 +49,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
       origin === "shared" ? renderSharedBanner(canAddPlan(state), actions) : null,
       renderHero(active, state, actions),
       renderChartCard(active, timeline, state, actions),
+      views.length > 1 ? renderCompareCard(views, active, state, actions) : null,
       h(
         "div",
         { class: "bento" },
