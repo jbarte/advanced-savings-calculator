@@ -24,6 +24,8 @@ export interface Actions {
   /** Opens or closes the table of yearly figures under the chart. */
   setYearTableOpen(open: boolean): void;
   updatePlan(patch: Partial<PlanFields>): void;
+  /** Looks at the open plan over this many years without changing it, or over its own horizon with null. */
+  setViewHorizon(years: number | null): void;
   /** Gives the plan a name, or removes it with empty text. */
   renamePlan(name: string): void;
   startFromScratch(): void;

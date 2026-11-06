@@ -128,7 +128,12 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   `horizonYears` (1–40) and `inflationPct` (default 2, the Riksbank target); a version 1 plan is upgraded with
   30 years (what the page showed then) and 2 %. Version 3 added `goal` (`{ amount, date }` or null; a version 1 or 2
   plan upgrades with no goal). The horizon and the goal are part of the plan, so changing them is a plan change:
-  they are saved and shared, and they make the example the user's own plan. Version 4 added `name` (text or null; a
+  they are saved and shared, and they make the example the user's own plan. The horizon is changed only with the End year
+  field in the Plan card. The horizon switch in the hero is a view zoom (`AppState.viewHorizonYears`, null for the plan's
+  own; `horizonOptions` in `src/ui/horizon-options.ts`): its first button is the plan's own horizon ("Plan · 25 yrs"), then
+  10, 20 and 30 years without the one that equals it. A zoom changes what the open plan is shown over (chart, headline,
+  tiles, event effects, goal line, yearly table and CSV), never the plan; it is not saved or shared, and goes back to the
+  plan's own when another plan opens or the End year changes. The Compare card always uses each plan's own horizon. Version 4 added `name` (text or null; a
   version 1–3 plan upgrades with no name): a name the user gives the plan, up to `PLAN_LIMITS.maxNameLength` (40)
   characters. It is saved and travels in the share link. Without a name the hero line and page title use the fixed
   texts for where the plan came from (`messages.planCard.names`); with one, `main.ts` passes the name to
@@ -510,6 +515,7 @@ with the toggle.
     │   ├── download.ts       # downloadText, pickTextFile: files to and from the user's computer, in memory
     │   ├── file-dialog.ts    # "Plan file": download the plan or its yearly figures, or open a plan file
     │   ├── print.ts          # preparePrinting: light theme and opened tables for a printout
+    │   ├── horizon-options.ts # horizonOptions: the buttons of the horizon switch, the plan's own first (+ test)
     │   ├── year-table.ts     # The chart's figures as a table, one row a year, in a <details> under the chart
     │   ├── topbar.ts         # Sticky app bar: brand, plan tabs (+ add), share, theme toggle
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)

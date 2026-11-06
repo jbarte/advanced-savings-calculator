@@ -173,6 +173,12 @@ export interface AppState extends PlanSet {
   readonly metric: Metric;
   /** The event highlighted in the list and on the chart, or null. */
   readonly selectedEvent: EventKey | null;
+  /**
+   * How many years the open plan is looked at, when the horizon switch is set to something other than the plan's own
+   * horizon; null means the plan's own. A view setting, like the inflation switch: not saved or shared, and back to the
+   * plan's own when another plan opens or the plan's horizon changes. It never changes the plan.
+   */
+  readonly viewHorizonYears: number | null;
   /** Whether the table of yearly figures under the chart is open. A view setting: not saved, closed at each visit. */
   readonly yearTableOpen: boolean;
   /** Show results inflation adjusted (what they would buy at the start). A view setting: not saved, off at each visit. */

@@ -1,5 +1,6 @@
-import { MONTHS_PER_YEAR, addMonths, yearsToMonths } from "../core/year-month";
-import { HORIZON_PRESETS, METRICS } from "../state/types";
+import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
+import { METRICS } from "../state/types";
+import { activeEntry } from "../state/workspace";
 import type { AppState, ScenarioView } from "../state/types";
 import { eventsAtMonth } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
@@ -23,6 +24,7 @@ import { renderEmptyState, renderToggle } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
+import { horizonOptions } from "./horizon-options";
 import { messages } from "./i18n";
 import { renderYearTable } from "./year-table";
 
@@ -42,18 +44,21 @@ function heroSubtitle(scenario: ScenarioView): string {
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
   const end = lastPoint(scenario);
 
-  // Presets for the horizon; any other length is set with the end year in the Plan card.
-  const horizons = HORIZON_PRESETS.map((years) =>
+  // The plan's own horizon and the presets. They change what is shown, never the plan: the plan's horizon is set with
+  // the end year in the Plan card.
+  const planYears = activeEntry(state).plan.horizonYears;
+  const shownYears = state.viewHorizonYears ?? planYears;
+  const horizons = horizonOptions(planYears).map((option) =>
     h(
       "button",
       {
         class: "tabs__item",
         type: "button",
-        "data-key": `horizon-${years}`,
-        "aria-pressed": yearsToMonths(years) === scenario.horizonMonths ? "true" : "false",
-        onclick: () => actions.updatePlan({ horizonYears: years }),
+        "data-key": option.isPlan ? "horizon-plan" : `horizon-${option.years}`,
+        "aria-pressed": option.years === shownYears ? "true" : "false",
+        onclick: () => actions.setViewHorizon(option.isPlan ? null : option.years),
       },
-      messages.units.yearsShort(years),
+      option.isPlan ? messages.hero.planHorizon(option.years) : messages.units.yearsShort(option.years),
     ),
   );
 

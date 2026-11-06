@@ -22,10 +22,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   keys keep the old name).
 - **Merged since:** milestone 10B (PR #26).
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
-- **Merged since:** milestones 12A, Swedish (PR #31), 12B, privacy and page basics (PR #32), and 12C, accessibility (PR #33).
-- **Open:** milestone 12D, export (branch `feature/m12d-export`), the last part of milestone 12.
-- **Next:** the ideas to investigate (sliders, the plan's own horizon, transitions, polish), see NEXT_STEPS.md.
-- **Tests:** 672 (`npm test`), typecheck and build pass.
+- **Merged since:** milestone 12 in full (PRs #31 to #34).
+- **Open:** the plan's own horizon, the first of the ideas after milestone 12 (branch `feature/plan-horizon`).
+- **Next:** the other ideas (sliders, transitions, polish), see NEXT_STEPS.md.
+- **Tests:** 677 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -889,3 +889,29 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     brand fits.
 - **Known gaps:** the file picker and the browser's own download were exercised with stand-ins (a made-up file, a captured Blob), not
   with the operating system's dialogs; printing was checked in Chrome only.
+
+### The plan's own horizon (branch `feature/plan-horizon`)
+- **Found:** the 10 / 20 / 30 yrs buttons called `updatePlan({ horizonYears })`, so they changed the plan itself (saved and shared,
+  and they made the example the user's own). A 25-year plan became a 10-year plan the moment a button was pressed, and only the End
+  year field could bring the 25 back. The view model could already show any horizon (`buildScenarioView` takes the horizon in months).
+- **Decided with the user:** the buttons become a view zoom with the plan's own horizon as the default; the first button reads
+  "Plan · 25 yrs" ("Plan · 25 år"), and the preset that equals the plan's horizon is left out.
+- **Built:**
+  - `AppState.viewHorizonYears` (null = the plan's own) and the action `setViewHorizon`. Not saved or shared; reset to null when
+    another plan opens (`withPlanSetChange`, a shared plan opened or left, Start from scratch) and when the plan's End year changes
+    (`updatePlan` with `horizonYears`).
+  - `src/ui/horizon-options.ts`: `horizonOptions(planYears)`, the plan's own first, then the presets that differ from it.
+  - The open plan's view is built over `viewHorizonYears ?? plan.horizonYears`; the Compare card builds every plan over its own.
+    `createScenarioViewCache` now keys by plan id and horizon, so a zoomed open plan and its Compare line don't evict each other.
+  - The Plan card's End year field and its "N YRS" unit show the plan's own horizon even while zoomed.
+  - Texts `hero.planHorizon` in English and Swedish.
+- **What a zoom changes:** everything shown for the open plan follows the zoom: the chart and its years, the headline, the tiles, the
+  effect of each event and the total, which events count as after the end, the goal line and its "after the end year" note, the
+  yearly table and the CSV. The plan, the share link, the plan file and the Compare card don't.
+- **Checked:**
+  - 677 tests (5 new: `horizonOptions` with a horizon between, equal to and at the ends of the presets; the view cache keeps two
+    horizons for one plan; switching plans resets the zoom). Typecheck and build pass; pinned reference values did not move.
+  - Browser: the example opens with [Plan · 30 yrs] [10 yrs] [20 yrs]; an End year of 2051 gives [Plan · 25 yrs] [10] [20] [30];
+    10 yrs shows "Balance by Nov 2036", the chart 2026–2036 and "Effect by Nov 2036", while the saved plan keeps 25 years and the End
+    year field keeps 2051 (25 YRS); "Plan · 25 yrs" goes back to Nov 2051; changing the End year to 2061 while zoomed selects
+    "Plan · 35 yrs"; adding a plan resets the zoom; the Compare card shows each plan's own end. No console errors.

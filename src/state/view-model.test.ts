@@ -357,6 +357,15 @@ describe("createScenarioViewCache", () => {
     expect(view(1, plan, "P", 120)).not.toBe(first);
   });
 
+  it("keeps a plan's views for two horizons, so a zoomed open plan and its Compare line don't push each other out", () => {
+    const view = createScenarioViewCache();
+    const own = view(1, plan, "P", HORIZON_30);
+    const zoomed = view(1, plan, "P", 120);
+    expect(zoomed.horizonMonths).toBe(120);
+    expect(view(1, plan, "P", HORIZON_30)).toBe(own);
+    expect(view(1, plan, "P", 120)).toBe(zoomed);
+  });
+
   it("remembers each plan on its own, so another plan does not push it out", () => {
     const view = createScenarioViewCache();
     const first = view(1, plan, "P", HORIZON_30);

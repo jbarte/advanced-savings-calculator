@@ -50,6 +50,7 @@ const store = createStore({
   storage: startup.storage,
   metric: "balance",
   selectedEvent: null,
+  viewHorizonYears: null,
   yearTableOpen: false,
   inflationAdjusted: false,
   chartMonth: null,
@@ -116,11 +117,16 @@ const actions: Actions = {
   setChartMonth: (chartMonth) => store.update({ chartMonth }),
   setInflationAdjusted: (inflationAdjusted) => store.update({ inflationAdjusted }),
   setYearTableOpen: (yearTableOpen) => store.update({ yearTableOpen }),
-  updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
+  updatePlan: (patch) => {
+    commitPlan((plan) => updatePlanFields(plan, patch));
+    // A new horizon for the plan is what the user now wants to see, so a zoom set before it is let go.
+    if (patch.horizonYears !== undefined) store.update({ viewHorizonYears: null });
+  },
+  setViewHorizon: (viewHorizonYears) => store.update({ viewHorizonYears, chartMonth: null }),
   renamePlan: (name) => commitPlan((plan) => renamePlan(plan, name)),
   startFromScratch: () => {
     commitPlan(() => createBlankPlan(currentYearMonth()));
-    store.update({ selectedEvent: null, chartMonth: null });
+    store.update({ selectedEvent: null, chartMonth: null, viewHorizonYears: null });
     clearShareHash();
   },
   startOver: () => {
@@ -216,7 +222,7 @@ const actions: Actions = {
     if (store.get().notice === null) clearShareHash();
   },
   leaveSharedPlan: () => {
-    store.update({ ...leaveSharedPlan(store.get()), selectedEvent: null, chartMonth: null });
+    store.update({ ...leaveSharedPlan(store.get()), selectedEvent: null, chartMonth: null, viewHorizonYears: null });
     clearShareHash();
   },
 };
@@ -225,7 +231,7 @@ const actions: Actions = {
 const openSharedPlan = async (token: string): Promise<void> => {
   try {
     const plan = await decodePlan(token);
-    store.update({ ...addSharedPlan(store.get(), plan), selectedEvent: null, chartMonth: null, notice: null });
+    store.update({ ...addSharedPlan(store.get(), plan), selectedEvent: null, chartMonth: null, viewHorizonYears: null, notice: null });
   } catch (error) {
     if (!(error instanceof RangeError)) {
       console.error(error);
@@ -248,14 +254,15 @@ const render = (): void => {
       renderDesignSystem(root, isDark(), actions);
       return;
     }
-    const viewOf = (entry: PlanEntry): ScenarioView => {
-      const nominal = scenarioView(entry.id, entry.plan, displayName(entry), yearsToMonths(entry.plan.horizonYears));
+    const viewOf = (entry: PlanEntry, years: number): ScenarioView => {
+      const nominal = scenarioView(entry.id, entry.plan, displayName(entry), yearsToMonths(years));
       return state.inflationAdjusted ? applyInflationAdjustment(nominal, entry.plan.inflationPct) : nominal;
     };
     const entry = activeEntry(state);
-    const view = viewOf(entry);
+    // The open plan is shown over the horizon switch's years; the Compare card always compares each plan's own.
+    const view = viewOf(entry, state.viewHorizonYears ?? entry.plan.horizonYears);
     // Only the Compare card needs the other plans, so they are not drawn up with a single plan.
-    const views = state.plans.length > 1 ? state.plans.map((plan) => (plan.id === entry.id ? view : viewOf(plan))) : [view];
+    const views = state.plans.length > 1 ? state.plans.map((plan) => viewOf(plan, plan.plan.horizonYears)) : [view];
     renderApp(root, { view, views, tabs: state.plans.map((plan) => ({ id: plan.id, label: displayName(plan), origin: plan.origin })), state, isDark: isDark() }, actions);
   } catch (error) {
     console.error(error);

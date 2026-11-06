@@ -1,4 +1,4 @@
-import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
+import { addMonths, yearsToMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
 import { activeEntry, ownCount } from "../state/workspace";
 import type { AppState, ScenarioView } from "../state/types";
@@ -208,8 +208,9 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
       renderParsedField({
         id: "end-year",
         label: messages.planCard.fields.endYear,
-        unit: messages.units.yearsField(scenario.horizonMonths / MONTHS_PER_YEAR),
-        value: String(addMonths(scenario.start, scenario.horizonMonths).year),
+        // The plan's own horizon, also while the horizon switch shows the plan over a different number of years.
+        unit: messages.units.yearsField(activeEntry(state).plan.horizonYears),
+        value: String(addMonths(scenario.start, yearsToMonths(activeEntry(state).plan.horizonYears)).year),
         dataKey: "plan-end-year",
         inputMode: "numeric",
         parse: (text) => parseEndYear(text, scenario.start.year),
