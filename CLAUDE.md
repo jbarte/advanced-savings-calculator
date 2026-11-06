@@ -102,9 +102,12 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   element, so updating the store on each keystroke would rebuild the field being typed
   in (the cursor jumps and autocomplete breaks). Text and number inputs update the store
   on the `change` event (blur or Enter). Live feedback while typing, such as validation
-  messages, stays local to the input (`renderTextField` in `src/ui/components.ts`). If a
-  feature truly needs live updates, render the form once and re-render only the result
-  cards, and ask before restructuring.
+  messages, stays local to the input (`renderTextField` in `src/ui/components.ts`). The one live update is the Plan
+  card's sliders (`withPlanSlider`, `src/ui/plan-slider.ts`; start amount, monthly deposit, expected return, with ranges in
+  `SLIDER_RANGES` that only give valid values): on `input` they call the preview that `renderApp` hands the Plan card, which
+  builds the open plan with the changed field (`previewOf` in `main.ts`, not saved, not in the store) and replaces only the
+  hero and the chart card, at most once a frame; on `change` (release, or a key press) they commit through `updatePlan` like
+  typing. Anything else live would follow the same pattern; ask before restructuring.
 - **Renders are deferred one tick** by `createRenderScheduler` (`src/ui/render-scheduler.ts`).
   `change` fires while focus is still leaving a field, so rendering at once would put focus
   back in it (Tab would not move on) and would replace a button under the pointer (losing
@@ -515,6 +518,7 @@ with the toggle.
     │   ├── download.ts       # downloadText, pickTextFile: files to and from the user's computer, in memory
     │   ├── file-dialog.ts    # "Plan file": download the plan or its yearly figures, or open a plan file
     │   ├── print.ts          # preparePrinting: light theme and opened tables for a printout
+    │   ├── plan-slider.ts    # withPlanSlider, SLIDER_RANGES: the Plan card sliders and their live preview (+ test)
     │   ├── horizon-options.ts # horizonOptions: the buttons of the horizon switch, the plan's own first (+ test)
     │   ├── year-table.ts     # The chart's figures as a table, one row a year, in a <details> under the chart
     │   ├── topbar.ts         # Sticky app bar: brand, plan tabs (+ add), share, theme toggle

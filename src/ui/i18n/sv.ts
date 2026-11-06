@@ -173,6 +173,12 @@ export const sv: Messages = {
   planCard: {
     heading: "Plan",
     renameHover: "Byt namn på planen",
+    sliders: {
+      startAmount: "Justera startbeloppet",
+      monthlyDeposit: "Justera månadssparandet",
+      expectedReturn: "Justera den förväntade avkastningen",
+      perMonth: (amount: string): string => `${amount} i månaden`,
+    },
     file: "Fil",
     fileAria: "Planfil: ladda ner eller öppna",
     delete: "Ta bort plan",

@@ -23,9 +23,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** milestone 10B (PR #26).
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
 - **Merged since:** milestone 12 in full (PRs #31 to #34).
-- **Open:** the plan's own horizon, the first of the ideas after milestone 12 (branch `feature/plan-horizon`).
-- **Next:** the other ideas (sliders, transitions, polish), see NEXT_STEPS.md.
-- **Tests:** 677 (`npm test`), typecheck and build pass.
+- **Merged since:** the plan's own horizon (PR #35).
+- **Open:** sliders with a live preview (branch `feature/sliders`).
+- **Next:** transitions (chart glide, dialog fade, plan cross-fade), then overall polish, see NEXT_STEPS.md.
+- **Tests:** 679 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -915,3 +916,30 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     10 yrs shows "Balance by Nov 2036", the chart 2026–2036 and "Effect by Nov 2036", while the saved plan keeps 25 years and the End
     year field keeps 2051 (25 YRS); "Plan · 25 yrs" goes back to Nov 2051; changing the End year to 2061 while zoomed selects
     "Plan · 35 yrs"; adding a plan resets the zoom; the Compare card shows each plan's own end. No console errors.
+
+### Sliders with a live preview (branch `feature/sliders`)
+- **Investigation (sliders and transitions together):** measured the engine at 0.13 ms for the example plan, 1.1 ms with a goal and
+  39 ms for the largest allowed plan (110 events, 40 years), and a full redraw of the page (about 380 elements) at 3–4 ms. Speed was
+  not the problem. The problem was that every change replaces the whole page: a slider would be replaced under the pointer while
+  dragged, and lines and numbers jump. Two ways: a live preview that redraws only the results (keeps the architecture), or patching
+  the page in place (a small DOM morph; bigger, every handler and the focus handling change). Decided with the user: the live preview,
+  sliders for the start amount, the monthly deposit and the expected return, and as transitions the chart glide, dialog fade and plan
+  cross-fade (next PR).
+- **Built:**
+  - `src/ui/plan-slider.ts`: `withPlanSlider` puts a range input under a Plan card field. On `input` it moves the field's text along,
+    updates its spoken value (`aria-valuetext`, e.g. "9 000 kr per month") and calls the preview; on `change` (letting go, or each key
+    press) it commits with `updatePlan`. `SLIDER_RANGES`: start amount 0–2 000 000 kr by 10 000, monthly deposit 0–30 000 kr by 500,
+    return 0–12 % by 0.5. A plan value outside a slider's range puts its thumb at the end; the typed field keeps the whole range.
+  - `renderApp` keeps the hero and chart card it drew and hands the Plan card a `livePreview` that redraws just those two, at most
+    once a frame with the latest value. `previewOf` in `main.ts` builds the open plan with the changed field (checked with
+    `updatePlanFields`; a refused value is simply not drawn) over the shown horizon, inflation adjusted when that is on. Nothing reaches
+    the store until the slider is let go.
+  - Texts `planCard.sliders` in English and Swedish. The slider uses the design system's slider style.
+- **Checked:**
+  - 679 tests (2 new: every value a slider can give is within `PLAN_LIMITS`, lands on whole kronor and includes the range's end).
+    Typecheck and build pass; pinned reference values did not move.
+  - Browser: dragging the monthly deposit to 4 000, 6 000 and 9 000 kr redraws the headline (10 091 571 kr) and the chart's end value
+    while the slider element stays the same, the field reads "9 000", and nothing is saved; letting go saves 9 000 kr and the event
+    effects update. An arrow key on the return slider moves it to 7.5 %, saves, and keeps focus on the slider. No console errors.
+- **Known gaps:** dragging was simulated with input events, not a real pointer; the Compare card, goal card and event list update only
+  when the slider is let go.
