@@ -415,6 +415,11 @@ with the toggle.
   horizon just appears). A Plan card slider's live preview doesn't glide (the drag is the motion), and switching plans fades the
   page in instead (`.canvas--switched`, keyed on `data-plan` on the shell). Dialogs fade and rise in (`.modal[open]`). Under
   `prefers-reduced-motion` the glide doesn't run, transitions and animations are off, except the spinner.
+- **Chart details.** The first drawing of the page reveals the main chart left to right (`.chart__svg--intro`, a `clip-path`
+  animation, set by `introduceChart` only when no chart was on the page before); the tooltip, dot and cursor glide to the next
+  month with `left`/`top`/`transform` transitions, and the dot grows while the pointer is over the chart. A badge for an event
+  that was not on the chart before gets `.chart__badge--new` and pops in (`captureBadges` and `popNewBadges`, keyed on
+  `data-event`), so redraws don't make the existing badges pop again; the selected badge has a ring in `--focus` and is larger.
 - **No white highlights or glow.** The `--shadow-*` tokens contain only dark shadows (plus the edge).
   Do not add `rgb(255 255 255 / …)` to a shadow. Translucent white fills on coloured surfaces
   (`--on-color-fill`) are fine, since they are fills and not light.

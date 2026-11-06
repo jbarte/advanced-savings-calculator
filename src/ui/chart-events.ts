@@ -70,6 +70,7 @@ function badge(entry: TimelineEntry, x: number, lane: number, selected: EventKey
     {
       class: `chart__badge chart__badge--${entry.kind}`,
       type: "button",
+      "data-event": entry.key,
       tabindex: -1,
       style: `left:${x}%;--lane:${lane}`,
       "aria-pressed": String(isSelected),

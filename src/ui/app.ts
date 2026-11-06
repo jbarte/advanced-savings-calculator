@@ -12,7 +12,7 @@ import { renderChartCard, renderHero } from "./projection-card";
 import { renderCompareCard } from "./compare-card";
 import { renderGoalCard } from "./goal-card";
 import { renderInputsCard } from "./side-cards";
-import { captureCharts, glideCharts } from "./chart-glide";
+import { captureBadges, captureCharts, glideCharts, introduceChart, popNewBadges } from "./chart-glide";
 import { renderAppBar } from "./topbar";
 import type { PlanTab } from "./topbar";
 import { renderEventsSection } from "./events-section";
@@ -42,6 +42,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
 
   // What the charts drew and which plan the page showed, to glide from the old chart or fade in another plan.
   const drawnBefore = captureCharts(root);
+  const badgesBefore = captureBadges(root);
   const planBefore = root.querySelector(".shell")?.getAttribute("data-plan") ?? null;
   const planSwitched = planBefore !== null && planBefore !== String(state.activeId);
 
@@ -102,6 +103,9 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   root.replaceChildren(shell);
   // Another plan fades in (see `.canvas--switched`); the same plan, changed, has its chart glide to the new shape.
   if (!planSwitched) glideCharts(root, drawnBefore);
+  // The first drawing of the page reveals the chart; later ones only pop the badges of events that are new.
+  if (drawnBefore.length === 0) introduceChart(root);
+  else if (!planSwitched) popNewBadges(root, badgesBefore);
   document.title = active.planName === null ? messages.app.pageTitle : messages.app.pageTitleNamed(active.planName);
 
   const find = (key: string | null | undefined): HTMLElement | null =>

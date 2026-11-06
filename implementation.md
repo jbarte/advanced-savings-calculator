@@ -25,8 +25,9 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** milestone 12 in full (PRs #31 to #34).
 - **Merged since:** the plan's own horizon (PR #35).
 - **Merged since:** sliders (PR #36), the collapsible Compare card, more sliders and the steady layout (PR #37), and smooth transitions (PR #38).
-- **Open:** polish, part 1: type, touch, focus, tokens, theme fade (branch `feature/polish-details`).
-- **Next:** polish, part 2 (chart details) and part 3 (undo and empty states), see NEXT_STEPS.md.
+- **Merged since:** polish, part 1 (PR #39).
+- **Open:** polish, part 2: chart details (branch `feature/polish-chart`).
+- **Next:** polish, part 3 (undo and empty states), see NEXT_STEPS.md.
 - **Tests:** 688 (`npm test`), typecheck and build pass.
 
 ## Working rules
@@ -1036,3 +1037,26 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** the safe-area insets can't be seen without a phone with a notch; the press scale was checked as a token and rule, not by pressing;
   the font fallback metrics come from Chrome on macOS (Arial and Courier New exist on Mac and Windows, not on every Linux or Android, where the system
   font is used unadjusted).
+
+### Polish, part 2: chart details (branch `feature/polish-chart`)
+- **Chosen with the user:** the line draws in when the page opens, a smoother tooltip, and event badges with an entrance and a selection ring.
+- **Built:**
+  - **Draw-in:** `.chart__svg--intro` reveals the main chart left to right over 900 ms with a `clip-path` animation (the box is 8 px larger than
+    the drawing, so the stroke is not cut). `introduceChart` adds it only on the first drawing of the page (no chart was there before) and
+    not under reduced motion. It is a clip, not a stroke-dash draw, because the lines use `vector-effect: non-scaling-stroke`, which breaks
+    dash lengths and `pathLength` in some browsers; the clip reveals the area too.
+  - **Tooltip:** the tooltip, the dot and the cursor have `left`, `top` and `transform` transitions (`--duration-fast`), so moving between
+    months, by pointer or by key, glides instead of snapping; the dot grows to 125 % while the pointer is over the chart. The first position
+    is set before the element is in the page, so nothing slides in from the corner.
+  - **Badges:** each badge carries `data-event`. `captureBadges` reads which events had a badge before a redraw and `popNewBadges` gives new
+    ones `.chart__badge--new` (a 180 ms pop), so a redraw doesn't make the existing badges pop. Not on the first drawing (the reveal covers it)
+    or a plan switch. The selected badge is 12 % larger, above its neighbours, with a ring in the focus colour (surface-coloured gap, then
+    `--focus`) and a soft glow, also for the outlined one-time-deposit badge.
+- **Checked:**
+  - 688 tests unchanged. Typecheck and build pass.
+  - Browser: on a fresh load the chart svg has the `chart-reveal` animation, its clip-path is mid-reveal early (about 47 % shown) and `none` after 1.3 s;
+    tooltip and dot transition left, top and transform; editing a field afterwards doesn't replay the reveal or pop any badge; adding a one-time
+    deposit pops only the new badge (`one-time-deposit-1`) with `badge-pop`; selecting a badge gives transform scale 1.12, z-index 1 and the
+    ring shadow (screenshot checked); the hover rule for the dot exists. No console errors.
+- **Known gaps:** the pointer glide was checked as transitions and computed styles, not by moving a real pointer; the compare chart's tooltip
+  glides (it shares the tooltip styles) but has no draw-in; the draw-in is off under reduced motion because the global rule removes animations.
