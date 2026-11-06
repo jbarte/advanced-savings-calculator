@@ -2,7 +2,7 @@ import { PLAN_LIMITS } from "../state/plan-document";
 import type { TimelineEntry } from "../state/timeline";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
-import { renderEmptyState } from "./components";
+import { renderEmptyState, renderSteadyText } from "./components";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { h } from "./dom";
 import { formatSignedMoney } from "./format";
@@ -65,9 +65,14 @@ export function renderEventsSection(
       : h(
           "p",
           { class: "events__total" },
-          messages.events.totalBefore(end, scenario.inflationAdjusted),
-          h("strong", { class: `events__total-value ${tone}`.trim() }, formatSignedMoney(scenario.totalEffect)),
-          messages.events.totalAfter,
+          renderSteadyText(
+            (adjusted) => [
+              messages.events.totalBefore(end, adjusted),
+              h("strong", { class: `events__total-value ${tone}`.trim() }, formatSignedMoney(scenario.totalEffect)),
+              messages.events.totalAfter,
+            ],
+            scenario.inflationAdjusted,
+          ),
         );
 
   return h(

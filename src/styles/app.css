@@ -33,6 +33,11 @@ button {
   outline-offset: 3px;
 }
 
+/* A component class with its own display (grid, flex) must not show what `hidden` hides, such as a collapsed card. */
+[hidden] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1155,6 +1160,62 @@ button {
 .card__title:focus-visible {
   outline: none;
   box-shadow: var(--glow-focus);
+}
+
+/* The part of a collapsible card under its heading, laid out like the card itself. */
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+}
+
+/* The chevron that collapses a card to its heading; it turns when the card is collapsed. */
+.card__toggle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-2);
+  color: var(--ink2);
+}
+
+.card__toggle svg {
+  width: var(--icon-md);
+  height: var(--icon-md);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 150ms;
+}
+
+.card__toggle[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+
+.card__toggle:hover {
+  color: var(--ink);
+  background: var(--fill);
+}
+
+.card__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus);
+}
+
+/* Text that differs with the inflation switch: both wordings in one place, so the line is as tall as the taller one. */
+.steady {
+  display: grid;
+}
+
+.steady__layer {
+  grid-area: 1 / 1;
+}
+
+.steady__layer--spare {
+  visibility: hidden;
 }
 
 .card__head-side {

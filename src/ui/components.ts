@@ -150,6 +150,44 @@ export function renderHiddenHint(id: string, text: string): HTMLElement {
   return h("span", { id, class: "visually-hidden" }, text);
 }
 
+/** The button that collapses a card to its heading or opens it again. It names the card, and says which way it goes. */
+export function renderCollapseToggle(props: {
+  readonly expanded: boolean;
+  readonly label: string;
+  readonly controls: string;
+  readonly dataKey: string;
+  readonly onToggle: () => void;
+}): HTMLButtonElement {
+  return h(
+    "button",
+    {
+      class: "card__toggle",
+      type: "button",
+      "aria-expanded": String(props.expanded),
+      "aria-controls": props.controls,
+      "aria-label": props.label,
+      title: props.label,
+      "data-key": props.dataKey,
+      onclick: props.onToggle,
+    },
+    s("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" }, s("path", { d: "M6 9l6 6 6-6" })),
+  );
+}
+
+/**
+ * Text that differs with the inflation switch, drawn so the page does not move when the switch is flipped. Both versions
+ * are put in the same place, one on top of the other: the one in use is shown and the other is hidden but still takes its
+ * space, so the line is as tall as the taller of the two (the adjusted wording is longer and can wrap, which would push
+ * everything below it down). Screen readers only get the shown one.
+ */
+export function renderSteadyText(content: (adjusted: boolean) => readonly (Node | string)[], adjusted: boolean): HTMLElement {
+  const layer = (isAdjusted: boolean): HTMLElement =>
+    isAdjusted === adjusted
+      ? h("span", { class: "steady__layer" }, ...content(isAdjusted))
+      : h("span", { class: "steady__layer steady__layer--spare", "aria-hidden": "true" }, ...content(isAdjusted));
+  return h("span", { class: "steady" }, layer(false), layer(true));
+}
+
 /* ---------- Step indicator ---------- */
 
 /** `current` is the zero-based index of the active step; earlier steps are done. */

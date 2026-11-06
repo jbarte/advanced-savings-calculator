@@ -24,9 +24,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
 - **Merged since:** milestone 12 in full (PRs #31 to #34).
 - **Merged since:** the plan's own horizon (PR #35).
-- **Open:** sliders with a live preview (branch `feature/sliders`).
+- **Merged since:** sliders with a live preview (PR #36).
+- **Open:** collapsible cards (branch `feature/collapsible-cards`).
 - **Next:** transitions (chart glide, dialog fade, plan cross-fade), then overall polish, see NEXT_STEPS.md.
-- **Tests:** 679 (`npm test`), typecheck and build pass.
+- **Tests:** 684 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -943,3 +944,36 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     effects update. An arrow key on the return slider moves it to 7.5 %, saves, and keeps focus on the slider. No console errors.
 - **Known gaps:** dragging was simulated with input events, not a real pointer; the Compare card, goal card and event list update only
   when the slider is let go.
+
+### A collapsible Compare card, and sliders for every Plan field (branch `feature/collapsible-cards`)
+- **Asked for:** being able to collapse parts of the page one isn't interested in. Built for the Compare card, the Plan card and then
+  the Savings goal card; the user then chose to keep it for the Compare card only, and the other two were taken out again.
+- **Built:**
+  - `src/state/collapsed.ts`: `COLLAPSIBLE` (`compare`), `readCollapsed` (saved text to a list; unknown ids, broken text or something
+    that is not a list give nothing collapsed), `toggleCollapsed`, and `loadCollapsed` / `saveCollapsed` under
+    `advanced-savings-calculator:collapsed` (removed when nothing is collapsed). `AppState.collapsed`, action `toggleSection`. Kept as a
+    list so another card can be added with one word.
+  - `renderCollapseToggle` (`components.ts`): a chevron button with `aria-expanded`, `aria-controls` and a name that says which way it
+    goes ("Collapse Compare plans"; Swedish "Fäll ihop" / "Fäll ut"). The chevron turns when collapsed.
+  - The Compare card keeps its header and puts its chart, legend and table in a `.card__body` (laid out like the card) with `hidden`
+    when collapsed. A global `[hidden] { display: none !important }`, since a component's own `display` otherwise shows a hidden body.
+- **Checked:**
+  - 684 tests (5 new for `collapsed.ts`, minus the ones for the cards taken out). Typecheck and build pass; pinned reference values did
+    not move.
+  - Browser: collapsing the Compare card hides its body and saves `["compare"]`; it stays collapsed after a reload; Enter on the toggle
+    opens and closes it and keeps focus on it; the Plan and goal cards have no toggle. No console errors.
+- **Sliders for the other fields (asked for in the same round):** inflation (0–6 % by 0.5), the start year (2000–2060 by one year; the
+  start month stays, so the field moves from 2026-11 to 2030-11) and the end year (from one to 40 years after the start, so every stop
+  is a valid horizon; spoken as "2060, 30 years"). A preview that moves the end year shows that horizon itself, not a zoom set before
+  it. `SLIDER_RANGES` gained `inflation` and `startYear`, checked against `PLAN_LIMITS` in `plan-slider.test.ts`. Browser: the start
+  slider at 2030 previews "Balance by Nov 2060" and saves `{ year: 2030, month: 11 }`; the end slider at 2050 previews "Balance by Nov
+  2050" and saves 20 years; inflation 3.5 saves and the field reads "3.5". Every field in the Plan card now has a slider, so the rows line
+  up. No console errors.
+- **Layout jump when toggling "Inflation adjusted" (reported by the user):** measured at a 868 px window: the events table header grew from
+  45 to 61 px, because "Effect by Nov 2056 (inflation adjusted)" wraps to two lines, which moved everything below by 16 px (the hero
+  subtitle and the other texts also get longer, and wrap at narrower widths). Fixed with `renderSteadyText` (`components.ts`): both
+  wordings in one grid cell (`.steady`), the unused one `visibility: hidden` and `aria-hidden`, so the space is the taller one's and
+  nothing moves. Used for the hero eyebrow and subtitle, the chart and Compare meta lines, the events total and the Effect column header.
+  Browser: the top of every section and the page height are identical with the switch off and on, at 868 px (2 468 px) and 375 px
+  (3 210 px), and the shown text is the right one. The cost is that the unused wording's space is always reserved, so a line that
+  would fit on one row in the plain wording keeps its height when it is the only one that wraps.

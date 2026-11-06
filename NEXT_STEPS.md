@@ -360,6 +360,12 @@ as the browser's and a switch in the app bar changes it (it saves the choice and
 
 ### Ideas to investigate after milestone 12
 
+- **Sliders for every Plan field (done, in its PR; asked for on 2026-11-06).** Inflation (0–6 %), the start year (2000–2060, a
+  year at a time; the month stays) and the end year (1–40 years after the start) got sliders too, like the first three.
+- **A collapsible Compare card (done, in its PR; asked for on 2026-11-06).** The Compare card can be collapsed to its heading
+  with a chevron in the header, and the choice is remembered in this browser. The Plan and goal cards were tried as well and
+  left out at the user's choice.
+
 Raised by the user on 2026-11-06. To be looked at once milestone 12 is done; each one starts with an investigation and
 a decision before any build. They overlap, so they may become one milestone ("feel").
 

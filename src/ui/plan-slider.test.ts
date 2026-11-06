@@ -13,6 +13,11 @@ describe("the Plan card sliders", () => {
     expect(SLIDER_RANGES.monthlyDeposit.max * ORE_PER_KRONA).toBeLessThanOrEqual(PLAN_LIMITS.maxMonthlyDeposit);
     expect(SLIDER_RANGES.annualReturn.min).toBeGreaterThanOrEqual(PLAN_LIMITS.minReturnPct);
     expect(SLIDER_RANGES.annualReturn.max).toBeLessThanOrEqual(PLAN_LIMITS.maxReturnPct);
+    expect(SLIDER_RANGES.inflation.min).toBeGreaterThanOrEqual(PLAN_LIMITS.minInflationPct);
+    expect(SLIDER_RANGES.inflation.max).toBeLessThanOrEqual(PLAN_LIMITS.maxInflationPct);
+    expect(SLIDER_RANGES.startYear.min).toBeGreaterThanOrEqual(PLAN_LIMITS.minStartYear);
+    expect(SLIDER_RANGES.startYear.max).toBeLessThanOrEqual(PLAN_LIMITS.maxStartYear);
+    expect(Number.isInteger(SLIDER_RANGES.startYear.step)).toBe(true);
   });
 
   it("land on whole kronor and on round steps, with the end of the range as a stop", () => {

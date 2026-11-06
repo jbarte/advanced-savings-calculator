@@ -103,8 +103,9 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   in (the cursor jumps and autocomplete breaks). Text and number inputs update the store
   on the `change` event (blur or Enter). Live feedback while typing, such as validation
   messages, stays local to the input (`renderTextField` in `src/ui/components.ts`). The one live update is the Plan
-  card's sliders (`withPlanSlider`, `src/ui/plan-slider.ts`; start amount, monthly deposit, expected return, with ranges in
-  `SLIDER_RANGES` that only give valid values): on `input` they call the preview that `renderApp` hands the Plan card, which
+  card's sliders (`withPlanSlider`, `src/ui/plan-slider.ts`; one under every field: start amount, monthly deposit, expected
+  return, inflation, the start year (a year at a time, the month stays) and the end year (from one to 40 years after the
+  start), with ranges that only give valid values, in `SLIDER_RANGES` or from the start year): on `input` they call the preview that `renderApp` hands the Plan card, which
   builds the open plan with the changed field (`previewOf` in `main.ts`, not saved, not in the store) and replaces only the
   hero and the chart card, at most once a frame; on `change` (release, or a key press) they commit through `updatePlan` like
   typing. Anything else live would follow the same pattern; ask before restructuring.
@@ -144,6 +145,12 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   and the share dialog). The plan is renamed from the Plan card's title ("Plan", or the plan's name), which is a button (pencil icon) that opens
   `openRenameDialog` (`rename-dialog.ts`); there is no Name field. Typed text that ends up in the plan (the name, event labels) goes through `cleanText`
   (`src/state/plan-text.ts`): control characters become a space and the ends are trimmed.
+- **The Compare card can be collapsed.** A chevron button in its header (`renderCollapseToggle` in `components.ts`,
+  `aria-expanded` and `aria-controls`) collapses it to its heading; the body stays in the page with
+  `hidden`. Which are collapsed is `AppState.collapsed`, remembered in this browser under `advanced-savings-calculator:collapsed`
+  (`src/state/collapsed.ts`), not part of the plan. A global `[hidden] { display: none !important }` keeps a component's own
+  `display` from showing what is hidden. `COLLAPSIBLE` lists the cards that can collapse (only `compare`; the user tried the
+  Plan and goal cards too and chose not to).
 - **Plan files and printing.** The Plan card's "File" button opens `openFileDialog` (`src/ui/file-dialog.ts`): download the open
   plan (`planFileText`, `src/state/plan-file.ts`: the plan document as indented JSON), download its yearly figures as CSV
   (`figuresCsv` in `src/ui/csv.ts`, the rows of `yearlyPoints`, separator `messages.locale.csvSeparator`), or open a plan file
@@ -388,6 +395,10 @@ with the toggle.
   disabled button can't be focused and a `title` is not read; a scrolling area is reachable with the keyboard and named
   (`tabindex="0"`, `role="region"`); small click targets are at least 24 px (an input fills its whole field); and the chart has a
   table of its figures under it (`year-table.ts`, a native `<details>`, open state in `AppState.yearTableOpen`).
+- **The layout does not move when the inflation switch is flipped.** Text that differs with it (the headline's small line, the
+  subtitle, the chart and Compare meta lines, the events total, the Effect column header) is drawn with `renderSteadyText`:
+  both wordings in one grid cell, the unused one `visibility: hidden`, so the line is as tall as the taller wording (the
+  adjusted one is longer and can wrap). Use it for any new text that changes with a view switch.
 - **No white highlights or glow.** The `--shadow-*` tokens contain only dark shadows (plus the edge).
   Do not add `rgb(255 255 255 / …)` to a shadow. Translucent white fills on coloured surfaces
   (`--on-color-fill`) are fine, since they are fills and not light.
@@ -488,6 +499,7 @@ with the toggle.
     │   ├── goal.ts           # setGoal, clearGoal: the plan's savings goal, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── reference-values.test.ts # Hand- and script-checked results, pinned to the öre
+    │   ├── collapsed.ts      # Whether the Compare card is collapsed: read, toggle, load and save in this browser (+ test)
     │   ├── language.ts       # Language, chooseLanguage, load/save the choice, the browser's languages (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
