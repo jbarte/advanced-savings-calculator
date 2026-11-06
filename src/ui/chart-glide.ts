@@ -12,6 +12,28 @@ export function captureCharts(root: ParentNode): DrawnCharts {
   return [...root.querySelectorAll(".chart__svg")].map((svg) => [...svg.querySelectorAll("path")].map((path) => path.getAttribute("d") ?? ""));
 }
 
+/** The events that have a badge on the chart now, read before the page is drawn again. */
+export function captureBadges(root: ParentNode): ReadonlySet<string> {
+  return new Set([...root.querySelectorAll<HTMLElement>(".chart__badge")].flatMap((badge) => badge.dataset["event"] ?? []));
+}
+
+/**
+ * Gives the badges that were not on the chart before the class that pops them in (`.chart__badge--new`), so an event that is
+ * just added appears with a small pop while the ones already there stay still when the page is drawn again.
+ */
+export function popNewBadges(root: ParentNode, before: ReadonlySet<string>): void {
+  for (const badge of root.querySelectorAll<HTMLElement>(".chart__badge")) {
+    const key = badge.dataset["event"];
+    if (key !== undefined && !before.has(key)) badge.classList.add("chart__badge--new");
+  }
+}
+
+/** Makes the main chart reveal itself from left to right (`.chart__svg--intro`). Used once, when the page opens. */
+export function introduceChart(root: ParentNode): void {
+  if (!motionAllowed()) return;
+  root.querySelector(".card--chart .chart__svg")?.classList.add("chart__svg--intro");
+}
+
 const easeOut = (t: number): number => 1 - (1 - t) ** 3;
 
 /**

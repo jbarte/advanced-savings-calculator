@@ -784,8 +784,44 @@ button {
   box-shadow: var(--shadow-on-color);
 }
 
+/* The selected event's badge: a clear ring in the focus colour, a little larger, and above its neighbours. */
+.chart__badge {
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+
 .chart__badge[aria-pressed="true"] {
-  box-shadow: var(--glow-focus);
+  z-index: 1;
+  transform: translateX(-50%) scale(1.12);
+  box-shadow:
+    0 0 0 var(--border-2) var(--surface),
+    0 0 0 calc(var(--border-2) + var(--border-3)) var(--focus),
+    0 0 14px 2px color-mix(in oklab, var(--focus) 45%, transparent);
+}
+
+/* A badge that was just added pops in; the others are not animated again when the page is drawn. */
+.chart__badge--new {
+  animation: badge-pop var(--duration-base) var(--ease-out);
+}
+
+@keyframes badge-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.5);
+  }
+}
+
+/* The chart reveals itself from left to right when the page opens (the box is a little larger than the drawing, so the stroke is not cut). */
+.chart__svg--intro {
+  animation: chart-reveal 900ms var(--ease-out);
+}
+
+@keyframes chart-reveal {
+  from {
+    clip-path: inset(-8px 100% -8px -8px);
+  }
+  to {
+    clip-path: inset(-8px -8px -8px -8px);
+  }
 }
 
 .legend {
@@ -828,6 +864,7 @@ button {
   background: linear-gradient(var(--ink), transparent);
   opacity: 0.25;
   pointer-events: none;
+  transition: left var(--duration-fast) var(--ease-out);
 }
 
 .chart__dot {
@@ -839,6 +876,12 @@ button {
   background: var(--accent);
   border: var(--border-3) solid var(--ink);
   pointer-events: none;
+  transition: left var(--duration-fast) var(--ease-out), top var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+/* The dot grows a little while the pointer is over the chart. */
+.chart__plot:hover .chart__dot {
+  transform: scale(1.25);
 }
 
 .chart__tooltip {
@@ -854,6 +897,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  /* Glides to the next month with the dot instead of snapping. */
+  transition: left var(--duration-fast) var(--ease-out), top var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
 }
 
 .chart__tooltip strong {
@@ -999,8 +1044,13 @@ button {
   box-shadow: inset 0 0 0 var(--border-2) var(--kind-one-time-deposit);
 }
 
+/* The one-time deposit's outlined badge keeps its outline inside the same selection ring as the others. */
 .chart__badge--one-time-deposit[aria-pressed="true"] {
-  box-shadow: inset 0 0 0 var(--border-2) var(--kind-one-time-deposit), var(--glow-focus);
+  box-shadow:
+    inset 0 0 0 var(--border-2) var(--kind-one-time-deposit),
+    0 0 0 var(--border-2) var(--surface),
+    0 0 0 calc(var(--border-2) + var(--border-3)) var(--focus),
+    0 0 14px 2px color-mix(in oklab, var(--focus) 45%, transparent);
 }
 
 .table__title {

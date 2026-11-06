@@ -360,6 +360,22 @@ as the browser's and a switch in the app bar changes it (it saves the choice and
 
 ### Ideas to investigate after milestone 12
 
+Added on 2026-11-06, still to investigate:
+
+- **A date picker on the goal's date field.** In "Set a goal" the "By" field has no date picker for the user. The code gives it (and every
+  event date and the Start field) `type="month"`, so the picker should be the browser's own month picker. To investigate: which
+  browser this happens in (Firefox and Safari on desktop have no month input and show a plain text box, which also matches the
+  open note that the month input is untested there), whether Chrome shows the picker icon in the dialog, and a small picker of our
+  own (a year with twelve months to choose from, keyboard and screen-reader friendly, in English and Swedish) that would work the
+  same everywhere and could replace the native month input in all the dialogs and the Start field.
+- **A beginner's guide.** A short walk-through that explains how to use each feature, one step at a time with paging (next and
+  back, steps shown as dots, skippable), and a nice illustration on every step. To investigate: which steps (the example plan and
+  its numbers, withdrawals and other events, the Plan card and its sliders, goals, several plans and comparing them, sharing and
+  files, the inflation switch and horizon), when it appears (on the first visit, and always again from a "How it works" button),
+  whether it points at the real parts of the page or is its own dialog, and how to draw the illustrations (inline SVG in the app's
+  own colours and light and dark themes, no image files and nothing loaded from elsewhere), plus English and Swedish texts and
+  keyboard, screen-reader and reduced-motion behaviour.
+
 - **Sliders for every Plan field (done, in its PR; asked for on 2026-11-06).** Inflation (0–6 %), the start year (2000–2060, a
   year at a time; the month stays) and the end year (1–40 years after the start) got sliders too, like the first three.
 - **A collapsible Compare card (done, in its PR; asked for on 2026-11-06).** The Compare card can be collapsed to its heading
@@ -386,8 +402,8 @@ a decision before any build. They overlap, so they may become one milestone ("fe
   page is redrawn from scratch and the CSS `d` property is not animatable everywhere.
 - **Overall polish (in progress).** Chosen with the user from a list: aligned digits, balanced wrapping, fonts without a jump,
   brand-coloured selection and controls, phone details, focus clear of the sticky bar, easing and press tokens, a theme fade (first
-  PR, done); chart details (a draw-in, a smoother tooltip, badge entrance and selection ring) and safety nets (undo after removing an
-  event or deleting a plan, helpful empty states) follow in their own PRs. The original note:
+  PR, done); chart details (a draw-in, a smoother tooltip, badge entrance and selection ring; second PR, done) and safety nets (undo
+  after removing an event or deleting a plan, helpful empty states) follow in their own PR. The original note:
 - **Overall polish, the original note.** The look stays as it is. The goal is a premium feel from small details, for example the
   animation above. A list to build up during the investigation: hover and press states, easing and durations as tokens,
   the chart cursor and tooltip, tab and dialog transitions, empty states, loading of the fonts without a jump, and the
