@@ -37,5 +37,8 @@ export default defineConfig({
   plugins: [contentSecurityPolicy()],
   test: {
     include: ["src/**/*.test.ts"],
+    // Tests that read a stylesheet as text (the colour contrast and the privacy rule) need its real content: Vitest
+    // otherwise turns every CSS import, even `?raw`, into an empty string.
+    css: { include: [/\.css(\?|$)/] },
   },
 });

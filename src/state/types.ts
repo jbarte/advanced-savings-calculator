@@ -171,6 +171,8 @@ export interface AppState extends PlanSet {
   readonly metric: Metric;
   /** The event highlighted in the list and on the chart, or null. */
   readonly selectedEvent: EventKey | null;
+  /** Whether the table of yearly figures under the chart is open. A view setting: not saved, closed at each visit. */
+  readonly yearTableOpen: boolean;
   /** Show results inflation adjusted (what they would buy at the start). A view setting: not saved, off at each visit. */
   readonly inflationAdjusted: boolean;
   /**

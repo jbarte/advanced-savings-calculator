@@ -67,6 +67,9 @@ describe("architecture", () => {
     // The site's own address is fine (the link preview needs it in full); the SVG namespace is a name, not a request.
     const external = /https?:\/\/(?!jbarte\.github\.io\/)/;
     expect(page).toHaveLength(1);
+    // A stylesheet that was read as empty text would pass the check below without being looked at.
+    expect(styles.length).toBeGreaterThan(2);
+    expect(styles.filter(([, source]) => source.length < 500).map(([path]) => path)).toEqual([]);
     expect([...page, ...styles].filter(([, source]) => external.test(source)).map(([path]) => path)).toEqual([]);
   });
 });

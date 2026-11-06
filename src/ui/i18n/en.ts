@@ -116,6 +116,7 @@ export const en = {
     heading: "Planned events",
     add: "Add event",
     full: "The plan has as many events as it can hold",
+    fullHint: "The plan has as many events as it can hold, so no more can be added.",
     count: (count: number): string => `${count} ${count === 1 ? "event" : "events"}`,
     emptyTitle: "No events yet",
     emptyHint: "Add a withdrawal, a one-time deposit or a change to your monthly deposit to see what it does.",
@@ -239,6 +240,12 @@ export const en = {
     nothingHint: "Enter a start amount or a monthly deposit to see your projection.",
     metricEmptyHint: "This shows up here once your plan includes it.",
     goalLabel: (value: string): string => `Goal ${value}`,
+    yearTable: {
+      toggle: "Show the figures as a table",
+      caption: (inflationAdjusted: boolean): string => `Balance, deposits, growth and withdrawals at the start and after each year${inflationAdjusted ? ", inflation adjusted" : ""}`,
+      date: "Month",
+      tableLabel: "Yearly figures",
+    },
     keysHint: "Arrow keys move one month, Page Up and Page Down one year, Home and End to the start and the end.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Events: ${events.join(", ")}`}`,

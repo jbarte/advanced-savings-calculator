@@ -22,10 +22,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   keys keep the old name).
 - **Merged since:** milestone 10B (PR #26).
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
-- **Merged since:** milestone 12A, Swedish (PR #31).
-- **Open:** milestone 12B, privacy and page basics (branch `feature/m12b-privacy`).
-- **Next:** 12C (accessibility), 12D (export), see NEXT_STEPS.md.
-- **Tests:** 601 (`npm test`), typecheck and build pass.
+- **Merged since:** milestones 12A, Swedish (PR #31), and 12B, privacy and page basics (PR #32).
+- **Open:** milestone 12C, accessibility (branch `feature/m12c-accessibility`).
+- **Next:** 12D (export), then the ideas to investigate (sliders, the plan's own horizon, transitions, polish), see NEXT_STEPS.md.
+- **Tests:** 660 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -809,3 +809,46 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** the `<noscript>` message was only checked in the built HTML and its CSS, not with JavaScript turned off; font-display
   `swap` can flash the fallback font on a slow connection (the polish ideas include font loading); the policy can't be tested for old
   browsers; the share-link preview shows English only.
+
+### Milestone 12C: accessibility (branch `feature/m12c-accessibility`)
+- **Why:** the review found small text under the 4.5 : 1 contrast WCAG asks for, motion that ignored the reduced-motion setting,
+  explanations that only existed as hover text on disabled buttons, and no way to read the chart's figures without seeing it.
+- **Built:**
+  - **Contrast** (`tokens.css`, measured with a script first, then pinned by `src/styles/contrast.test.ts`). Light theme: `--muted`
+    3.1-3.4 to 4.6-5.3 (`#877f75` to `#68615a`); `--danger` 3.5-4.1 to 4.6-5.3 (`#c0503f` to `#a84030`); `--solid` `#5f7f6a` to
+    `#587864` (white text 4.44 to 4.90; hover `#5c7c67`, pressed `#4a6753`); `--on-solid-muted` 3.7 to 4.6 (`#fbf6f4`); `--focus` 2.45
+    to 3.74 on the card (`#3f7cc0`); the withdrawal colour is the deeper rose (`--elevated-deep`) so the white number on its badge
+    goes from 3.8 to 4.9. Dark theme: `--solid` `#5f8a6c` to `#55805f` (white 3.93 to 4.53), `--on-solid-muted` 3.1 to 4.5 (white),
+    and a new `--kind-withdrawal` `#966a5f` (lines on the dark card 2.85 to 3.20, badge text 4.64), which the new test found was
+    under 3 : 1 before.
+  - **Reduced motion:** one rule turns every transition off (it listed only five classes before).
+  - **Disabled controls:** the reason is read out with the control (`aria-describedby` and a visually hidden text, `renderHiddenHint`)
+    for the plan "+" and "Try without", and shown as text for "Add event" (full plan) and "Keep as a new plan" (no room).
+  - **Keyboard and targets:** the two tables' scrolling areas have `tabindex="0"`, `role="region"` and a name; inputs fill their field
+    (the click target went from 21 to 42 px high); the chart's event badges are 24 px (were 22).
+  - **The chart as a table:** `src/ui/year-table.ts`, a native `<details>` under the chart with one row a year (the start month and
+    every month 12 later) for balance, deposited, growth and withdrawn, inflation adjusted when the switch is on, in a scroll area of
+    at most 22 rem with a sticky header. Open or closed is `AppState.yearTableOpen` (a view setting: not saved, closed at each visit)
+    so it survives redraws, and focus stays on its toggle. Texts in English and Swedish.
+- **Decisions:**
+  - Muted text is darker, which the user may notice (secondary text, unit labels, the table headers). The values are the lightest
+    that pass 4.5 : 1 on the sunken field background; the look otherwise stays.
+  - The vitest config now returns real CSS for stylesheet imports (`test.css.include`), because Vitest turns every CSS import, even
+    `?raw`, into an empty string. This also showed that the stylesheet check added in 12B had been checking empty text: it now
+    asserts that the stylesheets were read.
+  - No `@types/node` or other dependency was added; the contrast test reads the tokens through a `?raw` import.
+- **Checked:**
+  - 660 tests (59 new: the contrast pairs in both themes, one test that the tokens were read). Typecheck and build pass; pinned
+    reference values did not move.
+  - Browser: the table opens and closes with Enter and keeps focus on its toggle, has 31 rows for 30 years and matches the tile (the
+    last row 3 074 856 kr), stays open after a change, and updates (4 244 308 kr after raising the deposit); with five plans the "+"
+    and "Try without" are disabled and both carry the reason in `aria-describedby`; both scrolling tables are focusable regions; an
+    audit script found no unnamed control, duplicate id or missing `aria-*` target, one `nav`, `header` and `main`, and decorative SVGs
+    hidden. Remaining under-24 px items: the hero heading (focus target only). No console errors.
+- **Known gaps:**
+  - The Start month field "jump" was not reproduced: the browser pane can't type into a native month input, so the cause (a redraw
+    after each valid year while typing) is a guess. The month input is untested in Firefox and Safari.
+  - Reduced motion was checked in the CSS, not with the setting turned on.
+  - Dark-theme screenshots were not taken (the pane's colour scheme emulation does not switch the app's theme), so the dark colours
+    are checked by the contrast numbers only.
+  - A screen-reader pass (VoiceOver or NVDA) has not been done; the checks are structural.

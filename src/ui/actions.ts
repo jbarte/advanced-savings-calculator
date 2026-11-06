@@ -20,6 +20,8 @@ export interface Actions {
   /** Remembers where the chart cursor is, after a key press. */
   setChartMonth(month: number): void;
   setInflationAdjusted(on: boolean): void;
+  /** Opens or closes the table of yearly figures under the chart. */
+  setYearTableOpen(open: boolean): void;
   updatePlan(patch: Partial<PlanFields>): void;
   /** Gives the plan a name, or removes it with empty text. */
   renamePlan(name: string): void;

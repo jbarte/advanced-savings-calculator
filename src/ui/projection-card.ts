@@ -24,6 +24,7 @@ import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
 import { messages } from "./i18n";
+import { renderYearTable } from "./year-table";
 
 /** Ten or more digits (1 000 000 000 kr and up) don't fit a phone at the normal headline size. */
 const LONG_AMOUNT_DIGITS = 10;
@@ -122,6 +123,7 @@ export function renderChartCard(
     ),
     renderChartOrEmptyState(scenario, state, timeline, actions),
     renderChartLegend(timeline, chartGoalValue(scenario, state) !== null),
+    renderYearTable(scenario, state, actions),
   );
 }
 

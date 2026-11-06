@@ -112,6 +112,7 @@ export const sv: Messages = {
     heading: "Planerade händelser",
     add: "Lägg till händelse",
     full: "Planen rymmer inte fler händelser",
+    fullHint: "Planen rymmer inte fler händelser, så fler kan inte läggas till.",
     count: (count: number): string => `${count} ${count === 1 ? "händelse" : "händelser"}`,
     emptyTitle: "Inga händelser än",
     emptyHint: "Lägg till ett uttag, en engångsinsättning eller en ändring av månadssparandet för att se vad den gör.",
@@ -235,6 +236,12 @@ export const sv: Messages = {
     nothingHint: "Ange ett startbelopp eller ett månadssparande för att se din prognos.",
     metricEmptyHint: "Det här visas här när din plan innehåller det.",
     goalLabel: (value: string): string => `Mål ${value}`,
+    yearTable: {
+      toggle: "Visa siffrorna som tabell",
+      caption: (inflationAdjusted: boolean): string => `Saldo, insättningar, tillväxt och uttag vid starten och efter varje år${inflationAdjusted ? ", inflationsjusterat" : ""}`,
+      date: "Månad",
+      tableLabel: "Årsvisa siffror",
+    },
     keysHint: "Piltangenterna flyttar en månad, Page Up och Page Down ett år, Home och End till början och slutet.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Händelser: ${events.join(", ")}`}`,

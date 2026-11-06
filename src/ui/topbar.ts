@@ -3,6 +3,7 @@ import { PLAN_LIMITS } from "../state/plan-document";
 import type { PlanOrigin, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { openAddPlanDialog } from "./add-plan-dialog";
+import { renderHiddenHint } from "./components";
 import { h, s } from "./dom";
 import { renderLogo } from "./logo";
 import { openShareDialog } from "./share-dialog";
@@ -89,11 +90,18 @@ function renderPlanTabs(tabs: readonly PlanTab[], activeId: number, canAdd: bool
       disabled: !canAdd,
       title: canAdd ? messages.app.addPlan : messages.app.plansFull(PLAN_LIMITS.maxPlans),
       "aria-label": messages.app.addPlan,
+      "aria-describedby": canAdd ? undefined : "plan-add-hint",
       onclick: () => openAddPlanDialog({ currentName: tabs.find((tab) => tab.id === activeId)?.label ?? view.name, onBlank: () => actions.addBlankPlan(), onCopy: () => actions.copyPlan() }),
     },
     "+",
   );
-  return h("nav", { class: "tabs appbar__tabs", "aria-label": messages.app.plans }, ...items, add);
+  return h(
+    "nav",
+    { class: "tabs appbar__tabs", "aria-label": messages.app.plans },
+    ...items,
+    add,
+    canAdd ? null : renderHiddenHint("plan-add-hint", messages.app.plansFull(PLAN_LIMITS.maxPlans)),
+  );
 }
 
 export function renderAppBar(
