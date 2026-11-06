@@ -1,4 +1,5 @@
 import type { Ore, ProjectionPoint } from "../core/types";
+import type { CollapsibleId } from "./collapsed";
 import type { PlanProblem } from "./plan-problem";
 import type { YearMonth } from "../core/year-month";
 import type { PlanDocument } from "./plan-document";
@@ -179,6 +180,8 @@ export interface AppState extends PlanSet {
    * plan's own when another plan opens or the plan's horizon changes. It never changes the plan.
    */
   readonly viewHorizonYears: number | null;
+  /** The parts of the page collapsed to their heading. A view preference, remembered in this browser, not in the plan. */
+  readonly collapsed: readonly CollapsibleId[];
   /** Whether the table of yearly figures under the chart is open. A view setting: not saved, closed at each visit. */
   readonly yearTableOpen: boolean;
   /** Show results inflation adjusted (what they would buy at the start). A view setting: not saved, off at each visit. */

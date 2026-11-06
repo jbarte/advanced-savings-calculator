@@ -5,7 +5,7 @@ import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderTextField } from "./components";
 import { h, s } from "./dom";
-import { formatKronor, formatMoney, formatPercent } from "./format";
+import { formatKronor, formatMoney, formatPercent, formatYearMonth } from "./format";
 import { ORE_PER_KRONA, SLIDER_RANGES, withPlanSlider } from "./plan-slider";
 import type { PreviewPlan } from "./plan-slider";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
@@ -219,37 +219,74 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
         commit: (patch) => actions.updatePlan(patch),
         dataKey: "slider-annual-return",
       }),
-      renderParsedField({
-        id: "inflation",
-        label: messages.planCard.fields.inflation,
-        unit: messages.units.percentPerYearField,
-        value: formatPercent(scenario.inflationPct),
-        dataKey: "plan-inflation",
-        inputMode: "decimal",
-        parse: parseInflationPct,
-        apply: (inflationPct) => actions.updatePlan({ inflationPct }),
+      withPlanSlider({
+        field: renderParsedField({
+          id: "inflation",
+          label: messages.planCard.fields.inflation,
+          unit: messages.units.percentPerYearField,
+          value: formatPercent(scenario.inflationPct),
+          dataKey: "plan-inflation",
+          inputMode: "decimal",
+          parse: parseInflationPct,
+          apply: (inflationPct) => actions.updatePlan({ inflationPct }),
+        }),
+        ...SLIDER_RANGES.inflation,
+        label: messages.planCard.sliders.inflation,
+        value: scenario.inflationPct,
+        fieldText: (pct) => formatPercent(pct),
+        valueText: (pct) => `${formatPercent(pct)} %`,
+        patch: (inflationPct) => ({ inflationPct }),
+        preview,
+        commit: (patch) => actions.updatePlan(patch),
+        dataKey: "slider-inflation",
       }),
-      renderParsedField({
-        id: "start-date",
-        label: messages.planCard.fields.start,
-        unit: "",
-        value: monthInputValue(scenario.start),
-        dataKey: "plan-start-date",
-        type: "month",
-        placeholder: messages.common.yearMonthPlaceholder,
-        parse: parseYearMonth,
-        apply: (start) => actions.updatePlan({ start }),
+      withPlanSlider({
+        field: renderParsedField({
+          id: "start-date",
+          label: messages.planCard.fields.start,
+          unit: "",
+          value: monthInputValue(scenario.start),
+          dataKey: "plan-start-date",
+          type: "month",
+          placeholder: messages.common.yearMonthPlaceholder,
+          parse: parseYearMonth,
+          apply: (start) => actions.updatePlan({ start }),
+        }),
+        // A year at a time: the slider moves the start year and keeps the month.
+        ...SLIDER_RANGES.startYear,
+        label: messages.planCard.sliders.startYear,
+        value: scenario.start.year,
+        fieldText: (year) => monthInputValue({ year, month: scenario.start.month }),
+        valueText: (year) => formatYearMonth({ year, month: scenario.start.month }),
+        patch: (year) => ({ start: { year, month: scenario.start.month } }),
+        preview,
+        commit: (patch) => actions.updatePlan(patch),
+        dataKey: "slider-start-year",
       }),
-      renderParsedField({
-        id: "end-year",
-        label: messages.planCard.fields.endYear,
-        // The plan's own horizon, also while the horizon switch shows the plan over a different number of years.
-        unit: messages.units.yearsField(activeEntry(state).plan.horizonYears),
-        value: String(addMonths(scenario.start, yearsToMonths(activeEntry(state).plan.horizonYears)).year),
-        dataKey: "plan-end-year",
-        inputMode: "numeric",
-        parse: (text) => parseEndYear(text, scenario.start.year),
-        apply: (horizonYears) => actions.updatePlan({ horizonYears }),
+      withPlanSlider({
+        field: renderParsedField({
+          id: "end-year",
+          label: messages.planCard.fields.endYear,
+          // The plan's own horizon, also while the horizon switch shows the plan over a different number of years.
+          unit: messages.units.yearsField(activeEntry(state).plan.horizonYears),
+          value: String(addMonths(scenario.start, yearsToMonths(activeEntry(state).plan.horizonYears)).year),
+          dataKey: "plan-end-year",
+          inputMode: "numeric",
+          parse: (text) => parseEndYear(text, scenario.start.year),
+          apply: (horizonYears) => actions.updatePlan({ horizonYears }),
+        }),
+        // From one year after the start to the longest horizon, so every stop is a valid horizon.
+        min: scenario.start.year + PLAN_LIMITS.minHorizonYears,
+        max: scenario.start.year + PLAN_LIMITS.maxHorizonYears,
+        step: 1,
+        label: messages.planCard.sliders.endYear,
+        value: scenario.start.year + activeEntry(state).plan.horizonYears,
+        fieldText: (year) => String(year),
+        valueText: (year) => messages.planCard.sliders.endYearValue(year, year - scenario.start.year),
+        patch: (year) => ({ horizonYears: year - scenario.start.year }),
+        preview,
+        commit: (patch) => actions.updatePlan(patch),
+        dataKey: "slider-end-year",
       }),
     ),
   );

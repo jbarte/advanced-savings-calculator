@@ -64,6 +64,10 @@ export const sv: Messages = {
     plansFull: (max: number): string => `Du kan ha högst ${max} planer`,
     disclaimer: "Prognoserna utgår från en konstant avkastning och är bara uppskattningar. Det här är inte ekonomisk rådgivning.",
   },
+  collapse: {
+    collapse: (name: string): string => `Fäll ihop ${name}`,
+    expand: (name: string): string => `Fäll ut ${name}`,
+  },
   theme: {
     switchToLight: "Byt till ljust läge",
     switchToDark: "Byt till mörkt läge",
@@ -177,6 +181,10 @@ export const sv: Messages = {
       startAmount: "Justera startbeloppet",
       monthlyDeposit: "Justera månadssparandet",
       expectedReturn: "Justera den förväntade avkastningen",
+      inflation: "Justera inflationen",
+      startYear: "Justera startåret",
+      endYear: "Justera slutåret",
+      endYearValue: (year: number, years: number): string => `${year}, ${years} år`,
       perMonth: (amount: string): string => `${amount} i månaden`,
     },
     file: "Fil",

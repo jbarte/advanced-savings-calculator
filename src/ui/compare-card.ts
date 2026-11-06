@@ -4,7 +4,7 @@ import type { Comparison } from "../state/comparison";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { axisMonths, axisTicks, calendarPoints, cursorAfterKey, isAllZero, linePath, nearestIndex, niceScale, valueToPercent } from "./chart-geometry";
-import { renderEmptyState } from "./components";
+import { renderCollapseToggle, renderEmptyState, renderSteadyText } from "./components";
 import { h, s } from "./dom";
 import { formatMoney, formatMoneyCompact, formatSignedMoney, formatYearMonth } from "./format";
 import { messages } from "./i18n";
@@ -177,6 +177,15 @@ export function renderCompareCard(views: readonly ScenarioView[], active: Scenar
   const everyValue = comparison.lines.flatMap((line) => line.values);
   const empty = isAllZero(everyValue);
 
+  const expanded = !state.collapsed.includes("compare");
+  const toggle = renderCollapseToggle({
+    expanded,
+    label: (expanded ? messages.collapse.collapse : messages.collapse.expand)(messages.compare.heading),
+    controls: "compare-body",
+    dataKey: "toggle-compare",
+    onToggle: () => actions.toggleSection("compare"),
+  });
+
   return h(
     "section",
     { class: "card compare-card", "aria-labelledby": "compare-heading" },
@@ -184,10 +193,20 @@ export function renderCompareCard(views: readonly ScenarioView[], active: Scenar
       "div",
       { class: "card__head" },
       h("h2", { id: "compare-heading" }, messages.compare.heading),
-      h("span", { class: "card__meta" }, messages.compare.meta(messages.metrics[state.metric], active.inflationAdjusted)),
+      h("div", { class: "card__head-side" }, h(
+          "span",
+          { class: "card__meta" },
+          renderSteadyText((adjusted) => [messages.compare.meta(messages.metrics[state.metric], adjusted)], active.inflationAdjusted),
+        ),
+        toggle,
+      ),
     ),
-    empty ? renderEmptyState(messages.chart.nothingTitle, messages.chart.nothingHint) : renderChart(comparison, active.id),
-    renderLegend(comparison),
-    renderTable(comparison, active.name, actions),
+    h(
+      "div",
+      { id: "compare-body", class: "card__body", hidden: !expanded },
+      empty ? renderEmptyState(messages.chart.nothingTitle, messages.chart.nothingHint) : renderChart(comparison, active.id),
+      renderLegend(comparison),
+      renderTable(comparison, active.name, actions),
+    ),
   );
 }

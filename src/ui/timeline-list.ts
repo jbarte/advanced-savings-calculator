@@ -7,7 +7,7 @@ import type { AppState, PlannedDepositChange, ScenarioView } from "../state/type
 import type { Actions } from "./actions";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
-import { renderHiddenHint } from "./components";
+import { renderHiddenHint, renderSteadyText } from "./components";
 import { h } from "./dom";
 import { formatMoney, formatSignedMoney, formatSignedMoneyCompact, formatYearMonth } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
@@ -263,7 +263,11 @@ export function renderTimelineList(
     h("span", { role: "columnheader" }, messages.list.eventHeader),
     h("span", { role: "columnheader" }, messages.list.amountHeader),
     h("span", { role: "columnheader" }, messages.list.statusHeader),
-    h("span", { role: "columnheader" }, messages.list.effectHeader(endLabel, scenario.inflationAdjusted)),
+    h(
+      "span",
+      { role: "columnheader" },
+      renderSteadyText((adjusted) => [messages.list.effectHeader(endLabel, adjusted)], scenario.inflationAdjusted),
+    ),
     h("span", { class: "visually-hidden", role: "columnheader" }, messages.list.actionsHeader),
   );
 

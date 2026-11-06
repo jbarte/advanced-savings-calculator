@@ -2,6 +2,7 @@ import "./styles/fonts.css";
 import "./styles/app.css";
 import { yearsToMonths } from "./core/year-month";
 import { currentYearMonth } from "./state/clock";
+import { loadCollapsed, saveCollapsed, toggleCollapsed } from "./state/collapsed";
 import { saveLanguagePreference } from "./state/language";
 import { createBlankPlan, createExamplePlan } from "./state/plan-document";
 import type { PlanDocument, PlanFields } from "./state/plan-document";
@@ -51,6 +52,7 @@ const store = createStore({
   metric: "balance",
   selectedEvent: null,
   viewHorizonYears: null,
+  collapsed: loadCollapsed(),
   yearTableOpen: false,
   inflationAdjusted: false,
   chartMonth: null,
@@ -121,6 +123,11 @@ const actions: Actions = {
     commitPlan((plan) => updatePlanFields(plan, patch));
     // A new horizon for the plan is what the user now wants to see, so a zoom set before it is let go.
     if (patch.horizonYears !== undefined) store.update({ viewHorizonYears: null });
+  },
+  toggleSection: (id) => {
+    const collapsed = toggleCollapsed(store.get().collapsed, id);
+    saveCollapsed(collapsed);
+    store.update({ collapsed });
   },
   setViewHorizon: (viewHorizonYears) => store.update({ viewHorizonYears, chartMonth: null }),
   renamePlan: (name) => commitPlan((plan) => renamePlan(plan, name)),
@@ -257,7 +264,9 @@ const previewOf = (state: AppState, patch: Partial<PlanFields>): ScenarioView | 
     if (error instanceof RangeError) return null;
     throw error;
   }
-  const nominal = buildScenarioView(plan, displayName(entry), yearsToMonths(state.viewHorizonYears ?? plan.horizonYears), String(entry.id));
+  // A slider that moves the End year shows the new horizon itself, not a zoom set before it.
+  const years = patch.horizonYears !== undefined ? plan.horizonYears : (state.viewHorizonYears ?? plan.horizonYears);
+  const nominal = buildScenarioView(plan, displayName(entry), yearsToMonths(years), String(entry.id));
   return state.inflationAdjusted ? applyInflationAdjustment(nominal, plan.inflationPct) : nominal;
 };
 

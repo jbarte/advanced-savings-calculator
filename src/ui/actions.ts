@@ -1,4 +1,5 @@
 import type { DepositChangeDraft, GoalPlan, OneTimeDepositDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
+import type { CollapsibleId } from "../state/collapsed";
 import type { Language } from "../state/language";
 import type { PickedFile } from "./download";
 import type { EventKey } from "../state/timeline";
@@ -26,6 +27,8 @@ export interface Actions {
   updatePlan(patch: Partial<PlanFields>): void;
   /** Looks at the open plan over this many years without changing it, or over its own horizon with null. */
   setViewHorizon(years: number | null): void;
+  /** Collapses a part of the page to its heading, or opens it again. Remembered in this browser. */
+  toggleSection(id: CollapsibleId): void;
   /** Gives the plan a name, or removes it with empty text. */
   renamePlan(name: string): void;
   startFromScratch(): void;

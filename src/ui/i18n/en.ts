@@ -69,6 +69,10 @@ export const en = {
     plansFull: (max: number): string => `You can have at most ${max} plans`,
     disclaimer: "Projections assume a constant return and are estimates only. This is not financial advice.",
   },
+  collapse: {
+    collapse: (name: string): string => `Collapse ${name}`,
+    expand: (name: string): string => `Expand ${name}`,
+  },
   theme: {
     switchToLight: "Switch to light mode",
     switchToDark: "Switch to dark mode",
@@ -182,6 +186,10 @@ export const en = {
       startAmount: "Adjust the start amount",
       monthlyDeposit: "Adjust the monthly deposit",
       expectedReturn: "Adjust the expected return",
+      inflation: "Adjust inflation",
+      startYear: "Adjust the start year",
+      endYear: "Adjust the end year",
+      endYearValue: (year: number, years: number): string => `${year}, ${years} ${years === 1 ? "year" : "years"}`,
       perMonth: (amount: string): string => `${amount} per month`,
     },
     file: "File",

@@ -20,7 +20,7 @@ import {
   zeroLine,
 } from "./chart-geometry";
 import { renderChartEvents, renderChartLegend } from "./chart-events";
-import { renderEmptyState, renderToggle } from "./components";
+import { renderEmptyState, renderSteadyText, renderToggle } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
@@ -35,10 +35,11 @@ function isLongAmount(ore: number): boolean {
   return formatKronor(ore).replace(/\D/g, "").length >= LONG_AMOUNT_DIGITS;
 }
 
-function heroSubtitle(scenario: ScenarioView): string {
-  return scenario.inflationAdjusted
-    ? messages.hero.subtitleAdjusted(scenario.name, scenario.inflationPct)
-    : messages.hero.subtitle(scenario.name);
+function heroSubtitle(scenario: ScenarioView): HTMLElement {
+  return renderSteadyText(
+    (adjusted) => [adjusted ? messages.hero.subtitleAdjusted(scenario.name, scenario.inflationPct) : messages.hero.subtitle(scenario.name)],
+    scenario.inflationAdjusted,
+  );
 }
 
 export function renderHero(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
@@ -87,7 +88,7 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
       h(
         "div",
         {},
-        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(scenario, end.month), scenario.inflationAdjusted)),
+        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, renderSteadyText((adjusted) => [messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(scenario, end.month), adjusted)], scenario.inflationAdjusted)),
         h(
           "p",
           { class: isLongAmount(end[state.metric]) ? "hero__value hero__value--long" : "hero__value" },
@@ -123,7 +124,10 @@ export function renderChartCard(
       h(
         "span",
         { class: "card__meta" },
-        messages.chart.period(scenario.start.year, addMonths(scenario.start, scenario.horizonMonths).year, scenario.inflationAdjusted),
+        renderSteadyText(
+          (adjusted) => [messages.chart.period(scenario.start.year, addMonths(scenario.start, scenario.horizonMonths).year, adjusted)],
+          scenario.inflationAdjusted,
+        ),
       ),
     ),
     renderChartOrEmptyState(scenario, state, timeline, actions),

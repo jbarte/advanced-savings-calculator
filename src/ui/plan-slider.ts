@@ -13,6 +13,9 @@ export const SLIDER_RANGES = {
   startAmount: { min: 0, max: 2_000_000, step: 10_000 },
   monthlyDeposit: { min: 0, max: 30_000, step: 500 },
   annualReturn: { min: 0, max: 12, step: 0.5 },
+  inflation: { min: 0, max: 6, step: 0.5 },
+  /** Whole years: the start month stays as it is. */
+  startYear: { min: 2000, max: 2060, step: 1 },
 } as const;
 
 /** A preview of the plan with some fields changed, drawn without saving anything. */
