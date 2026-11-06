@@ -103,6 +103,8 @@ export const PLAN_LIMITS = {
   maxGoalAmount: 10_000_000_000, // 100 000 000 kr, like the start amount
   maxLabelLength: 40,
   maxNameLength: 40,
+  /** How many plans of their own a person can have side by side (the tabs and the comparison stay readable). */
+  maxPlans: 5,
 } as const;
 
 const DEFAULT_RETURN_PCT = 7;

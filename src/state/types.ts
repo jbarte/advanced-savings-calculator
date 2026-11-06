@@ -148,10 +148,25 @@ export type Notice =
   | { readonly kind: "link-unreadable"; readonly problem: PlanProblem }
   | { readonly kind: "storage-blocked" };
 
-export interface AppState {
-  readonly scenarioId: string;
+/** One plan in the set, with an id that is local to this browser (never shared) and where the plan came from. */
+export interface PlanEntry {
+  readonly id: number;
   readonly plan: PlanDocument;
-  readonly planOrigin: PlanOrigin;
+  readonly origin: PlanOrigin;
+}
+
+/**
+ * The plans the user has side by side, and which one is open. At most `PLAN_LIMITS.maxPlans` of them are the
+ * user's own (saved, or the untouched example); a plan opened from a share link is one more, never saved.
+ */
+export interface PlanSet {
+  readonly plans: readonly PlanEntry[];
+  readonly activeId: number;
+  /** The plan to go back to when a shared plan is left, or null when none is open. */
+  readonly returnId: number | null;
+}
+
+export interface AppState extends PlanSet {
   readonly storage: StorageStatus;
   readonly metric: Metric;
   /** The event highlighted in the list and on the chart, or null. */

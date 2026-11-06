@@ -1,20 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createBlankPlan } from "./plan-document";
 import { createStore } from "./store";
-import type { AppState } from "./types";
+import { createTestState } from "./test-support";
 
-const initial: AppState = {
-  scenarioId: "plan",
-  plan: createBlankPlan({ year: 2026, month: 1 }),
-  planOrigin: "example",
-  storage: "idle",
-  metric: "balance",
-  selectedEvent: null,
-  inflationAdjusted: false,
-  chartMonth: null,
-  theme: "system",
-  notice: null,
-};
+const initial = createTestState(createBlankPlan({ year: 2026, month: 1 }), "example");
 
 describe("createStore", () => {
   it("returns the initial state", () => {

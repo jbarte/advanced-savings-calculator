@@ -1,4 +1,6 @@
+import { PLAN_LIMITS } from "../state/plan-document";
 import { chartMonthOf } from "../state/timeline";
+import { canAddPlan } from "../state/workspace";
 import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { EventStatus, Ore } from "../state/types";
 import type { AppState, PlannedDepositChange, ScenarioView } from "../state/types";
@@ -165,6 +167,7 @@ function renderRow(
   entry: TimelineEntry,
   selected: EventKey | null,
   scale: EffectScale,
+  canCopy: boolean,
   actions: Actions,
 ): HTMLElement {
   const parts = rowParts(scenario, entry, scale, actions);
@@ -214,6 +217,19 @@ function renderRow(
       h(
         "button",
         {
+          class: "btn-text",
+          type: "button",
+          "data-key": `event-skip-${entry.key}`,
+          disabled: !canCopy,
+          title: canCopy ? messages.list.skipHover : messages.app.plansFull(PLAN_LIMITS.maxPlans),
+          "aria-label": messages.list.skipAria(parts.title),
+          onclick: () => actions.copyWithoutEvent(entry.key),
+        },
+        messages.list.skip,
+      ),
+      h(
+        "button",
+        {
           class: "btn-text btn-text--danger",
           type: "button",
           "data-key": `event-remove-${entry.key}`,
@@ -255,7 +271,7 @@ export function renderTimelineList(
       "div",
       { class: "table", role: "table", "aria-label": messages.list.ariaTable },
       head,
-      ...timeline.map((entry) => renderRow(scenario, entry, state.selectedEvent, scale, actions)),
+      ...timeline.map((entry) => renderRow(scenario, entry, state.selectedEvent, scale, canAddPlan(state), actions)),
     ),
   );
 }

@@ -4,7 +4,15 @@ import type { Metric } from "../state/types";
 
 /** Everything the UI can ask the app to do. Wired to the store in main.ts. */
 export interface Actions {
-  selectScenario(id: string): void;
+  /** Opens another of the plans. */
+  selectPlan(id: number): void;
+  /** Adds an empty plan and opens it. */
+  addBlankPlan(): void;
+  /** Adds a copy of the open plan and opens it. */
+  copyPlan(): void;
+  /** Adds a copy of the open plan without one event ("what if I skipped this?") and opens it. */
+  copyWithoutEvent(key: EventKey): void;
+  deletePlan(id: number): void;
   selectMetric(metric: Metric): void;
   /** Selects an event (or none). `month` moves the chart cursor to the event. */
   selectEvent(key: EventKey | null, month?: number): void;
@@ -15,7 +23,7 @@ export interface Actions {
   /** Gives the plan a name, or removes it with empty text. */
   renamePlan(name: string): void;
   startFromScratch(): void;
-  /** Forgets the saved plan and shows the example again. */
+  /** Forgets every saved plan and shows the example again. */
   startOver(): void;
   addWithdrawal(draft: WithdrawalDraft): void;
   updateWithdrawal(id: number, draft: WithdrawalDraft): void;
@@ -33,8 +41,8 @@ export interface Actions {
   /** The link that opens the current plan for anyone. */
   createShareLink(): Promise<string>;
   copyToClipboard(text: string): Promise<boolean>;
-  /** Saves the plan opened from a link as the user's own, replacing any saved plan. */
+  /** Keeps the plan opened from a link as one of the user's own, next to the others. */
   keepSharedPlan(): void;
-  /** Drops the plan opened from a link and goes back to the user's own plan. */
+  /** Drops the plan opened from a link and goes back to the plan that was open before it. */
   leaveSharedPlan(): void;
 }

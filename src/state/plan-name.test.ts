@@ -1,24 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS, createBlankPlan } from "./plan-document";
-import { renamePlan } from "./plan-name";
+import { fitPlanName, renamePlan } from "./plan-name";
 import { withPlanChange } from "./plan-change";
 import { addWithdrawal } from "./withdrawals";
-import type { AppState } from "./types";
+import { createTestState } from "./test-support";
+import { activeEntry } from "./workspace";
 
 const plan = createBlankPlan({ year: 2026, month: 1 });
 
-const state: AppState = {
-  scenarioId: "plan",
-  plan,
-  planOrigin: "example",
-  storage: "idle",
-  metric: "balance",
-  selectedEvent: null,
-  inflationAdjusted: false,
-  chartMonth: null,
-  theme: "system",
-  notice: null,
-};
+const state = createTestState(plan, "example");
 
 describe("renamePlan", () => {
   it("gives the plan a trimmed name", () => {
@@ -52,19 +42,19 @@ describe("renamePlan", () => {
 describe("renaming through withPlanChange", () => {
   it("makes the example the user's own plan", () => {
     const next = withPlanChange(state, (p) => renamePlan(p, "House 2031"));
-    expect(next.planOrigin).toBe("own");
-    expect(next.plan.name).toBe("House 2031");
+    expect(activeEntry(next).origin).toBe("own");
+    expect(activeEntry(next).plan.name).toBe("House 2031");
   });
 
   it("keeps a shared plan shared", () => {
-    const next = withPlanChange({ ...state, planOrigin: "shared" }, (p) => renamePlan(p, "House"));
-    expect(next.planOrigin).toBe("shared");
+    const next = withPlanChange(createTestState(plan, "shared"), (p) => renamePlan(p, "House"));
+    expect(activeEntry(next).origin).toBe("shared");
   });
 
   it("leaves the example alone when the name is not changed", () => {
     const next = withPlanChange(state, (p) => renamePlan(p, ""));
-    expect(next.plan).toBe(state.plan);
-    expect(next.planOrigin).toBe("example");
+    expect(activeEntry(next).plan).toBe(activeEntry(state).plan);
+    expect(activeEntry(next).origin).toBe("example");
   });
 
   it("says why when the name is too long", () => {
@@ -81,5 +71,19 @@ describe("event labels", () => {
 
   it("are rejected when nothing is left", () => {
     expect(() => addWithdrawal(plan, { label: "\t \n", amount: 100, date: { year: 2027, month: 1 } })).toThrow(RangeError);
+  });
+});
+
+describe("fitPlanName", () => {
+  it("leaves a name that fits as it is, cleaned", () => {
+    expect(fitPlanName(" House\t2031 ")).toBe("House 2031");
+    expect(fitPlanName("x".repeat(PLAN_LIMITS.maxNameLength))).toHaveLength(PLAN_LIMITS.maxNameLength);
+  });
+
+  it("cuts a long name down to the limit, with an ellipsis, so it is always a valid name", () => {
+    const fitted = fitPlanName("A very long plan name for the whole family, copied once again");
+    expect(fitted).toHaveLength(PLAN_LIMITS.maxNameLength);
+    expect(fitted.endsWith("\u2026")).toBe(true);
+    expect(() => renamePlan(plan, fitted)).not.toThrow();
   });
 });

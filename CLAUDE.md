@@ -31,7 +31,7 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–10 are done (10: all interface text in one typed file, ready for a second language), and a plan can have a name: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–10 are done (10: all interface text in one typed file, ready for a second language), a plan can have a name, and milestone 11A (several plans as tabs) is done; 11B (compare plans in a chart and a table) is next: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 the effect of every event shown, and the monthly deposit can be changed from a month or for a period
 (including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. The horizon can be set freely, results can be shown inflation adjusted, and a savings goal shows the monthly deposit needed. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
@@ -136,12 +136,24 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   and the share dialog). The plan is renamed from the Plan card's title ("Plan", or the plan's name), which is a button (pencil icon) that opens
   `openRenameDialog` (`rename-dialog.ts`); there is no Name field. Typed text that ends up in the plan (the name, event labels) goes through `cleanText`
   (`src/state/plan-text.ts`): control characters become a space and the ends are trimmed.
+- **Several plans are a `PlanSet`** (`src/state/types.ts`). `AppState` has `plans: PlanEntry[]` (`{ id, plan, origin }`,
+  with `origin` `"example"`, `"own"` or `"shared"`), `activeId` and `returnId` (the plan to go back to when a shared
+  one is left). There is no single `state.plan`: the open plan is `activeEntry(state)` (`src/state/workspace.ts`). The ids
+  are local to this browser and never shared. A person has at most `PLAN_LIMITS.maxPlans` (5) plans of their own;
+  a plan opened from a link is one more and doesn't count. The pure changes (`addPlan`, `selectPlan`, `deletePlan`,
+  `updateActivePlan`, `openSharedPlan`, `keepSharedPlan`, `leaveSharedPlan`) live in `workspace.ts` and run through
+  `withPlanSetChange` (a refused change, such as the sixth plan, leaves everything as it was and sets a notice with
+  the problem code `too-many-plans`); a change to the open plan goes through `withPlanChange` as before. Any change
+  that adds or removes a plan makes the untouched example the user's own, so it is saved with the rest. The last plan
+  can't be deleted. Names for new plans (`Plan 2`, `… (copy)`, `… without <event>`) come from `messages.planCard` and
+  are made in `main.ts`, cut to 40 characters by `fitPlanName`. "Try without" (`planWithoutEvent`,
+  `src/state/plan-variants.ts`) adds a copy of the plan without one event.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
   (`project`) for 480 months (`PROJECTION_MONTHS`, the longest horizon) and shapes the result, including
   display-oriented fields. It takes the horizon in months (by default the plan's), which is where the effect of
   each event is measured and where the chart ends (`ScenarioView.horizonMonths`). `createScenarioViewCache`
-  returns the same view while plan, name and horizon are unchanged, so selection, theme and notice changes don't
+  remembers the view of each plan id and returns the same view while that plan, name and horizon are unchanged, so selection, theme and notice changes don't
   run the engine.
   `goal` is the `GoalSummary` of the plan's goal, or `null` without one (`buildGoalSummary`).
 - **Calculation rules** (decided, change only after asking):
@@ -293,13 +305,16 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - a withdrawal before the start date
   - zero return
   - a goal that cannot be reached
-- **The plan is saved in `localStorage`.** Key `advanced-savings-calculator:plan` (the earlier `asc-plan` is still
-  read and removed on the next save, since `jbarte.github.io` storage is shared by all the account's Pages sites),
-  value `JSON.stringify(PlanDocument)`
-  (`src/state/plan-storage.ts`). After every change that replaces the plan, `main.ts` saves it (`persist`); the
-  untouched example plan is never written. At startup `loadSavedPlan` reads it, and `readPlanDocument`
-  (`src/state/read-plan.ts`) checks the shape field by field and then runs `validatePlanDocument`, so saved text is
-  treated as untrusted (the same reader will check share links). A broken save falls back to the example with a
+- **The plans are saved in `localStorage`.** Key `advanced-savings-calculator:plans` (`jbarte.github.io` storage is
+  shared by all the account's Pages sites, so the key names the app), value a versioned set
+  `{ version: 1, activeId, plans: [{ id, plan: PlanDocument }] }` (`src/state/read-workspace.ts`,
+  `src/state/plan-storage.ts`). Only the user's own plans are in it, never one opened from a link. A single plan saved
+  before there could be several (key `advanced-savings-calculator:plan`, or the earlier `asc-plan`) is still read as a
+  set of one, and both old keys are removed by the next save. After every change to the user's plans, `main.ts` saves
+  them (`persist`); the untouched example plan is never written. At startup `loadSavedPlans` reads them, and
+  `readWorkspaceDocument` checks the shape and runs `readPlanDocument` (`src/state/read-plan.ts`, shape field by field,
+  then `validatePlanDocument`) on every plan, so saved text is treated as untrusted (the same reader checks share
+  links). A broken save falls back to the example with a
   notice and stays in place until the next change replaces it. Blocked or full storage is reported
   (`AppState.storage`: `idle`, `saved`, `blocked`), the app keeps working in memory, and the notice is shown once.
   "Start over" (with a confirmation) clears the save. Add a migration in `readPlanDocument` whenever the format changes.
@@ -312,9 +327,9 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   - Data from a link is untrusted: `decodePlan` limits the token length (30 000) and the inflated size (100 000
     bytes, which stops a decompression bomb), then reads it with `readPlanDocument`, the same checks as a saved plan.
     A bad link gives a RangeError whose message is shown to the user.
-  - Opening a link never overwrites the user's own plan. It opens as a copy (`planOrigin: "shared"`): never saved
-    (`commitPlan` skips `persist`), and edits to it stay in memory. A banner offers "Keep as my plan" (asks first, then
-    replaces the saved plan) and "Back to my plan". The address is cleared of the token when either is used or the link
+  - Opening a link never changes the user's own plans. It opens as an extra plan (`origin: "shared"`, its own tab): never
+    saved (`commitPlan` skips `persist`), and edits to it stay in memory. A banner offers "Keep as a new plan" (adds it
+    next to the others, when there is room) and "Back to my plans" (returns to `returnId`). The address is cleared of the token when either is used or the link
     is bad. The Share button shows a dialog with the link, a copy button and the note that anyone with the link can
     see the plan.
   - A short link like `/<id>` would need a backend. Don't build one without asking
@@ -410,6 +425,9 @@ with the toggle.
     │   ├── validate-plan.ts  # Checks plan fields, withdrawals and whole documents (+ test)
     │   ├── plan-fields.ts    # updatePlanFields: change the plan's single values, validated (+ test)
     │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
+    │   ├── workspace.ts      # PlanSet changes: add, select, delete, shared plan, withPlanSetChange (+ test)
+    │   ├── read-workspace.ts # The saved set of plans: read, serialize, from a single plan (+ test)
+    │   ├── plan-variants.ts  # planWithoutEvent: a copy of the plan without one event (+ test)
     │   ├── plan-name.ts      # renamePlan: give the plan a name, or remove it, validated (+ test)
     │   ├── plan-text.ts      # cleanText: control characters out, trimmed (used for names and labels)
     │   ├── plan-problem.ts   # PlanProblem, PlanError, problemOf: what is wrong with a plan, as data (+ test)
@@ -444,13 +462,15 @@ with the toggle.
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers
-    │   ├── topbar.ts         # Sticky app bar: brand, scenario tabs, share, theme toggle
+    │   ├── topbar.ts         # Sticky app bar: brand, plan tabs (+ add), share, theme toggle
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
+    │   ├── add-plan-dialog.ts # Asks how to add a plan: a copy of the open one, or an empty one
+    │   ├── delete-plan-dialog.ts # Confirmation before a plan is deleted
     │   ├── rename-dialog.ts  # Prompt to name the plan, opened from the Plan card's title
     │   ├── share-dialog.ts   # "Share this plan": the link, a copy button and the privacy note
-    │   ├── shared-banner.ts  # Banner while a shared plan is open: keep it or go back
+    │   ├── shared-banner.ts  # Banner while a shared plan is open: keep it as a new plan or go back
     │   ├── start-over-dialog.ts # Confirmation before the saved plan is cleared
     │   ├── event-type-dialog.ts # Asks which kind of event to add
     │   ├── timeline-list.ts  # One list of all events in date order: select, edit, remove, effect
@@ -458,7 +478,7 @@ with the toggle.
     │   ├── amount-event-dialog.ts # Dialog for an amount in one month (withdrawal, one-time deposit)
     │   ├── one-time-deposit-dialog.ts # openOneTimeDepositDialog: the amount dialog for one-time deposits
     │   ├── withdrawal-dialog.ts # openWithdrawalDialog: the amount dialog for withdrawals
-    │   ├── side-cards.ts     # Bento cards: plan inputs, scenario comparison
+    │   ├── side-cards.ts     # Bento cards: the Plan card (inputs, rename title, delete)
     │   ├── goal-card.ts      # The goal card: set a goal, or the gauge, the deposit needed, edit and remove
     │   ├── goal-dialog.ts    # Dialog to set or edit the goal
     │   ├── goal-text.ts      # requiredDepositText: words for the deposit needed next to today's (+ test)

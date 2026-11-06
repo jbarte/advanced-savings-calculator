@@ -1,5 +1,7 @@
-import type { ScenarioView } from "../state/types";
+import { PLAN_LIMITS } from "../state/plan-document";
+import type { PlanOrigin, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
+import { openAddPlanDialog } from "./add-plan-dialog";
 import { h, s } from "./dom";
 import { renderLogo } from "./logo";
 import { openShareDialog } from "./share-dialog";
@@ -37,30 +39,48 @@ export function renderThemeButton(isDark: boolean, actions: Actions): HTMLButton
   );
 }
 
-function renderScenarioTabs(scenarios: readonly ScenarioView[], active: ScenarioView, actions: Actions): HTMLElement {
-  const tabs = scenarios.map((scenario) =>
+/** What a tab needs: which plan, what to call it and where it came from. */
+export interface PlanTab {
+  readonly id: number;
+  readonly label: string;
+  readonly origin: PlanOrigin;
+}
+
+function renderPlanTabs(tabs: readonly PlanTab[], activeId: number, canAdd: boolean, view: ScenarioView, actions: Actions): HTMLElement {
+  const items = tabs.map((tab) =>
     h(
       "button",
       {
         class: "tabs__item",
         type: "button",
-        "data-key": `scenario-${scenario.id}`,
-        "aria-current": scenario.id === active.id ? "true" : "false",
-        onclick: () => actions.selectScenario(scenario.id),
+        "data-key": `plan-tab-${tab.id}`,
+        "aria-current": tab.id === activeId ? "true" : "false",
+        title: tab.origin === "shared" ? messages.planCard.status.shared : tab.label,
+        onclick: () => actions.selectPlan(tab.id),
       },
-      scenario.name,
+      tab.label,
     ),
   );
   const add = h(
     "button",
-    { class: "tabs__item tabs__item--add", type: "button", disabled: true, title: messages.app.newScenarioSoon, "aria-label": messages.app.newScenarioSoon },
+    {
+      class: "tabs__item tabs__item--add",
+      type: "button",
+      "data-key": "plan-add",
+      disabled: !canAdd,
+      title: canAdd ? messages.app.addPlan : messages.app.plansFull(PLAN_LIMITS.maxPlans),
+      "aria-label": messages.app.addPlan,
+      onclick: () => openAddPlanDialog({ currentName: tabs.find((tab) => tab.id === activeId)?.label ?? view.name, onBlank: () => actions.addBlankPlan(), onCopy: () => actions.copyPlan() }),
+    },
     "+",
   );
-  return h("nav", { class: "tabs appbar__tabs", "aria-label": messages.app.scenarios }, ...tabs, add);
+  return h("nav", { class: "tabs appbar__tabs", "aria-label": messages.app.plans }, ...items, add);
 }
 
 export function renderAppBar(
-  scenarios: readonly ScenarioView[],
+  tabs: readonly PlanTab[],
+  activeId: number,
+  canAdd: boolean,
   active: ScenarioView,
   isDark: boolean,
   actions: Actions,
@@ -87,7 +107,7 @@ export function renderAppBar(
       renderBrandLogo(),
       h("div", { class: "brand__name" }, messages.app.brandName, h("span", {}, messages.app.brandSuffix)),
     ),
-    scenarios.length > 1 ? renderScenarioTabs(scenarios, active, actions) : null,
+    renderPlanTabs(tabs, activeId, canAdd, active, actions),
     h("div", { class: "appbar__actions" }, share, renderThemeButton(isDark, actions)),
   );
 }

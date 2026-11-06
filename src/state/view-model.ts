@@ -17,6 +17,7 @@ import type {
 } from "./types";
 
 /** The id of the single plan shown today. Scenario comparison will add more. */
+/** The id of a view built without one (tests and single-plan uses). */
 export const PLAN_SCENARIO_ID = "plan";
 
 /** Always project as far as the longest allowed horizon, so changing the horizon never needs a new projection. */
@@ -144,6 +145,7 @@ export function buildScenarioView(
   plan: PlanDocument,
   name: string,
   horizonMonths: number = yearsToMonths(plan.horizonYears),
+  id: string = PLAN_SCENARIO_ID,
 ): ScenarioView {
   const { input, ids } = mapPlan(plan, PROJECTION_MONTHS);
   const { points, withdrawals: applied } = project(input);
@@ -215,7 +217,7 @@ export function buildScenarioView(
     .sort((a, b) => a.month - b.month || a.id - b.id);
 
   return {
-    id: PLAN_SCENARIO_ID,
+    id,
     name,
     planName: plan.name,
     start: plan.start,
@@ -235,17 +237,18 @@ export function buildScenarioView(
 }
 
 /**
- * `buildScenarioView` with a memory of the last call: when the plan, name and horizon are the same as last time,
- * the same view comes back without running the engine. Selecting an event, switching the theme or dismissing a
+ * `buildScenarioView` with a memory of the last call for each plan id: when the plan, name and horizon are the same as
+ * last time, the same view comes back without running the engine. Selecting an event, switching the theme or dismissing a
  * notice changes none of them, so those re-renders cost nothing. The plan is compared by reference, which is safe
  * because plan changes always make a new plan object.
  */
-export function createScenarioViewCache(): (plan: PlanDocument, name: string, horizonMonths: number) => ScenarioView {
-  let last: { plan: PlanDocument; name: string; horizonMonths: number; view: ScenarioView } | null = null;
-  return (plan, name, horizonMonths) => {
-    if (last && last.plan === plan && last.name === name && last.horizonMonths === horizonMonths) return last.view;
-    const view = buildScenarioView(plan, name, horizonMonths);
-    last = { plan, name, horizonMonths, view };
+export function createScenarioViewCache(): (id: number, plan: PlanDocument, name: string, horizonMonths: number) => ScenarioView {
+  const last = new Map<number, { plan: PlanDocument; name: string; horizonMonths: number; view: ScenarioView }>();
+  return (id, plan, name, horizonMonths) => {
+    const cached = last.get(id);
+    if (cached && cached.plan === plan && cached.name === name && cached.horizonMonths === horizonMonths) return cached.view;
+    const view = buildScenarioView(plan, name, horizonMonths, String(id));
+    last.set(id, { plan, name, horizonMonths, view });
     return view;
   };
 }
