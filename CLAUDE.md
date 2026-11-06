@@ -51,7 +51,7 @@ the effect of every event shown, and the monthly deposit can be changed from a m
 There are no runtime dependencies. Dev dependencies: `vite`, `vitest`, `typescript`. Node 22.12 or newer
 (`engines` in `package.json`).
 
-UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
+UI languages: **English** and **Swedish** (the switch in the app bar; see "Interface text"). Currency: **SEK** (`1 234 567 kr`).
 
 ## Code conventions
 
@@ -257,15 +257,26 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   numbered apart). The list rows select through a real button with `aria-pressed`. The chart draws each event as a line with a
   numbered badge (same number as the list), plus a band for a deposit change with an end. Badges are buttons
   outside the tab order (`tabindex="-1"`), since the list rows are the keyboard path.
-- **Interface text lives in `src/ui/i18n/en.ts`.** Every text a user can read (labels, buttons, headings, hover
+- **Interface text lives in `src/ui/i18n/en.ts` and `sv.ts`.** Every text a user can read (labels, buttons, headings, hover
   texts, accessible names, input messages, empty states) is a string or a function in `en.ts`, grouped by area and
   read as `messages.<group>.<key>` (`import { messages } from "./i18n"`; the name is `messages` because `text` is a
   common local name for typed input). A text with parts to fill in is a function, and the caller formats the parts
   (amounts and dates), so a language can order them as it needs. `Messages` (`messages.ts`) is *derived from* `en`,
   so another language is a file that is typed `Messages`: a missing text or a wrong shape is a compile error
-  (`messages.test.ts` checks that). `i18n/index.ts` is the one place that picks the language. Not in `en.ts`: the
-  developer-only design-system page. Month names come from `Intl` (`formatYearMonth` in `src/ui/format.ts`, locale
-  `messages.locale.dates`), so the core holds no display text.
+  (`messages.test.ts` checks that, that no text is empty, and that no Swedish text is left as the English one except the
+  few that are the same, listed there). `i18n/index.ts` is the one place that picks the language: the user's choice
+  (`src/state/language.ts`, saved under `advanced-savings-calculator:language`), else the first language the browser asks
+  for that the app has, else English. It is decided once when the page loads, so `messages` stays a plain constant: the
+  switch (`renderLanguageButton`, action `setLanguage`) saves the choice and **reloads the page** (plans are saved and a
+  share link stays in the address). `applyLanguage` sets `<html lang>`. Not in the language files: the developer-only
+  design-system page, the static `<title>` and meta tags in `index.html` (English; the title is replaced at once by the
+  page's own), and plan data written when it is made (the example's "New car" label comes from
+  `messages.example.carLabel`, and names like "Plan 2" and "… (copy)" from `messages.planCard`), which stay in the
+  language they were written in. Numbers and months follow `messages.locale` (`numbers` for whole amounts, always the
+  Swedish grouping `1 716 093`; `decimals` for "6.5" or "6,5"; `compact` for "1.7M kr" or "1,7 mn kr"; `dates` for
+  "Apr 2031" or "apr. 2031"). The formatters (`createFormatters` in `src/ui/format.ts`) are made from those settings, so
+  a test can format in either language, and the core holds no display text. A text that has a decimal number in it
+  writes it as the language does (`sv.ts` has a `num` helper); typed percentages accept both the point and the comma.
 - **Notices are data, worded by the UI.** `src/state/` never builds a sentence for the user. A check that fails throws a
   `PlanError` (`src/state/plan-problem.ts`, a `RangeError`) with a `PlanProblem`: a code plus the parts to fill in
   (which field, the limits in öre, which kind of event). Its `message` stays English and is for developers and tests.
@@ -447,6 +458,7 @@ with the toggle.
     │   ├── goal.ts           # setGoal, clearGoal: the plan's savings goal, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── reference-values.test.ts # Hand- and script-checked results, pinned to the öre
+    │   ├── language.ts       # Language, chooseLanguage, load/save the choice, the browser's languages (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
     │   ├── store.ts          # Minimal observable store
     │   ├── timeline.ts       # buildTimeline, EventKey, eventsAtMonth, chartMonthOf, isPlanned (+ test)
@@ -457,11 +469,12 @@ with the toggle.
     │   ├── route.ts          # Reads and clears the URL hash (#design-system, #plan=)
     │   └── theme.ts          # Theme preference in localStorage
     ├── ui/                   # DOM rendering and events
-    │   ├── i18n/             # All interface text: en.ts (the source), messages.ts (derived type), index.ts (picks the language)
+    │   ├── i18n/             # All interface text: en.ts (the source), sv.ts (Swedish), messages.ts (derived type), index.ts (picks the language)
+    │   ├── language.ts       # applyLanguage: sets <html lang>
     │   ├── app.ts            # Page layout (app bar, hero, chart, bento, table), focus restore
     │   ├── actions.ts        # Actions interface (UI → state)
     │   ├── dom.ts            # h() / s() element helpers
-    │   ├── format.ts         # Money and month formatting (öre → "1 234 kr", { 2031, 4 } → "Apr 2031") (+ test)
+    │   ├── format.ts         # createFormatters and the money, percent and month formatting in use (öre → "1 234 kr", { 2031, 4 } → "Apr 2031") (+ test)
     │   ├── notice-text.ts    # noticeText, problemText: a Notice or PlanProblem in words (+ test)
     │   ├── parse-input.ts    # Typed text → öre, percent, year-month; errorMessage (+ test)
     │   ├── dialog-form.ts    # Shared dialog shell and helpers (openFormDialog, inputIn, showErrors)

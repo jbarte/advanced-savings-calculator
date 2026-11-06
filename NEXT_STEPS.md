@@ -335,8 +335,13 @@ Split in two pull requests, like milestone 9. Decided: at most 5 plans, and the 
 
 ### Milestone 12: Swedish and polish
 
-- **Swedish** alongside English: the translation file, month names and numbers per language (`Apr 2031` /
-  `apr. 2031`, `1.7M kr` / `1,7 mn kr`), a language switch remembered in `localStorage`, and `<html lang>`.
+Decided: four pull requests, 12A Swedish, 12B privacy and page basics, 12C accessibility, 12D export. The language opens
+as the browser's and a switch in the app bar changes it (it saves the choice and reloads the page).
+
+- **12A Swedish (in its PR):** `sv.ts` typed `Messages`, the language choice and its switch, month names and numbers per
+  language (`Apr 2031` / `apr. 2031`, `1.7M kr` / `1,7 mn kr`, `6.5` / `6,5`), `<html lang>`, and the example plan's label in
+  the language it is made in. Left: the static page title and meta tags stay English, and plan data written earlier (a plan
+  named "Plan 2" or labelled "New car") stays in the language it was written in.
 - **Privacy:** self-hosted Geist fonts. Loading them from Google sends every visitor's IP address to Google,
   which contradicts "no tracking". Then a Content-Security-Policy meta tag (`default-src 'self'`).
 - **Page basics:** an Open Graph image for shared links, and a `<noscript>` message (the favicon, `theme-color`

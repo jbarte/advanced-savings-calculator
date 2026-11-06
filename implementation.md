@@ -21,10 +21,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** milestones 7–9, 10A (PR #24) and the rebrand to **Life Ledger** (PR #25; the repo, URL and storage
   keys keep the old name).
 - **Merged since:** milestone 10B (PR #26).
-- **Merged since:** the plan name (PR #27) and milestone 11A, several plans (PR #28).
-- **Open:** milestone 11B, compare plans (branch `feature/m11b-compare`).
-- **Next:** milestone 12 (Swedish and polish), see NEXT_STEPS.md.
-- **Tests:** 585 (`npm test`), typecheck and build pass.
+- **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
+- **Open:** milestone 12A, Swedish (branch `feature/m12a-swedish`).
+- **Next:** 12B (privacy and page basics), 12C (accessibility), 12D (export), see NEXT_STEPS.md.
+- **Tests:** 600 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -732,3 +732,42 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Known gaps:** line colours are the only way to tell lines apart on the chart (the legend, the tooltip and the table name
   them); the card has no keyboard shortcut for selecting a plan from the chart (the table does); a Swedish number format
   comes with milestone 12.
+
+### Milestone 12A: Swedish (branch `feature/m12a-swedish`)
+- **Why:** milestone 10 moved every text into one typed file so a second language would be a file, not a rewrite. Decided with the
+  user: split milestone 12 into 12A Swedish, 12B privacy and page basics, 12C accessibility, 12D export; open in the browser's
+  language, with a switch.
+- **Built:**
+  - `src/ui/i18n/sv.ts`: every text in Swedish, typed `Messages` (a missing or wrongly shaped text is a compile error). Natural
+    Swedish for a consumer UI ("Saldo", "Uttag", "Engångsinsättning", "Sparmål", "Månadssparande", "Inflationsjusterat").
+  - `src/state/language.ts`: `Language`, `chooseLanguage(preference, browserLanguages)` (pure; "sv-SE" counts as Swedish), and the
+    saved choice under `advanced-savings-calculator:language`. `i18n/index.ts` decides the language once at load and exports
+    `language` and `messages`, so `messages` stays a plain constant. The switch (`renderLanguageButton`, action `setLanguage`) saves the
+    choice and reloads. `ui/language.ts` sets `<html lang>`.
+  - `messages.locale` now has `numbers`, `decimals`, `compact` and `dates`; `createFormatters` in `format.ts` builds the formatters from
+    them (also `formatPercent`, used for the return and inflation fields: "6.5" / "6,5"). Texts with a decimal number use a `num` helper in
+    Swedish. `messages.example.carLabel` gives the example plan's label (`createExamplePlan(today, carLabel)`).
+  - English text change: "Your saved plan could not be read …" now says "saved plans" (there can be several).
+  - Layout (found with Swedish at 375 px): the brand name no longer wraps next to the new button, and on a phone the event row's
+    actions (Edit, Try without, Remove) have their own row, which also helps English.
+- **Decisions:**
+  - Switching reloads the page. The alternative, redrawing without a reload, needs `messages` to become changeable state and every
+    text computed at start-up (chart labels, month names) to be reworked.
+  - Whole amounts keep the Swedish grouping in English too ("1 716 093 kr"), since the currency decides it. Compact amounts use
+    `Intl`: "1.7M kr" in English, "1,7 mn kr" in Swedish (and "150 tn kr" for 150 thousand: the standard Swedish abbreviation is
+    "tn", though "tkr" is common in finance).
+  - The static title and meta tags in `index.html` stay English; plan data written in one language stays in it.
+- **Checked:**
+  - 600 tests (15 new): the language choice (the user's choice first, the browser's list in order, case and region, English fallback,
+    a blocked store), every Swedish text non-empty, and none left as the English one except the 18 that are the same (listed), Swedish
+    parts and decimals, formatting in Swedish (months "apr. 2031", "mars", "juni", compact "1,7 mn kr", "+542,7 tn kr", "6,5"), English
+    percent "6.5". Typecheck and build pass; pinned reference values did not move.
+  - Browser: the browser's list (`en-US`, `sv-SE`) opens English; the switch saves `sv` and reloads in Swedish (`<html lang="sv">`,
+    page title, hero line, KPI tiles "2,8 mn kr", months "nov. 2031", the return field "6,5", the goal and event dialogs, the
+    input error, a bad-link notice and its announcement); switching back gives English ("6.5", "2.8M kr"). At 375 px in Swedish the
+    page doesn't scroll sideways, the brand stays on one line and the event row's actions are on their own row. No console errors.
+- **Known gaps:** the Swedish was written by Claude and still needs a native read-through; "tn" for thousand; the month input's own
+  picker follows the browser's language, not the app's; the share-link preview (Open Graph) is English.
+- **Follow-up:** the open plan's row in the Compare table was highlighted with the blue `--sel-row`, which the user disliked. It now
+  uses the warm neutral `--fill` (a sunken look, like a pressed control) in both themes, and the "Open plan" marker is `--ink2`
+  instead of `--muted` so it reads on that fill. The event list's selected row still uses `--sel-row`.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { en } from "./en";
 import { messages } from "./index";
+import { sv } from "./sv";
 import type { Messages } from "./messages";
 
 /** Dummy arguments for texts with parts to fill in: numbers and words, and lists of words for the ones that want a list. */
@@ -32,13 +33,35 @@ function collectStrings(value: unknown, path: string, out: [string, string][] = 
   return out;
 }
 
+/** The texts that are the same in Swedish as in English (names, codes, units and separators), by path. */
+const SAME_IN_SWEDISH: string[] = [
+  "locale.numbers",
+  "units.currency",
+  "units.currencyField",
+  "app.brandName",
+  "app.brandSuffix",
+  "app.pageTitleNamed",
+  "events.totalAfter",
+  "planCard.heading",
+  "planCard.newName",
+  "planCard.fields.inflation",
+  "planCard.fields.start",
+  "compare.headers.plan",
+  "compare.valuePart",
+  "compare.valueText",
+  "chart.tooltipEvent",
+  "list.statusHeader",
+  "list.nameSeparator",
+  "list.period",
+];
+
 describe("interface messages", () => {
   it("uses English as the language in use for now", () => {
     expect(messages).toBe(en);
   });
 
-  it("has no empty text", () => {
-    const empty = collectStrings(messages, "").filter(([, text]) => text.trim() === "");
+  it.each([["English", en], ["Swedish", sv]] as const)("has no empty %s text", (_name, texts) => {
+    const empty = collectStrings(texts, "").filter(([, text]) => text.trim() === "");
     expect(empty).toEqual([]);
   });
 
@@ -51,6 +74,23 @@ describe("interface messages", () => {
     expect(messages.inputErrors.percentMin(-100)).toBe("Use -100 % or more");
     expect(messages.planCard.renameAria(null)).toBe("Plan: rename");
     expect(messages.planCard.renameAria("House 2031")).toBe('Plan "House 2031": rename');
+  });
+
+  it("has the Swedish text for everything in English: no text is left as it is, except the ones that are the same", () => {
+    const swedish = new Map(collectStrings(sv, ""));
+    const same = collectStrings(en, "")
+      .filter(([path, text]) => swedish.get(path) === text)
+      .map(([path]) => path);
+    expect(same).toEqual(SAME_IN_SWEDISH);
+  });
+
+  it("writes the Swedish parts and decimals the Swedish way", () => {
+    expect(sv.events.count(1)).toBe("1 händelse");
+    expect(sv.events.count(3)).toBe("3 händelser");
+    expect(sv.hero.subtitleAdjusted("Min plan", 2.5)).toBe("Min plan · Inflationsjusterat med 2,5 % per år. Det du anger förblir som du skrev det.");
+    expect(sv.inputErrors.percentMin(-100)).toBe("Använd -100 % eller mer");
+    expect(sv.planCard.renameAria("Hus 2031")).toBe('Plan "Hus 2031": byt namn');
+    expect(sv.chart.valueText("nov. 2031", "133 715 kr", ["Ny bil"])).toBe("nov. 2031: 133 715 kr. Händelser: Ny bil");
   });
 
   it("makes a translation that misses a text, or has the wrong shape, a type error", () => {

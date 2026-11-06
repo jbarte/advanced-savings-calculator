@@ -92,6 +92,7 @@ button {
 }
 
 .brand__name {
+  white-space: nowrap;
   font-size: var(--text-lg);
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -158,6 +159,13 @@ button {
   display: grid;
   place-items: center;
   transition: transform 120ms, box-shadow 120ms;
+}
+
+.btn-round--text {
+  color: var(--ink2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .btn-round svg {
@@ -1401,7 +1409,7 @@ button {
 }
 
 .compare-table tr[aria-current="true"] {
-  background: var(--sel-row);
+  background: var(--fill);
 }
 
 .compare-table__plan {
@@ -1443,7 +1451,7 @@ button {
 }
 
 .compare-table td.compare-table__diff:not(.compare-table__diff--loss):not(.compare-table__diff--gain) {
-  color: var(--muted);
+  color: var(--ink2);
 }
 
 .disclaimer {
@@ -2089,7 +2097,8 @@ button {
 
 /* ---------- Events list on a phone ---------- */
 
-/* Each row becomes a small card: the title and actions on top, then amount, status and lost growth. */
+/* Each row becomes a small card: the title on top, then amount, status and effect, and the actions last. The actions
+   have their own row, since three of them (Edit, Try without, Remove) leave too little room for the title beside them. */
 @media (max-width: 760px) {
   .table {
     min-width: 0;
@@ -2102,9 +2111,10 @@ button {
   .table__row {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "who actions"
+      "who who"
       "amount chips"
-      "impact impact";
+      "impact impact"
+      "actions actions";
     row-gap: var(--space-2);
   }
 
@@ -2114,6 +2124,10 @@ button {
 
   .table__actions {
     grid-area: actions;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding-top: var(--space-1);
+    border-top: var(--border-1) solid var(--line);
   }
 
   .table__amount {

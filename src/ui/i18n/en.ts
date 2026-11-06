@@ -5,9 +5,25 @@
  * amounts and dates follow the number and date formats, and a language can order them as it needs).
  */
 export const en = {
-  /** The locale used for month names ("Apr 2031"). */
+  /**
+   * How numbers and dates are written. Amounts are in kronor in every language, so whole amounts use the Swedish
+   * grouping ("1 716 093"); `decimals` is for numbers with decimals ("6.5 %"), `compact` is the short form ("1.7M"),
+   * and `dates` gives the month names ("Apr 2031").
+   */
   locale: {
+    numbers: "sv-SE",
+    decimals: "en",
+    compact: "en",
     dates: "en",
+  },
+  language: {
+    /** The text on the language switch: the code of the language it switches to. */
+    switchCode: "SV",
+    switchTo: "Switch to Swedish",
+  },
+  /** Text in the example plan, which is plan data and so is written when the plan is made. */
+  example: {
+    carLabel: "New car",
   },
   common: {
     add: "Add",
@@ -313,7 +329,7 @@ export const en = {
   notices: {
     changeRejected: (reason: string): string => `That change was not applied. ${reason}`,
     savedPlanUnreadable: (reason: string): string =>
-      `Your saved plan could not be read, so the example plan is shown. ${reason}. Your next change replaces the saved plan.`,
+      `Your saved plans could not be read, so the example plan is shown. ${reason}. Your next change replaces the saved plans.`,
     linkUnreadable: (reason: string): string => `That link could not be opened. ${reason}. Your own plan is shown instead.`,
     storageBlocked: "Your browser is blocking storage, so your changes will not be kept after you close this page.",
   },

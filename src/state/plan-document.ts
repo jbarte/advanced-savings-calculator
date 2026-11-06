@@ -114,7 +114,7 @@ export const DEFAULT_HORIZON_YEARS = 30;
 export const DEFAULT_INFLATION_PCT = 2;
 
 /** A worked example for first-time visitors, starting this month, with a car purchase five years in. */
-export function createExamplePlan(today: YearMonth): PlanDocument {
+export function createExamplePlan(today: YearMonth, carLabel: string = "New car"): PlanDocument {
   return {
     version: 4,
     name: null,
@@ -124,7 +124,7 @@ export function createExamplePlan(today: YearMonth): PlanDocument {
     annualReturnPct: DEFAULT_RETURN_PCT,
     horizonYears: DEFAULT_HORIZON_YEARS,
     inflationPct: DEFAULT_INFLATION_PCT,
-    withdrawals: [{ id: 1, date: addMonths(today, yearsToMonths(5)), amount: 15_000_000, label: "New car" }],
+    withdrawals: [{ id: 1, date: addMonths(today, yearsToMonths(5)), amount: 15_000_000, label: carLabel }],
     depositChanges: [],
     oneTimeDeposits: [],
     goal: null,

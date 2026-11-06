@@ -53,7 +53,7 @@ describe("noticeText", () => {
   it("words each kind of notice around the problem", () => {
     expect(noticeText({ kind: "change-rejected", problem })).toBe("That change was not applied. It is damaged");
     expect(noticeText({ kind: "saved-plan-unreadable", problem })).toBe(
-      "Your saved plan could not be read, so the example plan is shown. It is damaged. Your next change replaces the saved plan.",
+      "Your saved plans could not be read, so the example plan is shown. It is damaged. Your next change replaces the saved plans.",
     );
     expect(noticeText({ kind: "link-unreadable", problem: { code: "not-a-plan-link" } })).toBe(
       "That link could not be opened. This is not a plan link. Your own plan is shown instead.",
