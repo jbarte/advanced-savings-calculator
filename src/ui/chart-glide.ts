@@ -1,8 +1,11 @@
 import { interpolatePath } from "./chart-geometry";
 import { motionAllowed } from "./motion";
 
-/** How long the chart takes to glide from the old shape to the new one. */
+/** How long the chart takes to glide from the old shape to the new one (`--duration-slow`). */
 const GLIDE_MS = 280;
+
+/** The shorter glide for each step of a slider: long enough to follow the thumb smoothly, short enough not to lag behind it. */
+export const PREVIEW_GLIDE_MS = 140;
 
 /** The paths drawn in every chart on the page, in page order: one list of `d` values for each chart's SVG. */
 export type DrawnCharts = readonly (readonly string[])[];
@@ -41,7 +44,7 @@ const easeOut = (t: number): number => 1 - (1 - t) ** 3;
  * instead of jumping. A path whose number of points changed (another horizon) or that is new just appears, and nothing
  * moves when the system asks for less motion. It runs with the page's own frames and stops when its chart is gone.
  */
-export function glideCharts(root: ParentNode, before: DrawnCharts): void {
+export function glideCharts(root: ParentNode, before: DrawnCharts, duration: number = GLIDE_MS): void {
   if (!motionAllowed()) return;
   const moves: { readonly path: Element; readonly from: string; readonly to: string }[] = [];
   [...root.querySelectorAll(".chart__svg")].forEach((svg, chart) => {
@@ -57,7 +60,7 @@ export function glideCharts(root: ParentNode, before: DrawnCharts): void {
 
   const started = performance.now();
   const step = (now: number): void => {
-    const t = Math.min(1, (now - started) / GLIDE_MS);
+    const t = Math.min(1, (now - started) / duration);
     let alive = false;
     for (const { path, from, to } of moves) {
       if (!path.isConnected) continue;

@@ -1,4 +1,4 @@
-import { appendEvent, removeEvent, replaceEvent } from "./event-list";
+import { appendEvent, removeEvent, replaceEvent, restoreEvent } from "./event-list";
 import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { PlanDocument, WithdrawalDraft, WithdrawalEvent } from "./plan-document";
@@ -29,4 +29,9 @@ export function updateWithdrawal(plan: PlanDocument, id: number, draft: Withdraw
 /** Removes a withdrawal. Does nothing if it is already gone. */
 export function removeWithdrawal(plan: PlanDocument, id: number): PlanDocument {
   return { ...plan, withdrawals: removeEvent(plan.withdrawals, id) };
+}
+
+/** Puts a removed withdrawal back (the undo of removing it). */
+export function restoreWithdrawal(plan: PlanDocument, event: WithdrawalEvent): PlanDocument {
+  return { ...plan, withdrawals: restoreEvent(plan.withdrawals, event, PLAN_LIMITS.maxWithdrawals, NAMES) };
 }

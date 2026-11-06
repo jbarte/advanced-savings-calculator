@@ -1,4 +1,4 @@
-import { appendEvent, removeEvent, replaceEvent } from "./event-list";
+import { appendEvent, removeEvent, replaceEvent, restoreEvent } from "./event-list";
 import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { DepositChangeDraft, DepositChangeEvent, PlanDocument } from "./plan-document";
@@ -30,4 +30,9 @@ export function updateDepositChange(plan: PlanDocument, id: number, draft: Depos
 /** Removes a deposit change. Does nothing if it is already gone. */
 export function removeDepositChange(plan: PlanDocument, id: number): PlanDocument {
   return { ...plan, depositChanges: removeEvent(plan.depositChanges, id) };
+}
+
+/** Puts a removed deposit change back (the undo of removing it). */
+export function restoreDepositChange(plan: PlanDocument, event: DepositChangeEvent): PlanDocument {
+  return { ...plan, depositChanges: restoreEvent(plan.depositChanges, event, PLAN_LIMITS.maxDepositChanges, NAMES) };
 }

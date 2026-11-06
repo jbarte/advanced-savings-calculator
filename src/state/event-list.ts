@@ -35,6 +35,16 @@ export function replaceEvent<T extends WithId>(list: readonly T[], id: number, n
   return list.map((item) => (item.id === id ? make(id) : item));
 }
 
+/**
+ * Puts a removed event back in its place by id. If a newer event has taken the id meanwhile, the event gets the next
+ * free one. Throws a PlanError when the list is full.
+ */
+export function restoreEvent<T extends WithId>(list: readonly T[], event: T, max: number, names: EventNames): T[] {
+  if (list.length >= max) failWith({ code: "too-many", kind: names.kind, max }, `A plan can have at most ${max} ${names.many}`);
+  const restored = list.some((item) => item.id === event.id) ? { ...event, id: nextId(list) } : event;
+  return [...list, restored].sort((a, b) => a.id - b.id);
+}
+
 /** Removes the event with `id`. Does nothing if it is already gone. */
 export function removeEvent<T extends WithId>(list: readonly T[], id: number): T[] {
   return list.filter((item) => item.id !== id);

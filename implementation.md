@@ -1060,3 +1060,27 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     ring shadow (screenshot checked); the hover rule for the dot exists. No console errors.
 - **Known gaps:** the pointer glide was checked as transitions and computed styles, not by moving a real pointer; the compare chart's tooltip
   glides (it shares the tooltip styles) but has no draw-in; the draw-in is off under reduced motion because the global rule removes animations.
+
+### Polish, part 3: undo instead of "are you sure"
+
+- **What:** removing an event, the goal or a plan shows a toast ("Removed "New car" · Undo", 8 seconds) instead of asking first. The plan
+  delete dialog (`delete-plan-dialog.ts`) is gone; "Start over" keeps its confirmation. An empty event list has an "Add your first event" button.
+- **How:** the remove actions return an `Undo`; `showUndoToast` (`src/ui/undo-toast.ts`) puts it on one shelf in `<body>` (a new toast replaces
+  the old) and announces it. State got `restoreEvent` (by id, next free id if taken), `restoreWithdrawal`/`restoreDepositChange`/
+  `restoreOneTimeDeposit` and `restorePlan` (old place, opened again). Undo acts on the plan the removal was made in.
+- **Checked:** 691 tests (restoreEvent, restorePlan), typecheck, build. Browser: removing the only event then Undo brings it back; an empty list shows the
+  button and it opens "Add event"; deleting a plan shows its toast and Undo restores and opens it.
+- **Known gaps:** a toast is lost on reload or after 8 s, so a deleted plan is then gone for good; the goal's empty state already had its button.
+
+### Follow-up: hover lag and a month picker everywhere
+
+- **Chart hover:** the cursor, dot and tooltip glided 120 ms behind the pointer, which felt like lag. They now move at once (no position transition), and `show` skips a month it already shows.
+- **Month picker:** all month fields (event and goal dates, the plan start) are text inputs with a calendar button (`src/ui/month-picker.ts`: year arrows, twelve months,
+  Escape or an outside press closes it), since the native month input has no picker in Firefox and desktop Safari. Typing "YYYY-MM" still works.
+- **Checked:** 691 tests, typecheck. Browser: the goal dialog opens the calendar, next year and a month write "2057-06" into the field and close it; tooltip and dot have no position transition.
+- **Known gaps:** the calendar has no arrow-key grid navigation (the months are buttons in tab order); the hover feel was judged from the transition values, not a real pointer.
+
+### Follow-up: slider changes glide again
+
+- **What:** each step of a Plan card slider's live preview glides for 140 ms (`PREVIEW_GLIDE_MS`, `glideCharts(root, before, duration)`) from where the line is drawn right now, so dragging, a click on the track and an arrow key all move smoothly. Release continues from the current shape.
+- **Checked:** a jump of the deposit slider moved the line end in steps (23.1, 25.0, 29.1, 31.2, 31.9, 32.0); two quick steps chain without a jump; reduced motion applies at once; no console errors.

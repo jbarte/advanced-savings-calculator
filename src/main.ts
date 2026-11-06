@@ -12,7 +12,7 @@ import { updatePlanFields } from "./state/plan-fields";
 import { fitPlanName, renamePlan } from "./state/plan-name";
 import { planWithoutEvent } from "./state/plan-variants";
 import { planFileText, readPlanFile } from "./state/plan-file";
-import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, openSharedPlan as addSharedPlan, selectPlan, withPlanSetChange } from "./state/workspace";
+import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, openSharedPlan as addSharedPlan, restorePlan, selectPlan, withPlanSetChange } from "./state/workspace";
 import type { AppState, PlanEntry, PlanSet, ScenarioView } from "./state/types";
 import { clearSavedPlans, loadSavedPlans, savePlans } from "./state/plan-storage";
 import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
@@ -20,13 +20,13 @@ import { buildShareUrl, decodePlan, encodePlan } from "./state/share-link";
 import { STORAGE_BLOCKED_NOTICE, resolveStartupPlan } from "./state/startup-plan";
 import { createStore } from "./state/store";
 import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
-import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
+import { addOneTimeDeposit, removeOneTimeDeposit, restoreOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
 import { loadThemePreference, onSystemThemeChange, saveThemePreference, systemPrefersDark } from "./state/theme";
 import { applyInflationAdjustment, buildScenarioView, createScenarioViewCache } from "./state/view-model";
 import { clearGoal, setGoal } from "./state/goal";
-import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
-import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
-import type { Actions } from "./ui/actions";
+import { addDepositChange, removeDepositChange, restoreDepositChange, updateDepositChange } from "./state/deposit-changes";
+import { addWithdrawal, removeWithdrawal, restoreWithdrawal, updateWithdrawal } from "./state/withdrawals";
+import type { Actions, Undo } from "./ui/actions";
 import { renderApp } from "./ui/app";
 import { renderDesignSystem } from "./ui/design-system";
 import { renderErrorState } from "./ui/error-state";
@@ -107,6 +107,14 @@ const deselectIf = (key: string): void => {
   if (store.get().selectedEvent === key) store.update({ selectedEvent: null });
 };
 
+const NO_UNDO: Undo = () => undefined;
+
+/** Applies an undo to the plan the change was made in, opening it first if the user has moved to another plan. */
+const commitOnPlan = (planId: number, change: (plan: PlanDocument) => PlanDocument): void => {
+  if (store.get().activeId !== planId) commitPlanSet((set) => selectPlan(set, planId));
+  if (store.get().activeId === planId) commitPlan(change);
+};
+
 const isDark = (): boolean => {
   const { theme } = store.get();
   return theme === "system" ? systemPrefersDark() : theme === "dark";
@@ -162,26 +170,47 @@ const actions: Actions = {
       if (!without) return set;
       return addPlan(set, { ...without.plan, name: fitPlanName(messages.planCard.withoutName(ownName(current), without.label)) });
     }),
-  deletePlan: (id) => commitPlanSet((set) => deletePlan(set, id)),
+  deletePlan: (id) => {
+    const before = store.get().plans;
+    const index = before.findIndex((entry) => entry.id === id);
+    const entry = before[index];
+    commitPlanSet((set) => deletePlan(set, id));
+    const deleted = entry !== undefined && !store.get().plans.some((candidate) => candidate.id === id);
+    return deleted ? () => commitPlanSet((set) => restorePlan(set, entry, index)) : NO_UNDO;
+  },
   addWithdrawal: (draft) => commitPlan((plan) => addWithdrawal(plan, draft)),
   updateWithdrawal: (id, draft) => commitPlan((plan) => updateWithdrawal(plan, id, draft)),
   removeWithdrawal: (id) => {
-    commitPlan((plan) => removeWithdrawal(plan, id));
+    const { id: planId, plan } = activeEntry(store.get());
+    const removed = plan.withdrawals.find((event) => event.id === id);
+    commitPlan((current) => removeWithdrawal(current, id));
     deselectIf(withdrawalKey(id));
+    return removed ? () => commitOnPlan(planId, (current) => restoreWithdrawal(current, removed)) : NO_UNDO;
   },
   addDepositChange: (draft) => commitPlan((plan) => addDepositChange(plan, draft)),
   updateDepositChange: (id, draft) => commitPlan((plan) => updateDepositChange(plan, id, draft)),
   removeDepositChange: (id) => {
-    commitPlan((plan) => removeDepositChange(plan, id));
+    const { id: planId, plan } = activeEntry(store.get());
+    const removed = plan.depositChanges.find((event) => event.id === id);
+    commitPlan((current) => removeDepositChange(current, id));
     deselectIf(depositChangeKey(id));
+    return removed ? () => commitOnPlan(planId, (current) => restoreDepositChange(current, removed)) : NO_UNDO;
   },
   setGoal: (goal) => commitPlan((plan) => setGoal(plan, goal)),
-  clearGoal: () => commitPlan((plan) => clearGoal(plan)),
+  clearGoal: () => {
+    const { id: planId, plan } = activeEntry(store.get());
+    const removed = plan.goal;
+    commitPlan((current) => clearGoal(current));
+    return removed ? () => commitOnPlan(planId, (current) => setGoal(current, removed)) : NO_UNDO;
+  },
   addOneTimeDeposit: (draft) => commitPlan((plan) => addOneTimeDeposit(plan, draft)),
   updateOneTimeDeposit: (id, draft) => commitPlan((plan) => updateOneTimeDeposit(plan, id, draft)),
   removeOneTimeDeposit: (id) => {
-    commitPlan((plan) => removeOneTimeDeposit(plan, id));
+    const { id: planId, plan } = activeEntry(store.get());
+    const removed = plan.oneTimeDeposits.find((event) => event.id === id);
+    commitPlan((current) => removeOneTimeDeposit(current, id));
     deselectIf(oneTimeDepositKey(id));
+    return removed ? () => commitOnPlan(planId, (current) => restoreOneTimeDeposit(current, removed)) : NO_UNDO;
   },
   dismissNotice: () => store.update({ notice: null }),
   setLanguage: (language) => {

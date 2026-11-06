@@ -9,6 +9,7 @@ import { horizonEndOf, openGoalDialog } from "./goal-dialog";
 import { requiredDepositText } from "./goal-text";
 import { monthLabel } from "./view-helpers";
 import { messages } from "./i18n";
+import { showUndoToast } from "./undo-toast";
 
 /* The gauge is an arc whose length is drawn as 100 units, so a share of 62 % is a dash of 62. */
 const GAUGE_ARC = "M22 104 A78 78 0 0 1 178 104";
@@ -137,7 +138,7 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
             "data-key": "goal-remove",
             "data-focus-next": "goal-set",
             "aria-label": messages.goalCard.removeAria,
-            onclick: () => actions.clearGoal(),
+            onclick: () => showUndoToast(messages.undo.goalRemoved, actions.clearGoal()),
           },
           messages.common.remove,
         ),

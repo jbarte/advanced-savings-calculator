@@ -124,6 +124,7 @@ export const en = {
     full: "The plan has as many events as it can hold",
     fullHint: "The plan has as many events as it can hold, so no more can be added.",
     count: (count: number): string => `${count} ${count === 1 ? "event" : "events"}`,
+    addFirst: "Add your first event",
     emptyTitle: "No events yet",
     emptyHint: "Add a withdrawal, a one-time deposit or a change to your monthly deposit to see what it does.",
     totalBefore: (end: string, inflationAdjusted: boolean): string =>
@@ -170,12 +171,6 @@ export const en = {
       open: "Open a plan file",
       openHint: "Adds the plan from a file next to your plans. Nothing is replaced.",
       downloadFailed: "The file could not be made. Your browser may be blocking downloads.",
-    },
-    deletePlan: {
-      title: (name: string): string => `Delete "${name}"?`,
-      body: "This removes the plan from this browser. It can't be undone. Your other plans stay.",
-      confirm: "Delete plan",
-      keep: "Keep plan",
     },
     goal: { add: "Set a goal", edit: "Edit goal", addConfirm: "Set goal", amount: "I want to have", by: "By" },
   },
@@ -320,6 +315,18 @@ export const en = {
     oneTimeSub: (when: string): string => `One-time deposit · ${when}`,
     oneTimeExplain: (effect: string, end: string, amount: string, growth: string): string =>
       `${effect} by ${end}: ${amount} deposited, and ${growth} on it`,
+  },
+  monthPicker: {
+    open: "Pick a month",
+    label: "Month picker",
+    previousYear: "Previous year",
+    nextYear: "Next year",
+  },
+  undo: {
+    action: "Undo",
+    removed: (label: string): string => `Removed "${label}"`,
+    planDeleted: (name: string): string => `Deleted plan "${name}"`,
+    goalRemoved: "Goal removed",
   },
   goalCard: {
     heading: "Savings goal",

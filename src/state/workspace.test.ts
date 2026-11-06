@@ -12,6 +12,7 @@ import {
   leaveSharedPlan,
   openSharedPlan,
   ownCount,
+  restorePlan,
   selectPlan,
   updateActivePlan,
   withPlanSetChange,
@@ -186,5 +187,22 @@ describe("withPlanSetChange", () => {
         throw new TypeError("a bug");
       }),
     ).toThrow(TypeError);
+  });
+});
+
+describe("restorePlan", () => {
+  it("puts a deleted plan back at its place and opens it", () => {
+    const set = setOf([own(1), own(2), own(3)], 2);
+    const removed = set.plans[1] as PlanEntry;
+    const back = restorePlan(deletePlan(set, 2), removed, 1);
+    expect(back.plans.map((entry) => entry.id)).toEqual([1, 2, 3]);
+    expect(back.activeId).toBe(2);
+  });
+
+  it("gives the plan a new id when another plan took its id, and refuses when plans are full", () => {
+    const set = setOf([own(1), own(2)], 1);
+    expect(restorePlan(set, own(2, named("old")), 0).plans.map((entry) => entry.id)).toEqual([3, 1, 2]);
+    const full = setOf(Array.from({ length: PLAN_LIMITS.maxPlans }, (_, i) => own(i + 1)));
+    expect(() => restorePlan(full, own(99), 0)).toThrow();
   });
 });

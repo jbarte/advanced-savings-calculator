@@ -309,6 +309,17 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   disappears (a removed row, a swapped button, a dismissed notice), its `data-focus-next` names the element that
   gets focus instead. Notices are read out once through the `#announcer` live region in `index.html`
   (`announce` in `src/ui/announcer.ts`), not by a live region inside the re-rendered page.
+- **Removing is undone, not confirmed.** Removing an event, the goal or a plan has no "Are you sure?": the remove actions
+  return an `Undo` (`actions.ts`) and the UI shows `showUndoToast` (`undo-toast.ts`, one toast on a shelf in `<body>`,
+  8 seconds, read out through the announcer). Undo puts the event back by id (`restoreEvent`, `restoreWithdrawal`…;
+  a taken id gets the next free one), the plan at its old place (`restorePlan`) or the goal, in the plan it was
+  removed from. "Start over" keeps its confirmation, since it can't be undone. An empty event list has an
+  "Add your first event" button.
+- **Month fields are text with our own picker.** Every `type: "month"` field (`renderTextField`) is a plain text input
+  ("YYYY-MM", typed or picked) with a calendar button (`month-picker.ts`): the native month input has no picker in
+  Firefox or desktop Safari. The picker opens under the field, years `minStartYear`–`maxEventYear`, and writes the
+  value and fires the field's own `input` and `change`. The chart's cursor, dot and tooltip move with the pointer at once (no
+  transition on position; any glide made them trail a fast pointer).
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
   to `<body>`, so a page re-render can't remove it. Its fields check themselves as the user
   types, and nothing reaches the store until Save. `openFormDialog` (`src/ui/dialog-form.ts`)
@@ -412,12 +423,12 @@ with the toggle.
 - **Motion is small and optional.** A change to the open plan makes each chart path glide from where it was drawn to its new shape
   (`captureCharts` reads the old paths before the page is redrawn, `glideCharts` in `src/ui/chart-glide.ts` moves them with
   `requestAnimationFrame` over 280 ms using `interpolatePath`; only between paths with the same number of points, so a new
-  horizon just appears). A Plan card slider's live preview doesn't glide (the drag is the motion), and switching plans fades the
+  horizon just appears). Each step of a Plan card slider's live preview glides too, but for 140 ms (`PREVIEW_GLIDE_MS`) and from where the line is drawn right now, so a drag follows the thumb smoothly and a click on the track or an arrow key glides instead of jumping; switching plans fades the
   page in instead (`.canvas--switched`, keyed on `data-plan` on the shell). Dialogs fade and rise in (`.modal[open]`). Under
   `prefers-reduced-motion` the glide doesn't run, transitions and animations are off, except the spinner.
 - **Chart details.** The first drawing of the page reveals the main chart left to right (`.chart__svg--intro`, a `clip-path`
-  animation, set by `introduceChart` only when no chart was on the page before); the tooltip, dot and cursor glide to the next
-  month with `left`/`top`/`transform` transitions, and the dot grows while the pointer is over the chart. A badge for an event
+  animation, set by `introduceChart` only when no chart was on the page before); the tooltip, dot and cursor follow the pointer
+  with no transition on position, and the dot grows while the pointer is over the chart. A badge for an event
   that was not on the chart before gets `.chart__badge--new` and pops in (`captureBadges` and `popNewBadges`, keyed on
   `data-event`), so redraws don't make the existing badges pop again; the selected badge has a ring in `--focus` and is larger.
 - **No white highlights or glow.** The `--shadow-*` tokens contain only dark shadows (plus the edge).
@@ -561,7 +572,8 @@ with the toggle.
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
     │   ├── add-plan-dialog.ts # Asks how to add a plan: a copy of the open one, or an empty one
-    │   ├── delete-plan-dialog.ts # Confirmation before a plan is deleted
+    │   ├── month-picker.ts   # renderMonthPicker: a button and a year-and-months calendar for the month text fields
+    │   ├── undo-toast.ts     # showUndoToast: "Removed … · Undo" for events, the goal and deleted plans
     │   ├── rename-dialog.ts  # Prompt to name the plan, opened from the Plan card's title
     │   ├── share-dialog.ts   # "Share this plan": the link, a copy button and the privacy note
     │   ├── shared-banner.ts  # Banner while a shared plan is open: keep it as a new plan or go back

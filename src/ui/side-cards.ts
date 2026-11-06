@@ -10,11 +10,11 @@ import { ORE_PER_KRONA, SLIDER_RANGES, withPlanSlider } from "./plan-slider";
 import type { PreviewPlan } from "./plan-slider";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
-import { openDeletePlanDialog } from "./delete-plan-dialog";
 import { openFileDialog } from "./file-dialog";
 import { openRenameDialog } from "./rename-dialog";
 import { openStartOverDialog } from "./start-over-dialog";
 import { messages } from "./i18n";
+import { showUndoToast } from "./undo-toast";
 
 interface ParsedFieldProps<T> {
   readonly id: string;
@@ -115,7 +115,7 @@ function renderPlanActions(scenario: ScenarioView, state: AppState, actions: Act
             "data-key": "plan-delete",
             "data-focus-next": "plan-rename",
             "aria-label": messages.planCard.deleteAria(scenario.name),
-            onclick: () => openDeletePlanDialog(scenario.name, () => actions.deletePlan(state.activeId)),
+            onclick: () => showUndoToast(messages.undo.planDeleted(scenario.name), actions.deletePlan(state.activeId)),
           },
           messages.planCard.delete,
         )

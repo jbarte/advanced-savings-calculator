@@ -219,11 +219,14 @@ function renderChart(
   // The cursor rests where the keyboard or a selected event left it, so a re-render doesn't move it.
   const resting = state.chartMonth === null ? last : Math.min(last, Math.max(0, state.chartMonth));
   let current = resting;
+  let shown = false;
   const show = (index: number): void => {
     const point = points[index];
     const coord = coords[index];
     if (!point || !coord) return;
+    if (index === current && shown) return;
     current = index;
+    shown = true;
     const events = eventsAtMonth(timeline, point.month);
     const when = monthLabel(scenario, point.month);
     const value = formatMoney(point[state.metric]);

@@ -1,5 +1,7 @@
 import { h, s } from "./dom";
 import { messages } from "./i18n";
+import { renderMonthPicker } from "./month-picker";
+import { currentYearMonth } from "../state/clock";
 
 export const checkIcon = (size?: string): SVGSVGElement =>
   s(
@@ -214,12 +216,30 @@ export function renderSteps(labels: readonly string[], current: number): HTMLEle
 
 /* ---------- Toast ---------- */
 
-export function renderToast(message: string, onDismiss?: () => void): HTMLElement {
+export function renderToast(
+  message: string,
+  onDismiss?: () => void,
+  action?: { readonly label: string; readonly onClick: () => void },
+): HTMLElement {
   const toast = h(
     "div",
     { class: "toast", role: "status" },
     h("span", { class: "toast__icon" }, checkIcon()),
     h("span", { class: "toast__text" }, message),
+    action
+      ? h(
+          "button",
+          {
+            class: "btn-text toast__action",
+            type: "button",
+            onclick: () => {
+              toast.remove();
+              action.onClick();
+            },
+          },
+          action.label,
+        )
+      : null,
     h(
       "button",
       {
@@ -300,13 +320,14 @@ export function renderModal(props: ModalProps): HTMLDialogElement {
 
 /* ---------- Empty state ---------- */
 
-export function renderEmptyState(title: string, hint: string): HTMLElement {
+export function renderEmptyState(title: string, hint: string, action?: HTMLElement): HTMLElement {
   return h(
     "div",
     { class: "empty" },
     boxIcon(),
     h("strong", { class: "empty__title" }, title),
     h("span", { class: "empty__hint" }, hint),
+    action ?? null,
   );
 }
 
@@ -339,7 +360,8 @@ export function renderTextField(props: TextFieldProps): HTMLElement {
   const error = h("p", { class: "field__error", id: errorId, "aria-live": "polite" });
   const input = h("input", {
     id: props.id,
-    type: props.type ?? "text",
+    // A month field is text with our own picker: the native month input is missing in some browsers.
+    type: "text",
     value: props.value,
     inputmode: props.inputMode,
     placeholder: props.placeholder,
@@ -363,11 +385,13 @@ export function renderTextField(props: TextFieldProps): HTMLElement {
   });
   input.addEventListener("focus", () => input.select());
 
+  const picker = props.type === "month" ? renderMonthPicker(input, currentYearMonth()) : null;
   return h(
     "div",
     { class: "field" },
     h("label", { for: props.id }, props.label),
-    h("div", { class: "field__control" }, input, props.unit ? h("span", { class: "field__unit" }, props.unit) : null),
+    h("div", { class: "field__control" }, input, props.unit ? h("span", { class: "field__unit" }, props.unit) : null, picker?.button ?? null),
+    picker?.panel ?? null,
     error,
   );
 }
