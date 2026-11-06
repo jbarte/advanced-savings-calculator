@@ -9,6 +9,7 @@ import { formatKronor, formatPercent } from "./format";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
 import { openDeletePlanDialog } from "./delete-plan-dialog";
+import { openFileDialog } from "./file-dialog";
 import { openRenameDialog } from "./rename-dialog";
 import { openStartOverDialog } from "./start-over-dialog";
 import { messages } from "./i18n";
@@ -84,13 +85,25 @@ function renderPlanActions(scenario: ScenarioView, state: AppState, actions: Act
   const { origin } = activeEntry(state);
   const isExample = origin === "example";
   const status = h("span", { class: "card__meta" }, planStatusText(state));
+  const file = h(
+    "button",
+    {
+      class: "btn-text",
+      type: "button",
+      "data-key": "plan-file",
+      "aria-label": messages.planCard.fileAria,
+      onclick: () => openFileDialog(scenario, actions),
+    },
+    messages.planCard.file,
+  );
   // A shared plan is kept or dropped from the banner above the chart.
-  if (origin === "shared") return h("div", { class: "card__head-side" }, status);
+  if (origin === "shared") return h("div", { class: "card__head-side" }, status, file);
   const canDelete = ownCount(state.plans) > 1;
   return h(
     "div",
     { class: "card__head-side" },
     status,
+    file,
     canDelete
       ? h(
           "button",

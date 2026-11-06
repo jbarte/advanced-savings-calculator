@@ -146,6 +146,8 @@ export type Notice =
   | { readonly kind: "change-rejected"; readonly problem: PlanProblem }
   | { readonly kind: "saved-plan-unreadable"; readonly problem: PlanProblem }
   | { readonly kind: "link-unreadable"; readonly problem: PlanProblem }
+  | { readonly kind: "file-unreadable"; readonly problem: PlanProblem }
+  | { readonly kind: "download-failed" }
   | { readonly kind: "storage-blocked" };
 
 /** One plan in the set, with an id that is local to this browser (never shared) and where the plan came from. */

@@ -22,10 +22,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   keys keep the old name).
 - **Merged since:** milestone 10B (PR #26).
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
-- **Merged since:** milestones 12A, Swedish (PR #31), and 12B, privacy and page basics (PR #32).
-- **Open:** milestone 12C, accessibility (branch `feature/m12c-accessibility`).
-- **Next:** 12D (export), then the ideas to investigate (sliders, the plan's own horizon, transitions, polish), see NEXT_STEPS.md.
-- **Tests:** 660 (`npm test`), typecheck and build pass.
+- **Merged since:** milestones 12A, Swedish (PR #31), 12B, privacy and page basics (PR #32), and 12C, accessibility (PR #33).
+- **Open:** milestone 12D, export (branch `feature/m12d-export`), the last part of milestone 12.
+- **Next:** the ideas to investigate (sliders, the plan's own horizon, transitions, polish), see NEXT_STEPS.md.
+- **Tests:** 672 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -852,3 +852,40 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   - Dark-theme screenshots were not taken (the pane's colour scheme emulation does not switch the app's theme), so the dark colours
     are checked by the contrast numbers only.
   - A screen-reader pass (VoiceOver or NVDA) has not been done; the checks are structural.
+
+### Milestone 12D: export, printing and the README (branch `feature/m12d-export`)
+- **Decided with the user:** the JSON export is the open plan, and opening a file adds it as a new plan (nothing is replaced); the
+  commands live behind a "File" button in the Plan card.
+- **Built:**
+  - `src/state/plan-file.ts`: `planFileText` (the plan document as indented JSON, the same content as a share link) and
+    `readPlanFile` (at most 200 000 characters, problem code `file-too-large`, then `readPlanText` with every check a link gets).
+    Notice kinds `file-unreadable` (with a problem) and `download-failed`.
+  - `src/ui/file-dialog.ts`: "Plan file" with three choices, like the add-plan dialog: download this plan
+    (`life-ledger-<name>.json`), download the yearly figures (`.csv`), open a plan file. `src/ui/download.ts`: a download from a
+    Blob in memory, and a file picker that reads the file in memory and refuses one over four times the text limit before reading.
+    Actions `planFile`, `importPlanFile`, `reportDownloadFailed`. The "File" button shows for every plan, also a shared one.
+  - `src/ui/csv.ts`: `figuresCsv` (a byte-order mark for Excel, a header row from the language's texts, `YYYY-MM` months, whole
+    kronor with no grouping, quoting where needed; the separator is `messages.locale.csvSeparator`, a comma in English and a
+    semicolon in Swedish, where the comma is the decimal sign) and `fileBaseName` (accents dropped, anything else a dash, at most 60
+    characters, "plan" when nothing is left). The rows are `yearlyPoints` (`view-helpers.ts`), shared with the yearly table, so the
+    CSV is the table: inflation adjusted when the switch is on.
+  - Printing: `src/ui/print.ts` switches to the light theme and opens closed tables on `beforeprint` and puts them back on
+    `afterprint`, with `data-printing` on `<html>` so the yearly table doesn't record the opening as the user's. `@media print` hides
+    the app bar's controls, buttons, notices, the horizon and inflation controls, the chart cursor and tooltip and the row actions,
+    drops the fills (paper is the background), and lets cards break across pages while charts, legends and rows don't.
+  - `docs/screenshot.png` (headless Chrome, 1280 px wide at 2x, the example plan) in the README, the README's status and feature list
+    updated.
+  - Found on the way: on a 375 px phone the English "Share" button pushed the brand name out of view. Below 420 px the Share button
+    shows only its arrow; its name stays in `aria-label`.
+- **Checked:**
+  - 672 tests (12 new: plan files round-trip, older files, damaged, bad values, newer, too large; CSV rows, separators, rounding,
+    quoting, file names). Typecheck and build pass; pinned reference values did not move.
+  - Browser (dev server): the dialog and its three choices; the plan file (`life-ledger-example-plan.json`, indented JSON) and the CSV
+    (`…csv`, starting with the UTF-8 byte-order mark EF BB BF, "Month,Balance,…", "2026-11,50000,50000,0,0"); opening a plan file
+    (answered with a made-up file) adds "Imported house" as a new, saved, open plan; a file that is not a plan and one that is too
+    large give the notice and change nothing; printing switches to light, opens the table and restores theme and table after.
+  - A printout made with headless Chrome (`--print-to-pdf`): the controls are gone, the yearly table is open and runs over to the next
+    pages with its header repeated, the plan card, goal, events and the disclaimer follow, no fills. 375 px: no sideways scroll, the
+    brand fits.
+- **Known gaps:** the file picker and the browser's own download were exercised with stand-ins (a made-up file, a captured Blob), not
+  with the operating system's dialogs; printing was checked in Chrome only.

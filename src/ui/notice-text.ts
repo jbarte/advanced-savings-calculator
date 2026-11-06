@@ -50,6 +50,8 @@ export function problemText(problem: PlanProblem): string {
       return problems.linkUnsupported;
     case "not-a-plan-link":
       return problems.notAPlanLink;
+    case "file-too-large":
+      return problems.fileTooLarge;
   }
 }
 
@@ -62,6 +64,10 @@ export function noticeText(notice: Notice): string {
       return messages.notices.savedPlanUnreadable(problemText(notice.problem));
     case "link-unreadable":
       return messages.notices.linkUnreadable(problemText(notice.problem));
+    case "file-unreadable":
+      return messages.notices.fileUnreadable(problemText(notice.problem));
+    case "download-failed":
+      return messages.dialogs.planFile.downloadFailed;
     case "storage-blocked":
       return messages.notices.storageBlocked;
   }

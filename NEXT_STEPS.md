@@ -333,7 +333,7 @@ Split in two pull requests, like milestone 9. Decided: at most 5 plans, and the 
   Plans on different start months share a calendar axis and are compared at the end of their own horizon (the "Ends"
   column says when). Plan names in the table select the plan.
 
-### Milestone 12: Swedish and polish
+### Milestone 12: Swedish and polish: done
 
 Decided: four pull requests, 12A Swedish, 12B privacy and page basics, 12C accessibility, 12D export. The language opens
 as the browser's and a switch in the app bar changes it (it saves the choice and reloads the page).
@@ -352,8 +352,11 @@ as the browser's and a switch in the app bar changes it (it saves the choice and
   and shown, scrolling tables reachable by keyboard, 24 px click targets, and a table of yearly figures under the chart. Left:
   the Start month field may jump while editing (could not be reproduced here: the pane can't type into a native month input),
   and the month input is untested in Firefox and Safari.
-- **Export:** the plan as a JSON file and back (left out of milestone 5), a CSV of yearly values, print styles.
-- **README:** a screenshot and an updated feature list.
+- **12D Export (in its PR):** a "File" button in the Plan card opens "Plan file": download the open plan as JSON (the same
+  document as a share link, indented), download its yearly figures as CSV (a comma in English and a semicolon in Swedish, whole
+  kronor, `YYYY-MM` months, a byte-order mark for Excel), or open a plan file, which is read with the same checks as a link and
+  added as a new plan. Print styles: the controls are hidden, the page prints in the light theme on white with the yearly table
+  opened, and cards may break across pages but charts and rows don't. The README has a screenshot and an updated feature list.
 
 ### Ideas to investigate after milestone 12
 

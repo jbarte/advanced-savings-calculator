@@ -2223,3 +2223,82 @@ button {
     color: var(--muted);
   }
 }
+
+/* On a narrow phone the Share button shows only its arrow (its name stays in aria-label), so the brand fits. */
+@media (max-width: 420px) {
+  .appbar__share-label {
+    display: none;
+  }
+
+  .appbar__actions .btn-solid {
+    padding: 0 14px;
+  }
+}
+
+/* ---------- Print ---------- */
+
+/*
+ * A printout is the plan on paper: the numbers, the chart, the comparison and the tables, without the controls. The page
+ * is switched to the light theme and closed tables are opened before printing (src/ui/print.ts).
+ */
+@media print {
+  .appbar {
+    position: static;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .appbar__actions,
+  .appbar__tabs,
+  .notice,
+  .btn-solid,
+  .btn-text,
+  .btn-round,
+  .card__title svg,
+  .hero__controls,
+  .years__summary,
+  .chart__cursor,
+  .chart__dot,
+  .chart__tooltip,
+  .table__actions {
+    display: none !important;
+  }
+
+  /* Paper is the background: no fills to waste ink on, a thin line where a card ends. */
+  body,
+  .page,
+  .shell,
+  .appbar,
+  .card,
+  .table-card,
+  .tile {
+    background: none;
+  }
+
+  .card,
+  .table-card,
+  .tile {
+    box-shadow: 0 0 0 var(--border-1) var(--line);
+  }
+
+  /* A card may run over a page break (the chart card holds the long yearly table); its parts may not. */
+  .chart,
+  .legend,
+  .tile,
+  .card__head,
+  tr,
+  .table__row {
+    break-inside: avoid;
+  }
+
+  .years__scroll,
+  .compare-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .field__control {
+    box-shadow: none;
+  }
+}
+
