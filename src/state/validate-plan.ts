@@ -2,6 +2,7 @@ import { MONTHS_PER_YEAR, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
 import { PLAN_LIMITS } from "./plan-document";
 import type { DepositChangeDraft, GoalPlan, OneTimeDepositDraft, PlanDocument, PlanFields, WithdrawalDraft } from "./plan-document";
+import { cleanText } from "./plan-text";
 import { failWith } from "./plan-problem";
 import type { AmountField, DateField, PlanEventKind } from "./plan-problem";
 
@@ -58,6 +59,14 @@ export function validatePlanFields(fields: PlanFields): void {
   }
 }
 
+/** Checks a plan's name: none, or 1 to `maxNameLength` characters that are already clean (see `cleanText`). */
+export function validatePlanName(name: string | null): void {
+  if (name === null) return;
+  if (name === "" || name.length > PLAN_LIMITS.maxNameLength || cleanText(name) !== name) {
+    failWith({ code: "plan-name", max: PLAN_LIMITS.maxNameLength }, `The plan name must be 1 to ${PLAN_LIMITS.maxNameLength} characters`);
+  }
+}
+
 /** Checks a withdrawal. Its amount is capped like the start amount, since it can't take out more than there is. */
 export function validateWithdrawalDraft(draft: WithdrawalDraft): void {
   assertYearMonth(draft.date, "Withdrawal date", "withdrawalDate", PLAN_LIMITS.maxEventYear);
@@ -66,7 +75,7 @@ export function validateWithdrawalDraft(draft: WithdrawalDraft): void {
 }
 
 function assertLabel(label: string, name: string, kind: PlanEventKind): void {
-  const trimmed = label.trim();
+  const trimmed = cleanText(label);
   if (trimmed === "" || trimmed.length > PLAN_LIMITS.maxLabelLength) {
     failWith({ code: "label", kind, max: PLAN_LIMITS.maxLabelLength }, `${name} label must be 1 to ${PLAN_LIMITS.maxLabelLength} characters`);
   }
@@ -122,7 +131,8 @@ function assertEventList<T extends { readonly id: number }>(
 
 /** Checks a whole plan, for example one read from a save or a link. Throws a PlanError for the first problem. */
 export function validatePlanDocument(plan: PlanDocument): void {
-  if (plan.version !== 3) fail(`Unknown plan version ${String(plan.version)}`);
+  if (plan.version !== 4) fail(`Unknown plan version ${String(plan.version)}`);
+  validatePlanName(plan.name);
   validatePlanFields(plan);
   assertEventList(plan.withdrawals, PLAN_LIMITS.maxWithdrawals, { kind: "withdrawal", one: "withdrawal", many: "withdrawals" }, validateWithdrawalDraft);
   assertEventList(

@@ -217,6 +217,7 @@ export function buildScenarioView(
   return {
     id: PLAN_SCENARIO_ID,
     name,
+    planName: plan.name,
     start: plan.start,
     startAmount: plan.startAmount,
     monthlyDeposit: plan.monthlyDeposit,

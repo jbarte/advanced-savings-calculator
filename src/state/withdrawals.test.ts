@@ -21,7 +21,7 @@ describe("addWithdrawal", () => {
 
   it("keeps the rest of the plan and does not change the original", () => {
     const plan = addWithdrawal(blank, draft(1));
-    expect(plan).toMatchObject({ version: 3, startAmount: blank.startAmount, start: blank.start });
+    expect(plan).toMatchObject({ version: 4, startAmount: blank.startAmount, start: blank.start });
     expect(blank.withdrawals).toEqual([]);
   });
 

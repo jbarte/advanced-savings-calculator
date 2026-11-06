@@ -53,8 +53,10 @@ export interface GoalPlan {
  * year-months (not offsets), so changing the start date never moves an event.
  */
 export interface PlanDocument {
-  /** 3 since the goal became part of the plan. Version 1 and 2 plans are upgraded when read. */
-  readonly version: 3;
+  /** 4 since the plan got a name. Version 1, 2 and 3 plans are upgraded when read. */
+  readonly version: 4;
+  /** A name the user gave the plan, so it can be referred to, or null. */
+  readonly name: string | null;
   readonly start: YearMonth;
   readonly startAmount: Ore;
   readonly monthlyDeposit: Ore;
@@ -72,7 +74,7 @@ export interface PlanDocument {
 }
 
 /** The plan's single-value fields, edited in the Plan card. */
-export type PlanFields = Omit<PlanDocument, "version" | "withdrawals" | "depositChanges" | "oneTimeDeposits" | "goal">;
+export type PlanFields = Omit<PlanDocument, "version" | "name" | "withdrawals" | "depositChanges" | "oneTimeDeposits" | "goal">;
 
 /*
  * Input limits. Chosen so that even the largest allowed plan (maximum start amount, deposit and one-time deposits
@@ -100,6 +102,7 @@ export const PLAN_LIMITS = {
   maxOneTimeDepositAmount: 500_000_000, // 5 000 000 kr
   maxGoalAmount: 10_000_000_000, // 100 000 000 kr, like the start amount
   maxLabelLength: 40,
+  maxNameLength: 40,
 } as const;
 
 const DEFAULT_RETURN_PCT = 7;
@@ -111,7 +114,8 @@ export const DEFAULT_INFLATION_PCT = 2;
 /** A worked example for first-time visitors, starting this month, with a car purchase five years in. */
 export function createExamplePlan(today: YearMonth): PlanDocument {
   return {
-    version: 3,
+    version: 4,
+    name: null,
     start: today,
     startAmount: 5_000_000,
     monthlyDeposit: 300_000,
@@ -128,7 +132,8 @@ export function createExamplePlan(today: YearMonth): PlanDocument {
 /** An empty plan: nothing saved yet, with a typical return so it works as soon as an amount is typed. */
 export function createBlankPlan(today: YearMonth): PlanDocument {
   return {
-    version: 3,
+    version: 4,
+    name: null,
     start: today,
     startAmount: 0,
     monthlyDeposit: 0,

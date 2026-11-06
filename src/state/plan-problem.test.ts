@@ -6,7 +6,7 @@ import { PlanError, problemOf } from "./plan-problem";
 import type { PlanProblem } from "./plan-problem";
 import { readPlanDocument, readPlanText } from "./read-plan";
 import { decodePlan } from "./share-link";
-import { validateDepositChangeDraft, validatePlanFields } from "./validate-plan";
+import { validateDepositChangeDraft, validatePlanFields, validatePlanName } from "./validate-plan";
 
 const plan = createBlankPlan({ year: 2026, month: 1 });
 
@@ -62,6 +62,10 @@ describe("problem codes from the checks", () => {
     });
     const change = { label: "x", amount: 0, startDate: { year: 2027, month: 5 }, endDate: { year: 2027, month: 1 } };
     expect(problemFrom(() => validateDepositChangeDraft(change))).toEqual({ code: "end-before-start" });
+  });
+
+  it("names the plan name problem with its limit", () => {
+    expect(problemFrom(() => validatePlanName("x".repeat(PLAN_LIMITS.maxNameLength + 1)))).toEqual({ code: "plan-name", max: PLAN_LIMITS.maxNameLength });
   });
 
   it("calls an edit of an event that is gone damaged, not a user mistake", () => {

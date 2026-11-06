@@ -2,6 +2,7 @@ import { appendEvent, removeEvent, replaceEvent } from "./event-list";
 import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { DepositChangeDraft, DepositChangeEvent, PlanDocument } from "./plan-document";
+import { cleanText } from "./plan-text";
 import { validateDepositChangeDraft } from "./validate-plan";
 
 const NAMES: EventNames = { kind: "deposit-change", one: "deposit change", many: "deposit changes" };
@@ -11,7 +12,7 @@ const toEvent = (draft: DepositChangeDraft) => (id: number): DepositChangeEvent 
   startDate: draft.startDate,
   endDate: draft.endDate,
   amount: draft.amount,
-  label: draft.label.trim(),
+  label: cleanText(draft.label),
 });
 
 /** Adds a deposit change. Its id is one above the highest deposit change id. Throws a RangeError if it is invalid. */

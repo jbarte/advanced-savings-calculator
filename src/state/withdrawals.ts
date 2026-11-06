@@ -2,6 +2,7 @@ import { appendEvent, removeEvent, replaceEvent } from "./event-list";
 import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { PlanDocument, WithdrawalDraft, WithdrawalEvent } from "./plan-document";
+import { cleanText } from "./plan-text";
 import { validateWithdrawalDraft } from "./validate-plan";
 
 const NAMES: EventNames = { kind: "withdrawal", one: "withdrawal", many: "withdrawals" };
@@ -10,7 +11,7 @@ const toEvent = (draft: WithdrawalDraft) => (id: number): WithdrawalEvent => ({
   id,
   date: draft.date,
   amount: draft.amount,
-  label: draft.label.trim(),
+  label: cleanText(draft.label),
 });
 
 /** Adds a withdrawal. Its id is one above the highest id in the plan. Throws a RangeError if it is invalid. */

@@ -4,7 +4,7 @@ import type { DepositChangeDraft, PlanDocument, PlanFields, WithdrawalDraft } fr
 import {
   validateDepositChangeDraft,
   validateOneTimeDepositDraft,
-  validatePlanDocument,
+  validatePlanDocument, validatePlanName,
   validatePlanFields,
   validateWithdrawalDraft,
 } from "./validate-plan";
@@ -143,7 +143,7 @@ describe("validatePlanDocument", () => {
   });
 
   it("rejects an unknown version", () => {
-    expect(() => validatePlanDocument({ ...createBlankPlan({ year: 2026, month: 1 }), version: 2 as unknown as 3 })).toThrow(RangeError);
+    expect(() => validatePlanDocument({ ...createBlankPlan({ year: 2026, month: 1 }), version: 3 as unknown as 4 })).toThrow(RangeError);
   });
 
   it("rejects invalid plan fields and invalid withdrawals", () => {
@@ -238,3 +238,18 @@ describe("validateOneTimeDepositDraft", () => {
   });
 });
 
+
+describe("validatePlanName", () => {
+  it("accepts no name, and a clean name of 1 to 40 characters", () => {
+    expect(() => validatePlanName(null)).not.toThrow();
+    expect(() => validatePlanName("House 2031")).not.toThrow();
+    expect(() => validatePlanName("x".repeat(PLAN_LIMITS.maxNameLength))).not.toThrow();
+  });
+
+  it("rejects an empty name, a long one and one that is not clean", () => {
+    expect(() => validatePlanName("")).toThrow(RangeError);
+    expect(() => validatePlanName("x".repeat(PLAN_LIMITS.maxNameLength + 1))).toThrow(RangeError);
+    expect(() => validatePlanName("a\tb")).toThrow(RangeError);
+    expect(() => validatePlanName(" a ")).toThrow(RangeError);
+  });
+});

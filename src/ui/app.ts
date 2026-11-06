@@ -56,6 +56,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   );
 
   root.replaceChildren(shell);
+  document.title = active.planName === null ? messages.app.pageTitle : messages.app.pageTitleNamed(active.planName);
 
   const find = (key: string | null | undefined): HTMLElement | null =>
     key ? root.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`) : null;

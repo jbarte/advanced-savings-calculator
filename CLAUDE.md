@@ -31,7 +31,7 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–10 are done (10: all interface text in one typed file, ready for a second language): the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–10 are done (10: all interface text in one typed file, ready for a second language), and a plan can have a name: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 the effect of every event shown, and the monthly deposit can be changed from a month or for a period
 (including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. The horizon can be set freely, results can be shown inflation adjusted, and a savings goal shows the monthly deposit needed. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
@@ -128,7 +128,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   `horizonYears` (1–40) and `inflationPct` (default 2, the Riksbank target); a version 1 plan is upgraded with
   30 years (what the page showed then) and 2 %. Version 3 added `goal` (`{ amount, date }` or null; a version 1 or 2
   plan upgrades with no goal). The horizon and the goal are part of the plan, so changing them is a plan change:
-  they are saved and shared, and they make the example the user's own plan.
+  they are saved and shared, and they make the example the user's own plan. Version 4 added `name` (text or null; a
+  version 1–3 plan upgrades with no name): a name the user gives the plan, up to `PLAN_LIMITS.maxNameLength` (40)
+  characters. It is saved and travels in the share link. Without a name the hero line and page title use the fixed
+  texts for where the plan came from (`messages.planCard.names`); with one, `main.ts` passes the name to
+  `buildScenarioView` as the scenario's `name` (and `ScenarioView.planName` holds the plan's own, for the page title
+  and the share dialog). The plan is renamed from the Plan card's title ("Plan", or the plan's name), which is a button (pencil icon) that opens
+  `openRenameDialog` (`rename-dialog.ts`); there is no Name field. Typed text that ends up in the plan (the name, event labels) goes through `cleanText`
+  (`src/state/plan-text.ts`): control characters become a space and the ends are trimmed.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
   (`project`) for 480 months (`PROJECTION_MONTHS`, the longest horizon) and shapes the result, including
@@ -273,7 +280,7 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   while typing. Every change to the plan goes through `withPlanChange`
   (`src/state/plan-change.ts`): an invalid change leaves the plan alone and sets
   `AppState.notice`. A change that leaves the plan as it was keeps the same plan object, so it is neither marked as
-  the user's own nor saved. Ids must be safe integers below `Number.MAX_SAFE_INTEGER`, labels are stored trimmed,
+  the user's own nor saved. Ids must be safe integers below `Number.MAX_SAFE_INTEGER`, labels are stored cleaned (`cleanText`),
   and event dates may reach `PLAN_LIMITS.maxEventYear` (the last start year plus the longest horizon).
   Other errors are bugs and are not hidden. If drawing the page throws,
   `renderErrorState` shows a message instead of a blank page.
@@ -403,6 +410,8 @@ with the toggle.
     │   ├── validate-plan.ts  # Checks plan fields, withdrawals and whole documents (+ test)
     │   ├── plan-fields.ts    # updatePlanFields: change the plan's single values, validated (+ test)
     │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
+    │   ├── plan-name.ts      # renamePlan: give the plan a name, or remove it, validated (+ test)
+    │   ├── plan-text.ts      # cleanText: control characters out, trimmed (used for names and labels)
     │   ├── plan-problem.ts   # PlanProblem, PlanError, problemOf: what is wrong with a plan, as data (+ test)
     │   ├── withdrawals.ts    # Pure add/update/remove of withdrawals, validated (+ test)
     │   ├── event-list.ts     # Shared add/update/remove for the three event lists (+ test)
@@ -439,6 +448,7 @@ with the toggle.
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
+    │   ├── rename-dialog.ts  # Prompt to name the plan, opened from the Plan card's title
     │   ├── share-dialog.ts   # "Share this plan": the link, a copy button and the privacy note
     │   ├── shared-banner.ts  # Banner while a shared plan is open: keep it or go back
     │   ├── start-over-dialog.ts # Confirmation before the saved plan is cleared

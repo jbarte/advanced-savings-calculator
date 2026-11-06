@@ -6,6 +6,7 @@ import type { PlanDocument } from "./state/plan-document";
 import { withPlanChange } from "./state/plan-change";
 import { problemOf } from "./state/plan-problem";
 import { updatePlanFields } from "./state/plan-fields";
+import { renamePlan } from "./state/plan-name";
 import { loadSavedPlan, clearSavedPlan, savePlan } from "./state/plan-storage";
 import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
 import { buildShareUrl, decodePlan, encodePlan } from "./state/share-link";
@@ -76,6 +77,7 @@ const actions: Actions = {
   setChartMonth: (chartMonth) => store.update({ chartMonth }),
   setInflationAdjusted: (inflationAdjusted) => store.update({ inflationAdjusted }),
   updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
+  renamePlan: (name) => commitPlan((plan) => renamePlan(plan, name)),
   startFromScratch: () => {
     const plan = createBlankPlan(currentYearMonth());
     store.update({ plan, planOrigin: "own", selectedEvent: null, chartMonth: null, notice: null });
@@ -171,7 +173,7 @@ const render = (): void => {
       renderDesignSystem(root, isDark(), actions);
       return;
     }
-    const name = messages.planCard.names[state.planOrigin];
+    const name = state.plan.name ?? messages.planCard.names[state.planOrigin];
     const nominal = scenarioView(state.plan, name, yearsToMonths(state.plan.horizonYears));
     const scenarios = [state.inflationAdjusted ? applyInflationAdjustment(nominal, state.plan.inflationPct) : nominal];
     renderApp(root, { scenarios, state, isDark: isDark() }, actions);
