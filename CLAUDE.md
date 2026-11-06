@@ -31,7 +31,7 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–10 are done (10: all interface text in one typed file, ready for a second language), a plan can have a name, and milestone 11A (several plans as tabs) is done; 11B (compare plans in a chart and a table) is next: the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–11 are done (10: all interface text in one typed file, ready for a second language; 11: a plan can have a name, several plans live as tabs, and they are compared in a chart and a table): the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 the effect of every event shown, and the monthly deposit can be changed from a month or for a period
 (including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. The horizon can be set freely, results can be shown inflation adjusted, and a savings goal shows the monthly deposit needed. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
@@ -148,6 +148,14 @@ UI language: **English**. Currency: **SEK** (`1 234 567 kr`).
   can't be deleted. Names for new plans (`Plan 2`, `… (copy)`, `… without <event>`) come from `messages.planCard` and
   are made in `main.ts`, cut to 40 characters by `fitPlanName`. "Try without" (`planWithoutEvent`,
   `src/state/plan-variants.ts`) adds a copy of the plan without one event.
+- **The Compare card** (`compare-card.ts`) shows with two or more plans, after the chart card. `main.ts` builds a
+  `ScenarioView` for every plan (cached per plan id, inflation adjusted when the switch is on) and
+  `buildComparison` (`src/state/comparison.ts`) turns them into `ComparisonLine`s (one per plan, from its start month through
+  its horizon, for the chart's metric) and `ComparisonRow`s (end balance, deposited, growth and withdrawn at the end of the
+  plan's own horizon, and the balance difference to the open plan). Plans can start at different months and look different
+  distances ahead, so the lines share a calendar axis (`monthIndex`, `calendarPoints`), each ends at its own horizon, and
+  the table has an "Ends" column. The card has its own slider chart (tooltip with every plan's value) and a table
+  whose plan names select the plan. Line colours are `--compare-1`…`--compare-6` in tab order; the open plan is thicker.
 - **`src/state/` builds the UI's view model.** The UI renders `ScenarioView` from
   `src/state/types.ts`. `buildScenarioView` in `src/state/view-model.ts` runs the engine
   (`project`) for 480 months (`PROJECTION_MONTHS`, the longest horizon) and shapes the result, including
@@ -358,7 +366,7 @@ with the toggle.
 - Interactive states: hover lifts 1px, pressed uses `--shadow-inner`, disabled drops shadows and contrast,
   focus shows `--glow-focus`.
 - All colours are CSS custom properties in `src/styles/tokens.css`. Use the tokens,
-  never hard-coded colours. Event kinds have their own tokens (`--kind-withdrawal`, `--kind-deposit-change`,
+  never hard-coded colours. The plans in the Compare card have line colours (`--compare-1`…`--compare-6`). Event kinds have their own tokens (`--kind-withdrawal`, `--kind-deposit-change`,
   `--kind-one-time-deposit` and its `-fill`), used by the chart badges and lines, the list badges and the legend.
   Font sizes use the `--text-*` tokens where one matches. The chart's height, badge size and badge lane are
   custom properties on `.chart`, and `chart-events.ts` only sets `--lane` on each badge.
@@ -427,6 +435,7 @@ with the toggle.
     │   ├── plan-change.ts    # withPlanChange: apply a change or set a notice (+ test)
     │   ├── workspace.ts      # PlanSet changes: add, select, delete, shared plan, withPlanSetChange (+ test)
     │   ├── read-workspace.ts # The saved set of plans: read, serialize, from a single plan (+ test)
+    │   ├── comparison.ts     # buildComparison: lines and end figures of every plan for the Compare card (+ test)
     │   ├── plan-variants.ts  # planWithoutEvent: a copy of the plan without one event (+ test)
     │   ├── plan-name.ts      # renamePlan: give the plan a name, or remove it, validated (+ test)
     │   ├── plan-text.ts      # cleanText: control characters out, trimmed (used for names and labels)
@@ -478,6 +487,7 @@ with the toggle.
     │   ├── amount-event-dialog.ts # Dialog for an amount in one month (withdrawal, one-time deposit)
     │   ├── one-time-deposit-dialog.ts # openOneTimeDepositDialog: the amount dialog for one-time deposits
     │   ├── withdrawal-dialog.ts # openWithdrawalDialog: the amount dialog for withdrawals
+    │   ├── compare-card.ts   # The Compare card: a line per plan, a legend and a table of end figures
     │   ├── side-cards.ts     # Bento cards: the Plan card (inputs, rename title, delete)
     │   ├── goal-card.ts      # The goal card: set a goal, or the gauge, the deposit needed, edit and remove
     │   ├── goal-dialog.ts    # Dialog to set or edit the goal

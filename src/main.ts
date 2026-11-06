@@ -9,7 +9,7 @@ import { updatePlanFields } from "./state/plan-fields";
 import { fitPlanName, renamePlan } from "./state/plan-name";
 import { planWithoutEvent } from "./state/plan-variants";
 import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, openSharedPlan as addSharedPlan, selectPlan, withPlanSetChange } from "./state/workspace";
-import type { PlanSet } from "./state/types";
+import type { PlanEntry, PlanSet, ScenarioView } from "./state/types";
 import { clearSavedPlans, loadSavedPlans, savePlans } from "./state/plan-storage";
 import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
 import { buildShareUrl, decodePlan, encodePlan } from "./state/share-link";
@@ -212,10 +212,15 @@ const render = (): void => {
       renderDesignSystem(root, isDark(), actions);
       return;
     }
+    const viewOf = (entry: PlanEntry): ScenarioView => {
+      const nominal = scenarioView(entry.id, entry.plan, displayName(entry), yearsToMonths(entry.plan.horizonYears));
+      return state.inflationAdjusted ? applyInflationAdjustment(nominal, entry.plan.inflationPct) : nominal;
+    };
     const entry = activeEntry(state);
-    const nominal = scenarioView(entry.id, entry.plan, displayName(entry), yearsToMonths(entry.plan.horizonYears));
-    const view = state.inflationAdjusted ? applyInflationAdjustment(nominal, entry.plan.inflationPct) : nominal;
-    renderApp(root, { view, tabs: state.plans.map((plan) => ({ id: plan.id, label: displayName(plan), origin: plan.origin })), state, isDark: isDark() }, actions);
+    const view = viewOf(entry);
+    // Only the Compare card needs the other plans, so they are not drawn up with a single plan.
+    const views = state.plans.length > 1 ? state.plans.map((plan) => (plan.id === entry.id ? view : viewOf(plan))) : [view];
+    renderApp(root, { view, views, tabs: state.plans.map((plan) => ({ id: plan.id, label: displayName(plan), origin: plan.origin })), state, isDark: isDark() }, actions);
   } catch (error) {
     console.error(error);
     renderErrorState(root, error, actions);

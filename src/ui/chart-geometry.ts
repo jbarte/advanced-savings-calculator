@@ -45,6 +45,15 @@ export function toPoints(values: readonly number[], { min, max }: Scale): Point[
   return values.map((v, i) => [n === 1 ? 50 : (i / (n - 1)) * 100, ((max - v) / (max - min)) * 100]);
 }
 
+/**
+ * Places a line that starts `firstMonth` and has one value per month on a shared calendar axis that runs from
+ * `spanFirst` to `spanLast` (all as month counts), so plans that start at different months line up by date.
+ */
+export function calendarPoints(values: readonly number[], firstMonth: number, spanFirst: number, spanLast: number, { min, max }: Scale): Point[] {
+  const width = Math.max(1, spanLast - spanFirst);
+  return values.map((v, i) => [((firstMonth + i - spanFirst) / width) * 100, ((max - v) / (max - min)) * 100]);
+}
+
 /** Where zero is on the y axis (0 = top, 100 = bottom). */
 export function zeroLine({ min, max }: Scale): number {
   return (max / (max - min)) * 100;

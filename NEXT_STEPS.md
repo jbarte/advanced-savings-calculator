@@ -318,7 +318,7 @@ came from.
 - **Why before milestone 11:** the names become the labels of the plan tabs and the comparison table there. The
   same cleaning now also covers event labels (the review finding about control characters in labels).
 
-### Milestone 11: compare plans
+### Milestone 11: compare plans: done
 
 Split in two pull requests, like milestone 9. Decided: at most 5 plans, and the comparison is its own card.
 
@@ -327,10 +327,11 @@ Split in two pull requests, like milestone 9. Decided: at most 5 plans, and the 
   which adds a copy of the plan without that event. Saving covers all plans in one versioned set under a new key; a
   plan saved before reads as a set of one. A share link still carries one plan (the open one), and a link opens as an
   extra, unsaved tab with "Keep as a new plan" and "Back to my plans", which closes the gap left in milestone 6.
-- **11B (next): compare.** A Compare card, shown with two or more plans: one balance line per plan on its own chart
-  (the main chart keeps the open plan and its events), and a table with the end balance, deposited, growth,
-  withdrawn and the difference to the open plan. The old end-balance bars card was removed in 11A, and its texts
-  and styles (`messages.compare`, `.compare*`) are left for 11B to reuse or delete.
+- **11B (in its PR): compare.** A Compare card, shown with two or more plans, after the chart card: one line per plan on
+  its own chart (the main chart keeps the open plan and its events; the lines follow the chart's metric and the
+  inflation switch) and a table with the end balance, deposited, growth, withdrawn and the difference to the open plan.
+  Plans on different start months share a calendar axis and are compared at the end of their own horizon (the "Ends"
+  column says when). Plan names in the table select the plan.
 
 ### Milestone 12: Swedish and polish
 
