@@ -1682,6 +1682,14 @@ button {
   *::after {
     transition: none !important;
   }
+
+  /* Entrances happen at once. The spinner is left, slowed down above: it is how progress is shown. */
+  *:not(.spinner),
+  *:not(.spinner)::before,
+  *:not(.spinner)::after,
+  .modal[open]::backdrop {
+    animation: none !important;
+  }
 }
 
 .icon {
@@ -1987,6 +1995,39 @@ button {
   background: var(--frame);
   color: var(--ink);
   box-shadow: var(--shadow-dialog);
+}
+
+/* A dialog fades in and rises a little; it is removed when closed, so there is no matching exit. */
+.modal[open] {
+  animation: modal-in 180ms ease-out;
+}
+
+.modal[open]::backdrop {
+  animation: backdrop-in 180ms ease-out;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The page after switching to another plan fades in, instead of swapping at once. */
+.canvas--switched {
+  animation: canvas-in 200ms ease-out;
+}
+
+@keyframes canvas-in {
+  from {
+    opacity: 0.35;
+  }
 }
 
 .modal::backdrop {

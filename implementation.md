@@ -24,10 +24,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
 - **Merged since:** milestone 12 in full (PRs #31 to #34).
 - **Merged since:** the plan's own horizon (PR #35).
-- **Merged since:** sliders with a live preview (PR #36).
-- **Open:** collapsible cards (branch `feature/collapsible-cards`).
-- **Next:** transitions (chart glide, dialog fade, plan cross-fade), then overall polish, see NEXT_STEPS.md.
-- **Tests:** 684 (`npm test`), typecheck and build pass.
+- **Merged since:** sliders with a live preview (PR #36) and the collapsible Compare card, more sliders and the steady layout (PR #37).
+- **Open:** smooth transitions (branch `feature/transitions`).
+- **Next:** overall polish, see NEXT_STEPS.md.
+- **Tests:** 688 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -977,3 +977,33 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   Browser: the top of every section and the page height are identical with the switch off and on, at 868 px (2 468 px) and 375 px
   (3 210 px), and the shown text is the right one. The cost is that the unused wording's space is always reserved, so a line that
   would fit on one row in the plain wording keeps its height when it is the only one that wraps.
+
+### Smooth transitions (branch `feature/transitions`)
+- **Decided with the user:** the chart line and area glide to their new shape, dialogs fade and rise in, and switching plans cross-fades;
+  the headline number and tiles do not count up.
+- **Built:**
+  - `interpolatePath(from, to, t)` in `chart-geometry.ts`: moves every number of a path part of the way, for two paths with the same
+    commands and the same number of numbers (what `linePath` and `areaPath` make for the same number of points), else null.
+  - `src/ui/chart-glide.ts`: `captureCharts` reads the `d` of every path in every chart SVG before the page is redrawn;
+    `glideCharts` puts the old shape in the new elements in the same frame and moves them to the new one over 280 ms (ease out) with
+    `requestAnimationFrame`, stopping when the chart is gone. It covers the main chart and the Compare card's lines, and skips a path
+    whose point count changed (another horizon), a plan switch, and reduced motion. It is JavaScript rather than a CSS animation because
+    the page is redrawn from scratch (a CSS transition would have nothing to start from) and the CSS `d` property is not animatable in
+    every browser.
+  - A slider's live preview doesn't glide: the preview replaces the hero and chart card directly, and the drag is the motion. On release
+    the redraw has the same paths, so nothing moves twice.
+  - Dialogs: `.modal[open]` fades in and rises 8 px over 180 ms, and its backdrop fades. Switching plans: the shell carries
+    `data-plan`; when it changes, `main` gets `canvas--switched` and fades in from 35 % over 200 ms. That is a fade-in of the new plan,
+    not a true cross-fade of old and new (that needs both on screen, or the View Transitions API, which not every browser has).
+  - Reduced motion: transitions are off as before, and now every animation is too, except the spinner, which stays slowed down since it
+    is how progress is shown.
+- **Checked:**
+  - 688 tests (4 new for `interpolatePath`: the ends, the middle, an area, mismatched shapes). Typecheck and build pass; pinned reference
+    values did not move.
+  - Browser: after changing the deposit the chart line's end moves 23.13, 22.74, 25.89, 28.27, 30.03, 31.24, 32.03, 32.46 over about 250 ms
+    and settles on 32.72; the Compare card's line glides too; a slider drag doesn't glide and the page is stable; switching plans puts
+    `canvas--switched` on the page with the `canvas-in` animation; a dialog has the `modal-in` animation (opacity 0.42 sixty milliseconds in);
+    with `prefers-reduced-motion` stubbed on, the change appears at once; changing the horizon (different point count) just redraws. No
+    console errors.
+- **Known gaps:** the real `prefers-reduced-motion` setting was stubbed in the page, not set in the operating system; the y-axis labels, event
+  markers and numbers change at once while the line glides; there is no exit animation for dialogs.

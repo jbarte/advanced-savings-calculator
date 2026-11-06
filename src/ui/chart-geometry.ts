@@ -74,6 +74,27 @@ export function areaPath(points: readonly Point[], baseline = 100): string {
   return points.length ? `${linePath(points)} L100 ${y} L0 ${y} Z` : "";
 }
 
+const NUMBER = /-?\d+(?:\.\d+)?/g;
+
+/**
+ * The path between two drawn paths of the same shape, `t` of the way (0 = `from`, 1 = `to`). Both must have the same
+ * commands with the same number of numbers, as `linePath` and `areaPath` make for the same number of points; for any
+ * other pair there is no in-between and this gives null.
+ */
+export function interpolatePath(from: string, to: string, t: number): string | null {
+  const skeleton = (path: string): string => path.replace(NUMBER, "#");
+  if (skeleton(from) !== skeleton(to)) return null;
+  const start = from.match(NUMBER) ?? [];
+  const end = to.match(NUMBER) ?? [];
+  let index = 0;
+  return to.replace(NUMBER, () => {
+    const a = Number(start[index] ?? 0);
+    const b = Number(end[index] ?? 0);
+    index += 1;
+    return (a + (b - a) * t).toFixed(2);
+  });
+}
+
 /** Index of the point closest to a horizontal position given as a 0–1 fraction. */
 export function nearestIndex(fraction: number, count: number): number {
   if (count <= 1) return 0;
