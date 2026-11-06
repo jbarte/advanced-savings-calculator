@@ -22,9 +22,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   keys keep the old name).
 - **Merged since:** milestone 10B (PR #26).
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
-- **Open:** milestone 12A, Swedish (branch `feature/m12a-swedish`).
-- **Next:** 12B (privacy and page basics), 12C (accessibility), 12D (export), see NEXT_STEPS.md.
-- **Tests:** 600 (`npm test`), typecheck and build pass.
+- **Merged since:** milestone 12A, Swedish (PR #31).
+- **Open:** milestone 12B, privacy and page basics (branch `feature/m12b-privacy`).
+- **Next:** 12C (accessibility), 12D (export), see NEXT_STEPS.md.
+- **Tests:** 601 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -771,3 +772,40 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Follow-up:** the open plan's row in the Compare table was highlighted with the blue `--sel-row`, which the user disliked. It now
   uses the warm neutral `--fill` (a sunken look, like a pressed control) in both themes, and the "Open plan" marker is `--ink2`
   instead of `--muted` so it reads on that fill. The event list's selected row still uses `--sel-row`.
+
+### Milestone 12B: privacy and page basics (branch `feature/m12b-privacy`)
+- **Why:** the fonts came from Google Fonts, so every visitor's IP address went to Google, which contradicts "no tracking". Decided with
+  the user: download the font files into the repo (no new dependency) and add the Content-Security-Policy in the production build only.
+- **Built:**
+  - `public/fonts/geist-latin.woff2` (29 KB) and `geist-mono-latin.woff2` (23 KB), the Latin subset of the variable fonts, downloaded
+    once from Google's font server with the user's OK, plus `OFL.txt` (the SIL Open Font License and the copyright line as Google Fonts
+    lists it; worth checking against the upstream repository). `src/styles/fonts.css` has the `@font-face` rules (weights 400-700 and
+    400-500, `font-display: swap`, the Latin `unicode-range`), imported first in `main.ts`. `index.html` preloads both files; the Google
+    `preconnect` and stylesheet links are gone. The Latin subset holds English and Swedish letters, the minus sign and the dashes; other
+    characters (the share arrow) fall back to the system font, as before.
+  - `vite.config.ts`: a small plugin (build only) adds `<meta http-equiv="Content-Security-Policy">` first in `<head>`:
+    `default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self'; font-src 'self';
+    connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'`. Inline style attributes are allowed because the page sets
+    some from code (badge positions, bar widths). The base path and deploy target are unchanged.
+  - Page basics: `public/og-image.png` (1200 x 630: the logo, "Life Ledger", "Long-term financial planner" and the description line,
+    drawn with the real fonts), `og:url`, `og:image` (the full address, as previews need), its size and alt text, `twitter:card`
+    `summary_large_image`, and a `<noscript>` message in English and Swedish styled with tokens (`.noscript`).
+  - `architecture.test.ts`: no `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`, `EventSource` or `new Image(` in the code, and
+    `index.html` and the stylesheets mention no host other than `jbarte.github.io`.
+- **Decisions:**
+  - The policy is a meta tag because GitHub Pages can't send headers, so it can't carry `frame-ancestors`.
+  - It is added at build time only, so Vite's dev server (a websocket and inline scripts) isn't blocked.
+  - `style-src-attr` needs a browser from about 2022 or later; in an older one the inline styles would be blocked and the chart
+    positions would break. Accepted.
+  - The preview image is English only, like the rest of the static page.
+- **Checked:**
+  - 601 tests (1 new, the privacy rule). Typecheck and build pass; the built page has the policy first in `<head>`, and the CSS points
+    at `/advanced-savings-calculator/fonts/...`.
+  - Browser, on the production build (`vite preview`): both font families load (`Geist 400-700`, `Geist Mono 400-500`), no resource comes
+    from another origin, the policy is in the page, and there are no console errors, so no policy violation. The chart badge, marker and
+    effect bar get their positions and widths from inline style attributes under the policy, the Compare card draws, and plans can be
+    added. In the dev server the fonts load from the site, there is no policy and no external request.
+  - The link-preview image was made in the browser with the real fonts (canvas, saved through a throwaway local server in the scratchpad).
+- **Known gaps:** the `<noscript>` message was only checked in the built HTML and its CSS, not with JavaScript turned off; font-display
+  `swap` can flash the fallback font on a slow connection (the polish ideas include font loading); the policy can't be tested for old
+  browsers; the share-link preview shows English only.

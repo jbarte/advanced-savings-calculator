@@ -13,6 +13,10 @@ const core = read(import.meta.glob<string>("./core/**/*.ts", { query: "?raw", im
 const state = read(import.meta.glob<string>("./state/**/*.ts", { query: "?raw", import: "default", eager: true }));
 const ui = read(import.meta.glob<string>("./ui/**/*.ts", { query: "?raw", import: "default", eager: true }));
 
+const everything = read(import.meta.glob<string>("./**/*.ts", { query: "?raw", import: "default", eager: true }));
+const styles = Object.entries(import.meta.glob<string>("./styles/*.css", { query: "?raw", import: "default", eager: true }));
+const page = Object.entries(import.meta.glob<string>("../index.html", { query: "?raw", import: "default", eager: true }));
+
 /** The module paths a file imports, static or dynamic. */
 function importsOf(source: string): string[] {
   return [...source.matchAll(/(?:from|import)\s*\(?\s*["']([^"']+)["']/g)].map((match) => match[1] ?? "");
@@ -54,5 +58,15 @@ describe("architecture", () => {
 
   it("never sets innerHTML in the UI", () => {
     expect(offenders(ui, (s) => /\.innerHTML\s*=|insertAdjacentHTML/.test(code(s)))).toEqual([]);
+  });
+
+  it("keeps every request on this site: no network calls in the code, and nothing loaded from other hosts", () => {
+    const network = /\bfetch\(|\bXMLHttpRequest\b|\bsendBeacon\b|\bWebSocket\b|\bEventSource\b|\bnew Image\(/;
+    expect(offenders(everything, (s) => network.test(code(s)))).toEqual([]);
+
+    // The site's own address is fine (the link preview needs it in full); the SVG namespace is a name, not a request.
+    const external = /https?:\/\/(?!jbarte\.github\.io\/)/;
+    expect(page).toHaveLength(1);
+    expect([...page, ...styles].filter(([, source]) => external.test(source)).map(([path]) => path)).toEqual([]);
   });
 });

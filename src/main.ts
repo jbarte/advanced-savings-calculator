@@ -1,3 +1,4 @@
+import "./styles/fonts.css";
 import "./styles/app.css";
 import { yearsToMonths } from "./core/year-month";
 import { currentYearMonth } from "./state/clock";

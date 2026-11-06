@@ -46,7 +46,7 @@ the effect of every event shown, and the monthly deposit can be changed from a m
 | **Vitest** | Unit tests for the calculation engine. Same config as Vite. |
 | **GitHub Actions + GitHub Pages** | Free hosting. Tests, build and deploy run on every push to `main`. |
 | **Charts drawn with plain SVG** | No chart library to begin with. Ask before adding one. |
-| **Geist / Geist Mono** (Google Fonts) | Fonts from the base design. |
+| **Geist / Geist Mono** (self-hosted) | Fonts from the base design, served from `public/fonts/` (Latin subset, variable woff2, SIL Open Font License in `OFL.txt`) through `src/styles/fonts.css`. Not from Google Fonts, which would send every visitor's IP address to Google. |
 
 There are no runtime dependencies. Dev dependencies: `vite`, `vitest`, `typescript`. Node 22.12 or newer
 (`engines` in `package.json`).
@@ -396,7 +396,10 @@ with the toggle.
 - Do **not** add or swap any dependency without asking first. This covers dev
   dependencies too, such as a formatter or linter.
 - Do **not** add a backend, database, user accounts, analytics or tracking. Everything runs
-  client-side. This includes a short-link service for sharing plans.
+  client-side. This includes a short-link service for sharing plans. Nothing is loaded from another host (no web fonts,
+  scripts, images or analytics from a CDN) and the code makes no network requests: `architecture.test.ts` checks both,
+  and the built page carries a Content-Security-Policy that allows only this site (`vite.config.ts`; inline style
+  attributes are allowed because the page sets some from code, inline scripts are not).
 - Do **not** put financial calculation logic in `src/ui/`, and do not touch the DOM from
   `src/core/`.
 - Do **not** use floating-point numbers for stored money amounts.
@@ -420,9 +423,11 @@ with the toggle.
 ├── implementation.md         # Log of what was built, why, and how it was checked
 ├── index.html                # Page shell: title, metas, favicon link; loads fonts and src/main.ts
 ├── public/favicon.svg        # The logo as favicon, with its own dark-mode colours
+├── public/og-image.png       # 1200 × 630 card for link previews (index.html points to it by its full address)
+├── public/fonts/             # Geist and Geist Mono (Latin, variable woff2) and their license, OFL.txt
 ├── package.json              # Scripts and dev dependencies
 ├── tsconfig.json             # Strict TypeScript config
-├── vite.config.ts            # Vite + Vitest config, GitHub Pages base path
+├── vite.config.ts            # Vite + Vitest config, GitHub Pages base path, and the Content-Security-Policy meta tag (build only)
 ├── .github/workflows/
 │   └── deploy.yml            # Test, build and deploy to GitHub Pages
 └── src/
@@ -509,6 +514,7 @@ with the toggle.
     │   ├── design-system.ts  # Reference page for tokens and components (#design-system)
     │   └── theme.ts          # Applies the theme to <html>
     └── styles/
+        ├── fonts.css         # @font-face for the self-hosted Geist fonts
         ├── tokens.css        # Colour tokens (light/dark)
         └── app.css           # Component styles
 ```
