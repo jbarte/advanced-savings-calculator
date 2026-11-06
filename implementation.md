@@ -21,9 +21,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** milestones 7–9, 10A (PR #24) and the rebrand to **Life Ledger** (PR #25; the repo, URL and storage
   keys keep the old name).
 - **Merged since:** milestone 10B (PR #26).
-- **Open:** the plan name (branch `feature/plan-name`).
-- **Next:** milestones 11 (compare plans) and 12 (Swedish and polish), see NEXT_STEPS.md.
-- **Tests:** 532 (`npm test`), typecheck and build pass.
+- **Merged since:** the plan name (PR #27).
+- **Open:** milestone 11A, several plans (branch `feature/m11-compare-plans`).
+- **Next:** 11B (compare plans in a chart and a table), then milestone 12 (Swedish and polish), see NEXT_STEPS.md.
+- **Tests:** 574 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -657,3 +658,44 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     the banner; renaming a shared plan changes it only in memory and leaves the saved plan alone. "Back to my plan"
     returns the saved name. A hand-written version 3 save opens with no name and no notice. At 375 px the title row (also with a 40-character name, which wraps)
     doesn't scroll sideways. No console errors.
+
+### Milestone 11A: several plans (branch `feature/m11-compare-plans`)
+- **Why:** the target is comparing plans (different deposits, returns, withdrawals) side by side. 11A is the model and the
+  tabs; 11B is the comparison. Decided with the user: split in two PRs, at most 5 plans, and a separate Compare card in 11B.
+- **Built:**
+  - `AppState` no longer has `plan`, `planOrigin` and `scenarioId`. It extends `PlanSet`: `plans: PlanEntry[]`
+    (`{ id, plan, origin }`), `activeId` and `returnId`. `src/state/workspace.ts` holds the pure changes (`activeEntry`,
+    `selectPlan`, `addPlan`, `updateActivePlan`, `deletePlan`, `openSharedPlan`, `keepSharedPlan`, `leaveSharedPlan`) and
+    `withPlanSetChange`; `withPlanChange` now changes the open plan. New `PLAN_LIMITS.maxPlans` 5 and problem code
+    `too-many-plans`.
+  - Saving: `src/state/read-workspace.ts` (`{ version: 1, activeId, plans: [{ id, plan }] }`, read with the same checks for
+    every plan, ids checked, at most 5) and `plan-storage.ts` (`loadSavedPlans`, `savePlans`, `clearSavedPlans`) under the
+    key `advanced-savings-calculator:plans`. A plan saved under the old key (or `asc-plan`) is read as a set of one; the
+    next save writes the new key and removes the old ones. A shared plan is never saved.
+  - `createScenarioViewCache` remembers each plan's view by id (11B needs one view per plan); `buildScenarioView` takes an id.
+  - UI: plan tabs in the app bar (always shown, with "+"), `add-plan-dialog.ts` (copy or empty), `delete-plan-dialog.ts`, a
+    "Delete plan" button in the Plan card (only with two or more plans), a "Try without" action on each event row
+    (`planWithoutEvent` in `plan-variants.ts`), and the shared banner with "Keep as a new plan" (no confirmation any more,
+    since nothing is replaced) and "Back to my plans". `fitPlanName` cuts generated names to 40 characters.
+  - Removed the old end-balance bars card (`renderComparisonCard`), which could never show with one plan; 11B replaces it.
+- **Decisions:**
+  - Changing the set of plans (add, copy, delete) makes the untouched example the user's own, so it is saved with the others.
+  - A copy of the unnamed example is called "My plan (copy)", since the example is "My plan" from then on.
+  - Names are stored: new plans are "Plan 2" (the first unused number), copies "<name> (copy)", and "Try without" copies
+    "<name> without <event>".
+  - Opening a link adds an extra tab that doesn't count toward the limit, so "Keep as a new plan" is disabled (with a
+    hover text) when the five slots are full.
+  - Start over deletes every saved plan, and its text says so.
+- **Checked:**
+  - 574 tests (42 new): the plan set (add, limits, example adoption, delete and its neighbour, shared plans, refused changes),
+    the saved set (round trip, bad ids and shapes, too many, newer format, a shared plan left out), storage (old keys read
+    as a set of one, both removed on save), planWithoutEvent, fitPlanName, per-id view cache, notice words. Pinned reference
+    values did not move. Typecheck and build pass.
+  - Browser: copy, edit one copy and switch back (the other is unchanged), "Try without" (a third tab named "My plan
+    without New car"), delete (moves to the neighbour, confirmation names the plan), reload (all tabs and the open one
+    survive), a share link (extra tab, banner, "Back to my plans" returns, "Keep as a new plan" adds it and clears the
+    hash), five plans (the "+" and "Keep" disabled with their hover text), a hand-written old single-plan save (opens as
+    one plan, no notice, new key written and old key removed on the next change), 375 px without sideways scroll (the tab
+    row scrolls inside itself). No console errors.
+- **Known gaps:** two plans can have the same name (the tab shows both); the example's own name stays "Example plan" until
+  it is changed; blocked storage with several plans is covered by the existing unit tests only.

@@ -320,11 +320,17 @@ came from.
 
 ### Milestone 11: compare plans
 
-- Several plans: create, rename, duplicate and delete, as tabs (the "+" button is already in the header), and
-  compare them as lines on one chart and in one table. Saving covers all plans (a format migration); a share
-  link covers one plan.
-- A link then opens as a real saved copy, next to the user's own plan, which closes the gap left in milestone 6.
-- "What if I skip this?": duplicate the plan without a chosen event in one click.
+Split in two pull requests, like milestone 9. Decided: at most 5 plans, and the comparison is its own card.
+
+- **11A (in its PR): several plans.** Tabs with a "+" (a copy of the open plan, or an empty one), rename (the Plan
+  card's title), delete (with a confirmation; the last plan can't be deleted), and "Try without" on every event row,
+  which adds a copy of the plan without that event. Saving covers all plans in one versioned set under a new key; a
+  plan saved before reads as a set of one. A share link still carries one plan (the open one), and a link opens as an
+  extra, unsaved tab with "Keep as a new plan" and "Back to my plans", which closes the gap left in milestone 6.
+- **11B (next): compare.** A Compare card, shown with two or more plans: one balance line per plan on its own chart
+  (the main chart keeps the open plan and its events), and a table with the end balance, deposited, growth,
+  withdrawn and the difference to the open plan. The old end-balance bars card was removed in 11A, and its texts
+  and styles (`messages.compare`, `.compare*`) are left for 11B to reuse or delete.
 
 ### Milestone 12: Swedish and polish
 

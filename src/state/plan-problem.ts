@@ -33,6 +33,7 @@ export type PlanProblem =
   | { readonly code: "label"; readonly kind: PlanEventKind; readonly max: number }
   | { readonly code: "plan-name"; readonly max: number }
   | { readonly code: "too-many"; readonly kind: PlanEventKind; readonly max: number }
+  | { readonly code: "too-many-plans"; readonly max: number }
   | { readonly code: "end-before-start" }
   | { readonly code: "newer-version" }
   /** Saved or shared data that is not a plan: wrong shape, unknown version, broken ids, not JSON. */

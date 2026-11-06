@@ -12,6 +12,7 @@ const EVERY_PROBLEM: readonly PlanProblem[] = [
   { code: "horizon", min: 1, max: 40 },
   { code: "label", kind: "deposit-change", max: 40 },
   { code: "plan-name", max: 40 },
+  { code: "too-many-plans", max: 5 },
   { code: "too-many", kind: "one-time-deposit", max: 10 },
   { code: "end-before-start" },
   { code: "newer-version" },

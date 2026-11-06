@@ -1,15 +1,16 @@
 import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
 import { PLAN_LIMITS } from "../state/plan-document";
+import { activeEntry, ownCount } from "../state/workspace";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderTextField } from "./components";
 import { h, s } from "./dom";
-import { formatKronor, formatMoneyCompact } from "./format";
+import { formatKronor } from "./format";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
+import { openDeletePlanDialog } from "./delete-plan-dialog";
 import { openRenameDialog } from "./rename-dialog";
 import { openStartOverDialog } from "./start-over-dialog";
-import { lastPoint } from "./view-helpers";
 import { messages } from "./i18n";
 
 interface ParsedFieldProps<T> {
@@ -47,8 +48,9 @@ function renderParsedField<T>(props: ParsedFieldProps<T>): HTMLElement {
 /** What the Plan card says about where the plan lives. */
 function planStatusText(state: AppState): string {
   const status = messages.planCard.status;
-  if (state.planOrigin === "shared") return status.shared;
-  const isExample = state.planOrigin === "example";
+  const { origin } = activeEntry(state);
+  if (origin === "shared") return status.shared;
+  const isExample = origin === "example";
   if (state.storage === "blocked") return isExample ? status.exampleUnsaved : status.ownUnsaved;
   if (state.storage === "saved") return status.saved;
   return isExample ? status.example : status.own;
@@ -78,15 +80,31 @@ function renderPlanTitle(scenario: ScenarioView, actions: Actions): HTMLElement 
   );
 }
 
-function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
-  const isExample = state.planOrigin === "example";
+function renderPlanActions(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+  const { origin } = activeEntry(state);
+  const isExample = origin === "example";
   const status = h("span", { class: "card__meta" }, planStatusText(state));
   // A shared plan is kept or dropped from the banner above the chart.
-  if (state.planOrigin === "shared") return h("div", { class: "card__head-side" }, status);
+  if (origin === "shared") return h("div", { class: "card__head-side" }, status);
+  const canDelete = ownCount(state.plans) > 1;
   return h(
     "div",
     { class: "card__head-side" },
     status,
+    canDelete
+      ? h(
+          "button",
+          {
+            class: "btn-text btn-text--danger",
+            type: "button",
+            "data-key": "plan-delete",
+            "data-focus-next": "plan-rename",
+            "aria-label": messages.planCard.deleteAria(scenario.name),
+            onclick: () => openDeletePlanDialog(scenario.name, () => actions.deletePlan(state.activeId)),
+          },
+          messages.planCard.delete,
+        )
+      : null,
     isExample
       ? h(
           "button",
@@ -114,7 +132,7 @@ function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
 }
 
 export function renderInputsCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
-  const side = renderPlanActions(state, actions);
+  const side = renderPlanActions(scenario, state, actions);
 
   return h(
     "section",
@@ -185,42 +203,5 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
         apply: (horizonYears) => actions.updatePlan({ horizonYears }),
       }),
     ),
-  );
-}
-
-export function renderComparisonCard(
-  scenarios: readonly ScenarioView[],
-  active: ScenarioView,
-  actions: Actions,
-): HTMLElement {
-  const balances = scenarios.map((scenario) => lastPoint(scenario).balance);
-  const top = Math.max(1, ...balances);
-
-  const rows = scenarios.map((scenario, i) => {
-    const balance = balances[i] ?? 0;
-    return h(
-      "button",
-      {
-        class: "compare",
-        type: "button",
-        "data-key": `compare-${scenario.id}`,
-        "aria-current": scenario.id === active.id ? "true" : "false",
-        onclick: () => actions.selectScenario(scenario.id),
-      },
-      h("span", { class: "compare__row" }, h("span", {}, scenario.name), h("span", { class: "compare__amount" }, formatMoneyCompact(balance))),
-      h("span", { class: "compare__track", style: "display:block" }, h("span", { class: "compare__fill", style: `display:block;width:${(balance / top) * 100}%` })),
-    );
-  });
-
-  return h(
-    "section",
-    { class: "card card--dark", "aria-labelledby": "compare-heading" },
-    h(
-      "div",
-      { class: "card__head" },
-      h("h2", { id: "compare-heading" }, messages.compare.heading),
-      h("span", { class: "card__meta" }, messages.compare.endBalance(active.horizonMonths / MONTHS_PER_YEAR)),
-    ),
-    ...rows,
   );
 }

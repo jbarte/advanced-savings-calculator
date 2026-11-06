@@ -345,20 +345,28 @@ describe("one-time deposits", () => {
 describe("createScenarioViewCache", () => {
   it("returns the same view while the plan, name and horizon stay the same", () => {
     const view = createScenarioViewCache();
-    const first = view(plan, "P", HORIZON_30);
-    expect(view(plan, "P", HORIZON_30)).toBe(first);
+    const first = view(1, plan, "P", HORIZON_30);
+    expect(view(1, plan, "P", HORIZON_30)).toBe(first);
   });
 
   it("builds a new view when any of them changes", () => {
     const view = createScenarioViewCache();
-    const first = view(plan, "P", HORIZON_30);
-    expect(view({ ...plan }, "P", HORIZON_30)).not.toBe(first);
-    expect(view(plan, "Q", HORIZON_30)).not.toBe(first);
-    expect(view(plan, "P", 120)).not.toBe(first);
+    const first = view(1, plan, "P", HORIZON_30);
+    expect(view(1, { ...plan }, "P", HORIZON_30)).not.toBe(first);
+    expect(view(1, plan, "Q", HORIZON_30)).not.toBe(first);
+    expect(view(1, plan, "P", 120)).not.toBe(first);
+  });
+
+  it("remembers each plan on its own, so another plan does not push it out", () => {
+    const view = createScenarioViewCache();
+    const first = view(1, plan, "P", HORIZON_30);
+    view(2, { ...plan, monthlyDeposit: 1 }, "Q", HORIZON_30);
+    expect(view(1, plan, "P", HORIZON_30)).toBe(first);
+    expect(first.id).toBe("1");
   });
 
   it("gives the same numbers as building the view directly", () => {
-    expect(createScenarioViewCache()(plan, "P", 120)).toEqual(buildScenarioView(plan, "P", 120));
+    expect(createScenarioViewCache()(7, plan, "P", 120)).toEqual(buildScenarioView(plan, "P", 120, "7"));
   });
 });
 

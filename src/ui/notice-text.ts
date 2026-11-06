@@ -30,6 +30,8 @@ export function problemText(problem: PlanProblem): string {
       return problems.horizon(problem.min, problem.max);
     case "label":
       return perKind(problems.label, problem.kind, problem.max);
+    case "too-many-plans":
+      return problems.tooManyPlans(problem.max);
     case "plan-name":
       return problems.planName(problem.max);
     case "too-many":
