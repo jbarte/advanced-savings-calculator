@@ -1,6 +1,7 @@
 import "./styles/app.css";
 import { yearsToMonths } from "./core/year-month";
 import { currentYearMonth } from "./state/clock";
+import { saveLanguagePreference } from "./state/language";
 import { createBlankPlan, createExamplePlan } from "./state/plan-document";
 import type { PlanDocument } from "./state/plan-document";
 import { withPlanChange } from "./state/plan-change";
@@ -27,13 +28,16 @@ import { renderApp } from "./ui/app";
 import { renderDesignSystem } from "./ui/design-system";
 import { renderErrorState } from "./ui/error-state";
 import { createRenderScheduler } from "./ui/render-scheduler";
+import { applyLanguage } from "./ui/language";
 import { applyTheme } from "./ui/theme";
 import { messages } from "./ui/i18n";
+
+applyLanguage();
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app element");
 
-const startup = resolveStartupPlan(loadSavedPlans(), createExamplePlan(currentYearMonth()));
+const startup = resolveStartupPlan(loadSavedPlans(), createExamplePlan(currentYearMonth(), messages.example.carLabel));
 
 const store = createStore({
   plans: startup.plans,
@@ -116,7 +120,7 @@ const actions: Actions = {
   startOver: () => {
     const cleared = clearSavedPlans();
     store.update({
-      plans: [{ id: 1, plan: createExamplePlan(currentYearMonth()), origin: "example" }],
+      plans: [{ id: 1, plan: createExamplePlan(currentYearMonth(), messages.example.carLabel), origin: "example" }],
       activeId: 1,
       returnId: null,
       storage: cleared ? "idle" : "blocked",
@@ -161,6 +165,12 @@ const actions: Actions = {
     deselectIf(oneTimeDepositKey(id));
   },
   dismissNotice: () => store.update({ notice: null }),
+  setLanguage: (language) => {
+    saveLanguagePreference(language);
+    // The texts are chosen once when the page loads, so the new language takes a reload. Plans are saved, and a
+    // share link stays in the address.
+    window.location.reload();
+  },
   toggleTheme: () => {
     const theme = isDark() ? "light" : "dark";
     saveThemePreference(theme);

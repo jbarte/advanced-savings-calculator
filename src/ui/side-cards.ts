@@ -5,7 +5,7 @@ import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderTextField } from "./components";
 import { h, s } from "./dom";
-import { formatKronor } from "./format";
+import { formatKronor, formatPercent } from "./format";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
 import { openDeletePlanDialog } from "./delete-plan-dialog";
@@ -165,7 +165,7 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
         id: "annual-return",
         label: messages.planCard.fields.expectedReturn,
         unit: messages.units.percentPerYearField,
-        value: String(scenario.annualReturnPct),
+        value: formatPercent(scenario.annualReturnPct),
         dataKey: "plan-annual-return",
         inputMode: "decimal",
         parse: parseReturnPct,
@@ -175,7 +175,7 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
         id: "inflation",
         label: messages.planCard.fields.inflation,
         unit: messages.units.percentPerYearField,
-        value: String(scenario.inflationPct),
+        value: formatPercent(scenario.inflationPct),
         dataKey: "plan-inflation",
         inputMode: "decimal",
         parse: parseInflationPct,

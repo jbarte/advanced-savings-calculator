@@ -1,4 +1,5 @@
 import type { DepositChangeDraft, GoalPlan, OneTimeDepositDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
+import type { Language } from "../state/language";
 import type { EventKey } from "../state/timeline";
 import type { Metric } from "../state/types";
 
@@ -38,6 +39,8 @@ export interface Actions {
   removeOneTimeDeposit(id: number): void;
   dismissNotice(): void;
   toggleTheme(): void;
+  /** Switches the interface language. It is saved in this browser and the page reloads in the new language. */
+  setLanguage(language: Language): void;
   /** The link that opens the current plan for anyone. */
   createShareLink(): Promise<string>;
   copyToClipboard(text: string): Promise<boolean>;

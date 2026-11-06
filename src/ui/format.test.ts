@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatKronor, formatMoney, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact, formatYearMonth } from "./format";
+import { formatKronor, formatMoney, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact, formatYearMonth, createFormatters, formatPercent } from "./format";
 
 /** Intl uses a non-breaking (or narrow no-break) space and a Unicode minus; tests compare with plain text. */
 const plain = (text: string): string => text.replace(/[  ]/g, " ").replace(/−/g, "-");
@@ -64,5 +64,40 @@ describe("formatYearMonth", () => {
   it("handles the years at the ends of the limits", () => {
     expect(formatYearMonth({ year: 2000, month: 1 })).toBe("Jan 2000");
     expect(formatYearMonth({ year: 2140, month: 12 })).toBe("Dec 2140");
+  });
+});
+
+describe("formatting in Swedish", () => {
+  const sv = createFormatters({ locale: { numbers: "sv-SE", decimals: "sv-SE", compact: "sv-SE", dates: "sv" }, currency: "kr" });
+
+  it("names the months the Swedish way", () => {
+    expect(sv.formatYearMonth({ year: 2031, month: 4 })).toBe("apr. 2031");
+    expect(sv.formatYearMonth({ year: 2031, month: 3 })).toBe("mars 2031");
+    expect(sv.formatYearMonth({ year: 2031, month: 6 })).toBe("juni 2031");
+  });
+
+  it("writes compact amounts with a decimal comma and Swedish magnitudes", () => {
+    expect(plain(sv.formatMoneyCompact(171_609_335))).toBe("1,7 mn kr");
+    expect(plain(sv.formatMoneyCompact(300_000_000_000))).toBe("3 md kr");
+    expect(plain(sv.formatSignedMoneyCompact(54_274_305))).toBe("+542,7 tn kr");
+  });
+
+  it("writes whole amounts as in English, since the currency decides the grouping", () => {
+    expect(plain(sv.formatMoney(171_609_335))).toBe("1 716 093 kr");
+    expect(plain(sv.formatSignedMoney(-81_411_474))).toBe("-814 115 kr");
+  });
+
+  it("writes percentages with a decimal comma", () => {
+    expect(sv.formatPercent(6.5)).toBe("6,5");
+    expect(sv.formatPercent(7)).toBe("7");
+    expect(sv.formatPercent(2.25)).toBe("2,25");
+  });
+});
+
+describe("formatPercent", () => {
+  it("writes the percentage in English with a decimal point and at most two decimals", () => {
+    expect(formatPercent(6.5)).toBe("6.5");
+    expect(formatPercent(7)).toBe("7");
+    expect(formatPercent(1.234)).toBe("1.23");
   });
 });

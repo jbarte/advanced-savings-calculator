@@ -1,3 +1,4 @@
+import type { Language } from "../state/language";
 import { PLAN_LIMITS } from "../state/plan-document";
 import type { PlanOrigin, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
@@ -5,7 +6,7 @@ import { openAddPlanDialog } from "./add-plan-dialog";
 import { h, s } from "./dom";
 import { renderLogo } from "./logo";
 import { openShareDialog } from "./share-dialog";
-import { messages } from "./i18n";
+import { language, messages } from "./i18n";
 
 function renderBrandLogo(): SVGSVGElement {
   const logo = renderLogo();
@@ -44,6 +45,24 @@ export interface PlanTab {
   readonly id: number;
   readonly label: string;
   readonly origin: PlanOrigin;
+}
+
+/** A button that switches to the other language. It shows the code of that language ("SV" while the page is English). */
+export function renderLanguageButton(actions: Actions): HTMLButtonElement {
+  const other: Language = language === "en" ? "sv" : "en";
+  return h(
+    "button",
+    {
+      class: "btn-round btn-round--text",
+      type: "button",
+      "data-key": "language",
+      "aria-label": messages.language.switchTo,
+      title: messages.language.switchTo,
+      lang: other,
+      onclick: () => actions.setLanguage(other),
+    },
+    messages.language.switchCode,
+  );
 }
 
 function renderPlanTabs(tabs: readonly PlanTab[], activeId: number, canAdd: boolean, view: ScenarioView, actions: Actions): HTMLElement {
@@ -108,6 +127,6 @@ export function renderAppBar(
       h("div", { class: "brand__name" }, messages.app.brandName, h("span", {}, messages.app.brandSuffix)),
     ),
     renderPlanTabs(tabs, activeId, canAdd, active, actions),
-    h("div", { class: "appbar__actions" }, share, renderThemeButton(isDark, actions)),
+    h("div", { class: "appbar__actions" }, share, renderLanguageButton(actions), renderThemeButton(isDark, actions)),
   );
 }

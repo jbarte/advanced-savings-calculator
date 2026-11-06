@@ -9,8 +9,7 @@ existing links keep working).
 
 > **Status:** in development. Planning, saving, sharing, a custom horizon, an inflation adjusted view and goal
 > planning work, a plan can have a name, you can keep several plans as tabs, and the Compare card puts them side by
-> side. A Swedish version is next. See
-> [NEXT_STEPS.md](NEXT_STEPS.md).
+> side. The app is in English and Swedish. See [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## The problem
 
@@ -35,6 +34,8 @@ long-term cost of a decision like that visible.
   ("what if I skipped this?").
 - **Compare plans.** With two or more plans, a card shows one line per plan on a shared chart and a table of each plan's end
   balance, deposits, growth and withdrawals, with the difference to the plan you have open.
+- **English and Swedish.** The app opens in your browser's language, and a button in the top bar switches (the choice is
+  remembered in your browser).
 - **Goal planning.** How much do you need to save each month to reach X kr by a given date,
   and when do you get there?
 - **Inflation adjusted view.** A switch shows the results adjusted for inflation (2 % a year by default, you can
