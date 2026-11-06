@@ -239,6 +239,7 @@ export const sv: Messages = {
     eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>
       `${metric} per ${month}${inflationAdjusted ? " · inflationsjusterat" : ""}`,
     timeHorizon: "Tidshorisont",
+    planHorizon: (years: number): string => `Plan · ${years} år`,
     inflationAdjusted: "Inflationsjusterat",
   },
   chart: {

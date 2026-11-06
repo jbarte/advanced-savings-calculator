@@ -113,7 +113,7 @@ export function withPlanSetChange(state: AppState, change: (set: PlanSet) => Pla
       activeId: next.activeId,
       returnId: next.returnId,
       notice: null,
-      ...(switched ? { selectedEvent: null, chartMonth: null } : {}),
+      ...(switched ? { selectedEvent: null, chartMonth: null, viewHorizonYears: null } : {}),
     };
   } catch (error) {
     if (error instanceof RangeError) return { ...state, notice: { kind: "change-rejected", problem: problemOf(error) } };

@@ -161,6 +161,12 @@ describe("withPlanSetChange", () => {
     expect(next.chartMonth).toBeNull();
   });
 
+  it("goes back to the plan's own horizon when another plan opens", () => {
+    const zoomed = { ...state, viewHorizonYears: 10 };
+    expect(withPlanSetChange(zoomed, (set) => addPlan(set, named("B"))).viewHorizonYears).toBeNull();
+    expect(withPlanSetChange(zoomed, (set) => set).viewHorizonYears).toBe(10);
+  });
+
   it("keeps the selection when the open plan stays the same", () => {
     const next = withPlanSetChange(state, (set) => set);
     expect(next.selectedEvent).toBe("withdrawal-1");

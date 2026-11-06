@@ -237,18 +237,20 @@ export function buildScenarioView(
 }
 
 /**
- * `buildScenarioView` with a memory of the last call for each plan id: when the plan, name and horizon are the same as
+ * `buildScenarioView` with a memory of the last call for each plan id and horizon: when the plan, name and horizon are the same as
  * last time, the same view comes back without running the engine. Selecting an event, switching the theme or dismissing a
  * notice changes none of them, so those re-renders cost nothing. The plan is compared by reference, which is safe
  * because plan changes always make a new plan object.
  */
 export function createScenarioViewCache(): (id: number, plan: PlanDocument, name: string, horizonMonths: number) => ScenarioView {
-  const last = new Map<number, { plan: PlanDocument; name: string; horizonMonths: number; view: ScenarioView }>();
+  // Keyed by plan and horizon: the open plan can be shown over a zoomed horizon while the Compare card uses its own.
+  const last = new Map<string, { plan: PlanDocument; name: string; view: ScenarioView }>();
   return (id, plan, name, horizonMonths) => {
-    const cached = last.get(id);
-    if (cached && cached.plan === plan && cached.name === name && cached.horizonMonths === horizonMonths) return cached.view;
+    const key = `${id}:${horizonMonths}`;
+    const cached = last.get(key);
+    if (cached && cached.plan === plan && cached.name === name) return cached.view;
     const view = buildScenarioView(plan, name, horizonMonths, String(id));
-    last.set(id, { plan, name, horizonMonths, view });
+    last.set(key, { plan, name, view });
     return view;
   };
 }

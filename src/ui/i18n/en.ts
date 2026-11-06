@@ -244,6 +244,7 @@ export const en = {
     eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>
       `${metric} by ${month}${inflationAdjusted ? " · inflation adjusted" : ""}`,
     timeHorizon: "Time horizon",
+    planHorizon: (years: number): string => `Plan · ${years} yrs`,
     inflationAdjusted: "Inflation adjusted",
   },
   chart: {
