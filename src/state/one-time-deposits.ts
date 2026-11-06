@@ -1,4 +1,4 @@
-import { appendEvent, removeEvent, replaceEvent } from "./event-list";
+import { appendEvent, removeEvent, replaceEvent, restoreEvent } from "./event-list";
 import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { OneTimeDepositDraft, OneTimeDepositEvent, PlanDocument } from "./plan-document";
@@ -29,4 +29,9 @@ export function updateOneTimeDeposit(plan: PlanDocument, id: number, draft: OneT
 /** Removes a one-time deposit. Does nothing if it is already gone. */
 export function removeOneTimeDeposit(plan: PlanDocument, id: number): PlanDocument {
   return { ...plan, oneTimeDeposits: removeEvent(plan.oneTimeDeposits, id) };
+}
+
+/** Puts a removed one-time deposit back (the undo of removing it). */
+export function restoreOneTimeDeposit(plan: PlanDocument, event: OneTimeDepositEvent): PlanDocument {
+  return { ...plan, oneTimeDeposits: restoreEvent(plan.oneTimeDeposits, event, PLAN_LIMITS.maxOneTimeDeposits, NAMES) };
 }

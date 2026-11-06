@@ -13,6 +13,7 @@ import { formatMoney, formatSignedMoney, formatSignedMoneyCompact, formatYearMon
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
 import { openWithdrawalDialog } from "./withdrawal-dialog";
 import { messages } from "./i18n";
+import { showUndoToast } from "./undo-toast";
 
 type WithdrawalEntry = Extract<TimelineEntry, { kind: "withdrawal" }>;
 type DepositChangeEntry = Extract<TimelineEntry, { kind: "deposit-change" }>;
@@ -97,7 +98,7 @@ function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, scale: 
         initial: { label: withdrawal.label, amount: withdrawal.amount, date: withdrawal.date },
         onSave: (draft) => actions.updateWithdrawal(withdrawal.id, draft),
       }),
-    remove: () => actions.removeWithdrawal(withdrawal.id),
+    remove: () => showUndoToast(messages.undo.removed(withdrawal.label), actions.removeWithdrawal(withdrawal.id)),
   };
 }
 
@@ -120,7 +121,7 @@ function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, s
         initial: { label: change.label, amount: change.amount, startDate: change.startDate, endDate: change.endDate },
         onSave: (draft) => actions.updateDepositChange(change.id, draft),
       }),
-    remove: () => actions.removeDepositChange(change.id),
+    remove: () => showUndoToast(messages.undo.removed(change.label), actions.removeDepositChange(change.id)),
   };
 }
 
@@ -148,7 +149,7 @@ function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry,
         initial: { label: deposit.label, amount: deposit.amount, date: deposit.date },
         onSave: (draft) => actions.updateOneTimeDeposit(deposit.id, draft),
       }),
-    remove: () => actions.removeOneTimeDeposit(deposit.id),
+    remove: () => showUndoToast(messages.undo.removed(deposit.label), actions.removeOneTimeDeposit(deposit.id)),
   };
 }
 

@@ -71,6 +71,18 @@ export function deletePlan(set: PlanSet, id: number): PlanSet {
   return { ...set, plans: adopt(plans), activeId: neighbour ? neighbour.id : set.activeId };
 }
 
+/**
+ * Puts a deleted plan back at its old place and opens it (the undo of deleting it). A plan that took its id meanwhile
+ * makes it get the next free one. Throws a PlanError when the plans are full again.
+ */
+export function restorePlan(set: PlanSet, entry: PlanEntry, index: number): PlanSet {
+  assertRoom(set);
+  const restored = set.plans.some((candidate) => candidate.id === entry.id) ? { ...entry, id: nextId(set.plans) } : entry;
+  const plans = [...set.plans];
+  plans.splice(Math.min(index, plans.length), 0, restored);
+  return { ...set, plans: adopt(plans), activeId: restored.id };
+}
+
 /** Opens a plan from a share link as an extra, unsaved plan. A shared plan that was already open is replaced. */
 export function openSharedPlan(set: PlanSet, plan: PlanDocument): PlanSet {
   const kept = set.plans.filter((entry) => entry.origin !== "shared");

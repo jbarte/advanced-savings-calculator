@@ -5,6 +5,9 @@ import type { PickedFile } from "./download";
 import type { EventKey } from "../state/timeline";
 import type { Metric } from "../state/types";
 
+/** Takes back a removal. It does nothing when what was removed can't come back (the plan changed or is full). */
+export type Undo = () => void;
+
 /** Everything the UI can ask the app to do. Wired to the store in main.ts. */
 export interface Actions {
   /** Opens another of the plans. */
@@ -15,7 +18,8 @@ export interface Actions {
   copyPlan(): void;
   /** Adds a copy of the open plan without one event ("what if I skipped this?") and opens it. */
   copyWithoutEvent(key: EventKey): void;
-  deletePlan(id: number): void;
+  /** Deletes a plan and returns how to bring it back. */
+  deletePlan(id: number): Undo;
   selectMetric(metric: Metric): void;
   /** Selects an event (or none). `month` moves the chart cursor to the event. */
   selectEvent(key: EventKey | null, month?: number): void;
@@ -36,15 +40,15 @@ export interface Actions {
   startOver(): void;
   addWithdrawal(draft: WithdrawalDraft): void;
   updateWithdrawal(id: number, draft: WithdrawalDraft): void;
-  removeWithdrawal(id: number): void;
+  removeWithdrawal(id: number): Undo;
   addDepositChange(draft: DepositChangeDraft): void;
   updateDepositChange(id: number, draft: DepositChangeDraft): void;
-  removeDepositChange(id: number): void;
+  removeDepositChange(id: number): Undo;
   setGoal(goal: GoalPlan): void;
-  clearGoal(): void;
+  clearGoal(): Undo;
   addOneTimeDeposit(draft: OneTimeDepositDraft): void;
   updateOneTimeDeposit(id: number, draft: OneTimeDepositDraft): void;
-  removeOneTimeDeposit(id: number): void;
+  removeOneTimeDeposit(id: number): Undo;
   dismissNotice(): void;
   toggleTheme(): void;
   /** Switches the interface language. It is saved in this browser and the page reloads in the new language. */

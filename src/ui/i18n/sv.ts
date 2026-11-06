@@ -120,6 +120,7 @@ export const sv: Messages = {
     fullHint: "Planen rymmer inte fler händelser, så fler kan inte läggas till.",
     count: (count: number): string => `${count} ${count === 1 ? "händelse" : "händelser"}`,
     emptyTitle: "Inga händelser än",
+    addFirst: "Lägg till din första händelse",
     emptyHint: "Lägg till ett uttag, en engångsinsättning eller en ändring av månadssparandet för att se vad den gör.",
     totalBefore: (end: string, inflationAdjusted: boolean): string =>
       `Alla händelser tillsammans ändrar ditt saldo per ${end}${inflationAdjusted ? " (inflationsjusterat)" : ""} med `,
@@ -165,12 +166,6 @@ export const sv: Messages = {
       open: "Öppna en planfil",
       openHint: "Lägger till planen från en fil bredvid dina planer. Inget ersätts.",
       downloadFailed: "Filen kunde inte skapas. Din webbläsare kanske blockerar nedladdningar.",
-    },
-    deletePlan: {
-      title: (name: string): string => `Ta bort "${name}"?`,
-      body: "Det här tar bort planen från webbläsaren. Det går inte att ångra. Dina andra planer finns kvar.",
-      confirm: "Ta bort plan",
-      keep: "Behåll planen",
     },
     goal: { add: "Sätt ett mål", edit: "Redigera mål", addConfirm: "Sätt mål", amount: "Jag vill ha", by: "Senast" },
   },
@@ -315,6 +310,18 @@ export const sv: Messages = {
     oneTimeSub: (when: string): string => `Engångsinsättning · ${when}`,
     oneTimeExplain: (effect: string, end: string, amount: string, growth: string): string =>
       `${effect} per ${end}: ${amount} insatt, och ${growth} på det`,
+  },
+  monthPicker: {
+    open: "Välj månad",
+    label: "Månadsväljare",
+    previousYear: "Föregående år",
+    nextYear: "Nästa år",
+  },
+  undo: {
+    action: "Ångra",
+    removed: (label: string): string => `Tog bort "${label}"`,
+    planDeleted: (name: string): string => `Tog bort planen "${name}"`,
+    goalRemoved: "Målet togs bort",
   },
   goalCard: {
     heading: "Sparmål",

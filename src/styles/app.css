@@ -864,7 +864,6 @@ button {
   background: linear-gradient(var(--ink), transparent);
   opacity: 0.25;
   pointer-events: none;
-  transition: left var(--duration-fast) var(--ease-out);
 }
 
 .chart__dot {
@@ -876,7 +875,7 @@ button {
   background: var(--accent);
   border: var(--border-3) solid var(--ink);
   pointer-events: none;
-  transition: left var(--duration-fast) var(--ease-out), top var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 /* The dot grows a little while the pointer is over the chart. */
@@ -897,8 +896,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  /* Glides to the next month with the dot instead of snapping. */
-  transition: left var(--duration-fast) var(--ease-out), top var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+  /* No glide on position: any delay made it trail a fast pointer. */
 }
 
 .chart__tooltip strong {
@@ -1187,15 +1185,75 @@ button {
   box-shadow: var(--shadow-inner), var(--glow-focus);
 }
 
+.field__picker {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-2);
+  color: var(--muted);
+}
+
+.field__picker .icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.field__picker:hover,
+.field__picker[aria-expanded="true"] {
+  color: var(--ink);
+  box-shadow: var(--shadow-lift-sm);
+}
+
+/* The calendar opens under the field and pushes what follows down, so a dialog never clips it. */
+.month-picker {
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--fill);
+  box-shadow: var(--shadow-inner);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.month-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.month-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-1);
+}
+
+.month-picker__month {
+  min-height: 32px;
+  padding: 0 var(--space-1);
+  font-size: var(--text-sm, 13px);
+}
+
+.month-picker__month[aria-pressed="true"] {
+  background: var(--solid);
+  color: var(--on-solid);
+}
+
 .field__unit {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--muted);
 }
 
-/* The native month picker needs more room than the number fields. */
+/* A month field with its picker button needs more room than the number fields. */
 @media (max-width: 520px) {
-  .field:has(input[type="month"]) {
+  .field:has(.field__picker) {
     grid-column: 1 / -1;
   }
 }
@@ -2049,6 +2107,11 @@ button {
   flex: 1;
 }
 
+.toast__action {
+  flex: none;
+  font-weight: 500;
+}
+
 .toast__close {
   width: 28px;
   height: 28px;
@@ -2490,6 +2553,8 @@ button {
   .chart__cursor,
   .chart__dot,
   .chart__tooltip,
+  .field__picker,
+  .month-picker,
   .table__actions {
     display: none !important;
   }

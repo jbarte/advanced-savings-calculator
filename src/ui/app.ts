@@ -12,7 +12,7 @@ import { renderChartCard, renderHero } from "./projection-card";
 import { renderCompareCard } from "./compare-card";
 import { renderGoalCard } from "./goal-card";
 import { renderInputsCard } from "./side-cards";
-import { captureBadges, captureCharts, glideCharts, introduceChart, popNewBadges } from "./chart-glide";
+import { PREVIEW_GLIDE_MS, captureBadges, captureCharts, glideCharts, introduceChart, popNewBadges } from "./chart-glide";
 import { renderAppBar } from "./topbar";
 import type { PlanTab } from "./topbar";
 import { renderEventsSection } from "./events-section";
@@ -62,8 +62,11 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
     const previewTimeline = buildTimeline(previewed.withdrawals, previewed.depositChanges, previewed.oneTimeDeposits);
     const nextHero = renderHero(previewed, state, actions);
     const nextChart = renderChartCard(previewed, previewTimeline, state, actions);
+    // Where the line is drawn right now (possibly part of the way from the last step), so each step glides on from there.
+    const drawn = captureCharts(chartCard);
     hero.replaceWith(nextHero);
     chartCard.replaceWith(nextChart);
+    glideCharts(nextChart, drawn, PREVIEW_GLIDE_MS);
     hero = nextHero;
     chartCard = nextChart;
   };

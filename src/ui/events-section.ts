@@ -37,6 +37,8 @@ export function renderEventsSection(
     else openOneTimeDepositDialog({ start, onSave: (draft) => actions.addOneTimeDeposit(draft) });
   };
 
+  const openAdd = (): void => openEventTypeDialog({ full, onChoose: choose });
+
   const addButton = h(
     "button",
     {
@@ -46,14 +48,20 @@ export function renderEventsSection(
       disabled: everythingFull,
       title: everythingFull ? messages.events.full : undefined,
       "aria-describedby": everythingFull ? "event-add-hint" : undefined,
-      onclick: () => openEventTypeDialog({ full, onChoose: choose }),
+      onclick: openAdd,
     },
     messages.events.add,
   );
 
+  const emptyAction = h(
+    "button",
+    { class: "btn-solid", type: "button", "data-key": "event-add-first", "data-focus-next": "event-add", onclick: openAdd },
+    messages.events.addFirst,
+  );
+
   const body =
     total === 0
-      ? h("div", { class: "table-card" }, renderEmptyState(messages.events.emptyTitle, messages.events.emptyHint))
+      ? h("div", { class: "table-card" }, renderEmptyState(messages.events.emptyTitle, messages.events.emptyHint, emptyAction))
       : renderTimelineList(scenario, timeline, state, actions);
 
   const end = monthLabel(scenario, scenario.horizonMonths);
