@@ -88,8 +88,8 @@
   --backdrop: rgb(40 32 24 / 0.55);
 
   /* Type */
-  --font-sans: "Geist", system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --font-sans: "Geist", "Geist Fallback", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
   --text-xs: 11px;
   --text-sm: 13px;
   --text-md: 15px;
@@ -122,6 +122,16 @@
   --icon-sm: 16px;
   --icon-md: 20px;
   --icon-lg: 24px;
+
+  /* Motion: one set of timings and one easing, used by every transition and animation. */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --press: scale(0.98);
+
+  /* How far below the top of the window the sticky app bar reaches, so scrolling to something leaves it clear. */
+  --appbar-clearance: 88px;
 
   /* Focus: a visible, glowing ring on every interactive element */
   --glow-focus: 0 0 0 var(--border-3) var(--focus), 0 0 14px 2px color-mix(in oklab, var(--focus) 55%, transparent);

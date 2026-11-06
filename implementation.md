@@ -24,9 +24,9 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** the plan name (PR #27), milestone 11 (PRs #28 and #29) and the backlog ideas (PR #30).
 - **Merged since:** milestone 12 in full (PRs #31 to #34).
 - **Merged since:** the plan's own horizon (PR #35).
-- **Merged since:** sliders with a live preview (PR #36) and the collapsible Compare card, more sliders and the steady layout (PR #37).
-- **Open:** smooth transitions (branch `feature/transitions`).
-- **Next:** overall polish, see NEXT_STEPS.md.
+- **Merged since:** sliders (PR #36), the collapsible Compare card, more sliders and the steady layout (PR #37), and smooth transitions (PR #38).
+- **Open:** polish, part 1: type, touch, focus, tokens, theme fade (branch `feature/polish-details`).
+- **Next:** polish, part 2 (chart details) and part 3 (undo and empty states), see NEXT_STEPS.md.
 - **Tests:** 688 (`npm test`), typecheck and build pass.
 
 ## Working rules
@@ -1007,3 +1007,32 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
     console errors.
 - **Known gaps:** the real `prefers-reduced-motion` setting was stubbed in the page, not set in the operating system; the y-axis labels, event
   markers and numbers change at once while the line glides; there is no exit animation for dialogs.
+
+### Polish, part 1: type, touch, focus, tokens and the theme fade (branch `feature/polish-details`)
+- **Chosen with the user** from a written list (all four groups, everything in them), to be built as three PRs: this one (type, touch, interaction),
+  then the chart details, then undo and empty states.
+- **Built:**
+  - **Digits and wrapping:** `font-variant-numeric: tabular-nums` on `body` (it was only on the headline), `text-wrap: balance` on headings,
+    the subtitle, dialog text, notices and choice hints, and `text-wrap: pretty` on paragraphs.
+  - **Fonts without a jump:** "Geist Fallback" (Arial, size-adjust 102.66 %, ascent 97.89 %, descent 28.73 %) and "Geist Mono Fallback"
+    (Courier New, 99.98 %, 100.52 %, 29.51 %) in `fonts.css`, from metrics measured with a canvas in Chrome, and put after Geist in the font
+    stacks. In the browser the same sample text is 862.1 px wide in Geist and 862.8 in the fallback (840.5 in plain Arial), both 52 px tall (Arial 45);
+    the mono sample is 528 px in both.
+  - **Brand colour:** `accent-color`, the caret in fields and `::selection` use `--solid`.
+  - **Phones:** no tap flash (`-webkit-tap-highlight-color`), `touch-action: manipulation` on pressable elements (not the chart, which keeps
+    its own), `viewport-fit=cover` and `env(safe-area-inset-*)` on the app bar and the page edges and bottom.
+  - **Focus clear of the sticky bar:** `scroll-padding-top` from `--appbar-clearance` (88 px; 144 px under 860 px, measured bar heights 68 and 124).
+    On a phone, focusing a field far down or the headline after scrolling leaves the element below the bar (457 and 152 px against a bar
+    bottom of 124).
+  - **Tokens and press:** `--duration-fast/base/slow`, `--ease-out` and `--press` (`scale(0.98)`) replace the ad-hoc 120/150/180/200 ms and the
+    one-off curve; buttons, tabs, tiles, text buttons, choices and the card toggle share the same press (buttons still sink with
+    `--shadow-inner`). `motionAllowed()` in `src/ui/motion.ts` is the one reduced-motion check in script, used by the glide and the theme fade.
+  - **Theme fade:** `applyTheme` adds `.theme-fading` for 260 ms when the theme changes after the page opened, so colours, borders, shadows and
+    SVG fills blend; not on load, not under reduced motion.
+- **Checked:**
+  - 688 tests unchanged (the contrast test still passes: only tokens for motion were added). Typecheck and build pass.
+  - Browser: the computed styles above; the theme class appears on a change, not at load, and not with reduced motion stubbed on; the focus test at
+    375 px.
+- **Known gaps:** the safe-area insets can't be seen without a phone with a notch; the press scale was checked as a token and rule, not by pressing;
+  the font fallback metrics come from Chrome on macOS (Arial and Courier New exist on Mac and Windows, not on every Linux or Android, where the system
+  font is used unadjusted).

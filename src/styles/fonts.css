@@ -23,3 +23,26 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
+
+/*
+ * Stand-ins shown while Geist loads (font-display: swap). They are a system font stretched and spaced to Geist's size, so the
+ * text hardly moves when the real font arrives. Measured with a canvas in Chrome at 1000 px: Geist is 2.7 % wider than Arial,
+ * its ascent is 100.5 % and its descent 29.5 % of the size; Geist Mono has the same width as Courier New.
+ */
+@font-face {
+  font-family: "Geist Fallback";
+  src: local("Arial");
+  size-adjust: 102.66%;
+  ascent-override: 97.89%;
+  descent-override: 28.73%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback";
+  src: local("Courier New");
+  size-adjust: 99.98%;
+  ascent-override: 100.52%;
+  descent-override: 29.51%;
+  line-gap-override: 0%;
+}

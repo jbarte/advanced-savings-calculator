@@ -1,18 +1,11 @@
 import { interpolatePath } from "./chart-geometry";
+import { motionAllowed } from "./motion";
 
 /** How long the chart takes to glide from the old shape to the new one. */
 const GLIDE_MS = 280;
 
 /** The paths drawn in every chart on the page, in page order: one list of `d` values for each chart's SVG. */
 export type DrawnCharts = readonly (readonly string[])[];
-
-function motionAllowed(): boolean {
-  try {
-    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  } catch {
-    return true;
-  }
-}
 
 /** What the charts on the page draw now, read before the page is drawn again. */
 export function captureCharts(root: ParentNode): DrawnCharts {
