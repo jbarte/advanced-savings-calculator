@@ -1693,6 +1693,11 @@ button {
 
 /* Slider */
 
+/* A slider under a field in the Plan card: the same track as the design system's, below the typed value. */
+.field__slider {
+  margin-top: var(--space-2);
+}
+
 .slider-field {
   display: flex;
   flex-direction: column;

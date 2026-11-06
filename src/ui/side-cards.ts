@@ -5,7 +5,9 @@ import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderTextField } from "./components";
 import { h, s } from "./dom";
-import { formatKronor, formatPercent } from "./format";
+import { formatKronor, formatMoney, formatPercent } from "./format";
+import { ORE_PER_KRONA, SLIDER_RANGES, withPlanSlider } from "./plan-slider";
+import type { PreviewPlan } from "./plan-slider";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
 import { openDeletePlanDialog } from "./delete-plan-dialog";
@@ -144,7 +146,7 @@ function renderPlanActions(scenario: ScenarioView, state: AppState, actions: Act
   );
 }
 
-export function renderInputsCard(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+export function renderInputsCard(scenario: ScenarioView, state: AppState, actions: Actions, preview: PreviewPlan): HTMLElement {
   const side = renderPlanActions(scenario, state, actions);
 
   return h(
@@ -154,35 +156,68 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
     h(
       "div",
       { class: "fields" },
-      renderParsedField({
-        id: "start-amount",
-        label: messages.planCard.fields.startAmount,
-        unit: messages.units.currencyField,
-        value: formatKronor(scenario.startAmount),
-        dataKey: "plan-start-amount",
-        inputMode: "numeric",
-        parse: (text) => parseKronor(text, PLAN_LIMITS.maxStartAmount),
-        apply: (startAmount) => actions.updatePlan({ startAmount }),
+      withPlanSlider({
+        field: renderParsedField({
+          id: "start-amount",
+          label: messages.planCard.fields.startAmount,
+          unit: messages.units.currencyField,
+          value: formatKronor(scenario.startAmount),
+          dataKey: "plan-start-amount",
+          inputMode: "numeric",
+          parse: (text) => parseKronor(text, PLAN_LIMITS.maxStartAmount),
+          apply: (startAmount) => actions.updatePlan({ startAmount }),
+        }),
+        ...SLIDER_RANGES.startAmount,
+        label: messages.planCard.sliders.startAmount,
+        value: scenario.startAmount / ORE_PER_KRONA,
+        fieldText: (kronor) => formatKronor(kronor * ORE_PER_KRONA),
+        valueText: (kronor) => formatMoney(kronor * ORE_PER_KRONA),
+        patch: (kronor) => ({ startAmount: kronor * ORE_PER_KRONA }),
+        preview,
+        commit: (patch) => actions.updatePlan(patch),
+        dataKey: "slider-start-amount",
       }),
-      renderParsedField({
-        id: "monthly-deposit",
-        label: messages.planCard.fields.monthlyDeposit,
-        unit: messages.units.perMonthField,
-        value: formatKronor(scenario.monthlyDeposit),
-        dataKey: "plan-monthly-deposit",
-        inputMode: "numeric",
-        parse: (text) => parseKronor(text, PLAN_LIMITS.maxMonthlyDeposit),
-        apply: (monthlyDeposit) => actions.updatePlan({ monthlyDeposit }),
+      withPlanSlider({
+        field: renderParsedField({
+          id: "monthly-deposit",
+          label: messages.planCard.fields.monthlyDeposit,
+          unit: messages.units.perMonthField,
+          value: formatKronor(scenario.monthlyDeposit),
+          dataKey: "plan-monthly-deposit",
+          inputMode: "numeric",
+          parse: (text) => parseKronor(text, PLAN_LIMITS.maxMonthlyDeposit),
+          apply: (monthlyDeposit) => actions.updatePlan({ monthlyDeposit }),
+        }),
+        ...SLIDER_RANGES.monthlyDeposit,
+        label: messages.planCard.sliders.monthlyDeposit,
+        value: scenario.monthlyDeposit / ORE_PER_KRONA,
+        fieldText: (kronor) => formatKronor(kronor * ORE_PER_KRONA),
+        valueText: (kronor) => messages.planCard.sliders.perMonth(formatMoney(kronor * ORE_PER_KRONA)),
+        patch: (kronor) => ({ monthlyDeposit: kronor * ORE_PER_KRONA }),
+        preview,
+        commit: (patch) => actions.updatePlan(patch),
+        dataKey: "slider-monthly-deposit",
       }),
-      renderParsedField({
-        id: "annual-return",
-        label: messages.planCard.fields.expectedReturn,
-        unit: messages.units.percentPerYearField,
-        value: formatPercent(scenario.annualReturnPct),
-        dataKey: "plan-annual-return",
-        inputMode: "decimal",
-        parse: parseReturnPct,
-        apply: (annualReturnPct) => actions.updatePlan({ annualReturnPct }),
+      withPlanSlider({
+        field: renderParsedField({
+          id: "annual-return",
+          label: messages.planCard.fields.expectedReturn,
+          unit: messages.units.percentPerYearField,
+          value: formatPercent(scenario.annualReturnPct),
+          dataKey: "plan-annual-return",
+          inputMode: "decimal",
+          parse: parseReturnPct,
+          apply: (annualReturnPct) => actions.updatePlan({ annualReturnPct }),
+        }),
+        ...SLIDER_RANGES.annualReturn,
+        label: messages.planCard.sliders.expectedReturn,
+        value: scenario.annualReturnPct,
+        fieldText: (pct) => formatPercent(pct),
+        valueText: (pct) => `${formatPercent(pct)} %`,
+        patch: (annualReturnPct) => ({ annualReturnPct }),
+        preview,
+        commit: (patch) => actions.updatePlan(patch),
+        dataKey: "slider-annual-return",
       }),
       renderParsedField({
         id: "inflation",

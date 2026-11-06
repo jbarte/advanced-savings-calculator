@@ -1,5 +1,6 @@
 import { buildTimeline } from "../state/timeline";
 import { activeEntry, canAddPlan } from "../state/workspace";
+import type { PlanFields } from "../state/plan-document";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
@@ -24,6 +25,8 @@ export interface AppView {
   readonly tabs: readonly PlanTab[];
   readonly state: AppState;
   readonly isDark: boolean;
+  /** The open plan with some fields changed, as it would be drawn, or null when the change is not valid. */
+  readonly preview: (patch: Partial<PlanFields>) => ScenarioView | null;
 }
 
 export function renderApp(root: HTMLElement, view: AppView, actions: Actions): void {
@@ -37,6 +40,35 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   const fallbackKey = focused?.getAttribute("data-focus-next");
 
   const timeline = buildTimeline(active.withdrawals, active.depositChanges, active.oneTimeDeposits);
+  let hero = renderHero(active, state, actions);
+  let chartCard = renderChartCard(active, timeline, state, actions);
+
+  /*
+   * While a slider in the Plan card moves, only the headline and the chart are drawn again, from a preview that is not
+   * saved; the rest of the page (and the slider being dragged) stays. At most once a frame, with the latest value.
+   */
+  let pending: Partial<PlanFields> | null = null;
+  let frame = 0;
+  const drawPreview = (patch: Partial<PlanFields>): void => {
+    const previewed = view.preview(patch);
+    if (!previewed) return;
+    const previewTimeline = buildTimeline(previewed.withdrawals, previewed.depositChanges, previewed.oneTimeDeposits);
+    const nextHero = renderHero(previewed, state, actions);
+    const nextChart = renderChartCard(previewed, previewTimeline, state, actions);
+    hero.replaceWith(nextHero);
+    chartCard.replaceWith(nextChart);
+    hero = nextHero;
+    chartCard = nextChart;
+  };
+  const livePreview = (patch: Partial<PlanFields>): void => {
+    pending = patch;
+    if (frame !== 0) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (pending) drawPreview(pending);
+      pending = null;
+    });
+  };
 
   const shell = h(
     "div",
@@ -47,13 +79,13 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
       { class: "canvas" },
       state.notice ? renderNotice(noticeText(state.notice), actions) : null,
       origin === "shared" ? renderSharedBanner(canAddPlan(state), actions) : null,
-      renderHero(active, state, actions),
-      renderChartCard(active, timeline, state, actions),
+      hero,
+      chartCard,
       views.length > 1 ? renderCompareCard(views, active, state, actions) : null,
       h(
         "div",
         { class: "bento" },
-        renderInputsCard(active, state, actions),
+        renderInputsCard(active, state, actions, livePreview),
         renderGoalCard(active, actions),
       ),
       renderEventsSection(active, timeline, state, actions),

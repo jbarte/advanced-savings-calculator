@@ -363,13 +363,13 @@ as the browser's and a switch in the app bar changes it (it saves the choice and
 Raised by the user on 2026-11-06. To be looked at once milestone 12 is done; each one starts with an investigation and
 a decision before any build. They overlap, so they may become one milestone ("feel").
 
-- **Sliders and instant feedback.** Let the main values (start amount, monthly deposit, return, horizon) be changed with
-  sliders where the chart reacts at once, not when a field is left. This is open decision 2 below: today inputs commit
-  on `change` because a full re-render replaces the field being typed in. To investigate: render the form once and
-  redraw only the results (CLAUDE.md says to ask before restructuring), which values suit a slider (and their ranges, so
-  the limits in `PLAN_LIMITS` stay true), whether a slider and the typed field share one value, and the cost of running
-  the engine on every move (about 30–55 ms for the worst plan, so it probably needs a lighter projection while
-  dragging).
+- **Sliders and instant feedback (done, in its PR).** Investigated: the engine takes 0.1 ms for the example plan (1 ms with a
+  goal, 39 ms for the largest plan) and a full redraw about 4 ms, so speed was not the problem; the full redraw replacing a
+  slider while it is dragged was. Decided: a live preview. The start amount (0–2 000 000 kr), the monthly deposit (0–30 000 kr)
+  and the expected return (0–12 %) have a slider under their field; while one moves, only the headline and the chart are drawn
+  again from a preview that is not saved, and letting go saves it like typing does. The typed field stays for exact values and
+  the whole range. Transitions follow in their own PR: the chart line and area glide, dialogs fade and rise, and plan switches
+  cross-fade (decided with the user; the headline and tiles don't count).
 - **Show the plan's own horizon (done, in its PR).** Decided: the horizon switch is a view zoom and no longer changes the
   plan. Its first button is the plan's own horizon ("Plan · 25 yrs", selected on every visit), then 10, 20 and 30 years
   without the one that equals the plan's. The zoom is not saved or shared, and goes back to the plan's own when another plan
@@ -389,9 +389,8 @@ a decision before any build. They overlap, so they may become one milestone ("fe
 
 1. **Short link or self-contained link?** Decided: self-contained (`#plan=…`), built in milestone 6. A short
    `/<id>` link would need a server and a database, which the "no backend" rule rules out.
-2. **Should the graph move while I type?** Text inputs update the plan when I leave the field or press
-   Enter. Updating on every keystroke or while dragging needs the form built once and only the results
-   re-rendered. Recommendation: keep "on change"; milestone 8 uses a typed end year instead of a slider.
+2. **Should the graph move while I type?** Decided: typing still commits on "change". Sliders (after milestone 12) move
+   the graph while they are dragged, through a preview that redraws only the headline and the chart.
 3. **Scenario tabs:** decided: hidden until milestone 11.
 4. **What does the effect column show (milestone 7)?** Decided: the total effect on the end balance. With the example plan: the car
    (150 000 kr) costs 664 115 kr in growth only, or 814 115 kr as the total effect on the end balance (the

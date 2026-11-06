@@ -178,6 +178,12 @@ export const en = {
   planCard: {
     heading: "Plan",
     renameHover: "Rename plan",
+    sliders: {
+      startAmount: "Adjust the start amount",
+      monthlyDeposit: "Adjust the monthly deposit",
+      expectedReturn: "Adjust the expected return",
+      perMonth: (amount: string): string => `${amount} per month`,
+    },
     file: "File",
     fileAria: "Plan file: download or open",
     delete: "Delete plan",

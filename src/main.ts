@@ -4,7 +4,7 @@ import { yearsToMonths } from "./core/year-month";
 import { currentYearMonth } from "./state/clock";
 import { saveLanguagePreference } from "./state/language";
 import { createBlankPlan, createExamplePlan } from "./state/plan-document";
-import type { PlanDocument } from "./state/plan-document";
+import type { PlanDocument, PlanFields } from "./state/plan-document";
 import { withPlanChange } from "./state/plan-change";
 import { problemOf } from "./state/plan-problem";
 import { updatePlanFields } from "./state/plan-fields";
@@ -12,7 +12,7 @@ import { fitPlanName, renamePlan } from "./state/plan-name";
 import { planWithoutEvent } from "./state/plan-variants";
 import { planFileText, readPlanFile } from "./state/plan-file";
 import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, openSharedPlan as addSharedPlan, selectPlan, withPlanSetChange } from "./state/workspace";
-import type { PlanEntry, PlanSet, ScenarioView } from "./state/types";
+import type { AppState, PlanEntry, PlanSet, ScenarioView } from "./state/types";
 import { clearSavedPlans, loadSavedPlans, savePlans } from "./state/plan-storage";
 import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
 import { buildShareUrl, decodePlan, encodePlan } from "./state/share-link";
@@ -21,7 +21,7 @@ import { createStore } from "./state/store";
 import { depositChangeKey, oneTimeDepositKey, withdrawalKey } from "./state/timeline";
 import { addOneTimeDeposit, removeOneTimeDeposit, updateOneTimeDeposit } from "./state/one-time-deposits";
 import { loadThemePreference, onSystemThemeChange, saveThemePreference, systemPrefersDark } from "./state/theme";
-import { applyInflationAdjustment, createScenarioViewCache } from "./state/view-model";
+import { applyInflationAdjustment, buildScenarioView, createScenarioViewCache } from "./state/view-model";
 import { clearGoal, setGoal } from "./state/goal";
 import { addDepositChange, removeDepositChange, updateDepositChange } from "./state/deposit-changes";
 import { addWithdrawal, removeWithdrawal, updateWithdrawal } from "./state/withdrawals";
@@ -243,6 +243,24 @@ const openSharedPlan = async (token: string): Promise<void> => {
   }
 };
 
+/**
+ * The open plan with some fields changed, drawn as it would be but not saved: what a Plan card slider shows while it
+ * moves. Null for a change the plan's checks refuse (the sliders' ranges never give one).
+ */
+const previewOf = (state: AppState, patch: Partial<PlanFields>): ScenarioView | null => {
+  const entry = activeEntry(state);
+  let plan: PlanDocument;
+  try {
+    plan = updatePlanFields(entry.plan, patch);
+  } catch (error) {
+    // An invalid preview is simply not drawn; the value is checked again, with a notice, when it is let go.
+    if (error instanceof RangeError) return null;
+    throw error;
+  }
+  const nominal = buildScenarioView(plan, displayName(entry), yearsToMonths(state.viewHorizonYears ?? plan.horizonYears), String(entry.id));
+  return state.inflationAdjusted ? applyInflationAdjustment(nominal, plan.inflationPct) : nominal;
+};
+
 /** Runs the engine only when the plan or horizon changes, not on selection, theme or notice changes. */
 const scenarioView = createScenarioViewCache();
 
@@ -263,7 +281,7 @@ const render = (): void => {
     const view = viewOf(entry, state.viewHorizonYears ?? entry.plan.horizonYears);
     // Only the Compare card needs the other plans, so they are not drawn up with a single plan.
     const views = state.plans.length > 1 ? state.plans.map((plan) => viewOf(plan, plan.plan.horizonYears)) : [view];
-    renderApp(root, { view, views, tabs: state.plans.map((plan) => ({ id: plan.id, label: displayName(plan), origin: plan.origin })), state, isDark: isDark() }, actions);
+    renderApp(root, { view, views, preview: (patch) => previewOf(state, patch), tabs: state.plans.map((plan) => ({ id: plan.id, label: displayName(plan), origin: plan.origin })), state, isDark: isDark() }, actions);
   } catch (error) {
     console.error(error);
     renderErrorState(root, error, actions);
