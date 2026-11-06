@@ -1454,6 +1454,26 @@ button {
   color: var(--ink2);
 }
 
+/* Shown by index.html when JavaScript is off. */
+.noscript {
+  max-width: 560px;
+  margin: var(--space-4) auto;
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.noscript p {
+  margin: 0 0 var(--space-2);
+}
+
+.noscript p:last-child {
+  margin-bottom: 0;
+}
+
 .disclaimer {
   margin: 0;
   font-size: 12px;

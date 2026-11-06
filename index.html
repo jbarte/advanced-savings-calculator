@@ -10,18 +10,26 @@
     <meta property="og:title" content="Life Ledger: long-term financial planner" />
     <meta property="og:description" content="See what each money decision costs years ahead. Free, no sign-up, your plan stays in your browser." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jbarte.github.io/advanced-savings-calculator/" />
+    <meta property="og:image" content="https://jbarte.github.io/advanced-savings-calculator/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Life Ledger: long-term financial planner" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#e8e4de" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1c1a18" media="(prefers-color-scheme: dark)" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Life Ledger: long-term financial planner</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/geist-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
+    <noscript>
+      <div class="noscript">
+        <p><strong>Life Ledger needs JavaScript.</strong> Everything runs in your browser, so please turn JavaScript on and reload the page.</p>
+        <p lang="sv"><strong>Life Ledger kräver JavaScript.</strong> Allt körs i din webbläsare, så slå på JavaScript och ladda om sidan.</p>
+      </div>
+    </noscript>
     <div id="app"></div>
     <div id="announcer" class="visually-hidden" aria-live="polite"></div>
     <script type="module" src="/src/main.ts"></script>

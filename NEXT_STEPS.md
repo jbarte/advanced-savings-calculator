@@ -342,10 +342,11 @@ as the browser's and a switch in the app bar changes it (it saves the choice and
   language (`Apr 2031` / `apr. 2031`, `1.7M kr` / `1,7 mn kr`, `6.5` / `6,5`), `<html lang>`, and the example plan's label in
   the language it is made in. Left: the static page title and meta tags stay English, and plan data written earlier (a plan
   named "Plan 2" or labelled "New car") stays in the language it was written in.
-- **Privacy:** self-hosted Geist fonts. Loading them from Google sends every visitor's IP address to Google,
-  which contradicts "no tracking". Then a Content-Security-Policy meta tag (`default-src 'self'`).
-- **Page basics:** an Open Graph image for shared links, and a `<noscript>` message (the favicon, `theme-color`
-  and Open Graph text came with the rebrand).
+- **12B Privacy and page basics (in its PR):** Geist and Geist Mono are self-hosted (`public/fonts/`, Latin subset, 52 KB, with
+  their license), so no visitor's IP address goes to Google. A Content-Security-Policy meta tag (`default-src 'self'`, inline
+  style attributes allowed, no inline scripts) is added to the built page only. Also a link-preview image
+  (`public/og-image.png`, with `og:image`, `og:url` and `twitter:card`) and a `<noscript>` message in English and Swedish. A test
+  keeps the code free of network calls and the page and styles free of other hosts.
 - **Accessibility:** `--muted` text is about 3.1–3.4 : 1 against its backgrounds and white on the rose badge
   about 3.8 : 1 (4.5 : 1 is needed for small text); reduced motion misses some transitions; some explanations
   are only in `title` on disabled buttons; a hidden table of yearly values as an alternative to the chart; the
