@@ -41,7 +41,8 @@ export type PlanProblem =
   | { readonly code: "link-damaged" }
   | { readonly code: "link-too-large" }
   | { readonly code: "link-unsupported" }
-  | { readonly code: "not-a-plan-link" };
+  | { readonly code: "not-a-plan-link" }
+  | { readonly code: "file-too-large" };
 
 /** A RangeError that says what is wrong with a plan as a `PlanProblem`. */
 export class PlanError extends RangeError {

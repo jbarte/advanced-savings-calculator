@@ -10,6 +10,7 @@ import { problemOf } from "./state/plan-problem";
 import { updatePlanFields } from "./state/plan-fields";
 import { fitPlanName, renamePlan } from "./state/plan-name";
 import { planWithoutEvent } from "./state/plan-variants";
+import { planFileText, readPlanFile } from "./state/plan-file";
 import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, openSharedPlan as addSharedPlan, selectPlan, withPlanSetChange } from "./state/workspace";
 import type { PlanEntry, PlanSet, ScenarioView } from "./state/types";
 import { clearSavedPlans, loadSavedPlans, savePlans } from "./state/plan-storage";
@@ -30,10 +31,12 @@ import { renderDesignSystem } from "./ui/design-system";
 import { renderErrorState } from "./ui/error-state";
 import { createRenderScheduler } from "./ui/render-scheduler";
 import { applyLanguage } from "./ui/language";
+import { preparePrinting } from "./ui/print";
 import { applyTheme } from "./ui/theme";
 import { messages } from "./ui/i18n";
 
 applyLanguage();
+preparePrinting();
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app element");
@@ -179,6 +182,26 @@ const actions: Actions = {
     saveThemePreference(theme);
     store.update({ theme });
   },
+  planFile: () => {
+    const entry = activeEntry(store.get());
+    return { name: displayName(entry), text: planFileText(entry.plan) };
+  },
+  importPlanFile: (file) => {
+    if ("tooLarge" in file) {
+      store.update({ notice: { kind: "file-unreadable", problem: { code: "file-too-large" } } });
+      return;
+    }
+    let plan: PlanDocument;
+    try {
+      plan = readPlanFile(file.text);
+    } catch (error) {
+      if (!(error instanceof RangeError)) throw error;
+      store.update({ notice: { kind: "file-unreadable", problem: problemOf(error) } });
+      return;
+    }
+    commitPlanSet((set) => addPlan(set, plan));
+  },
+  reportDownloadFailed: () => store.update({ notice: { kind: "download-failed" } }),
   createShareLink: async () => buildShareUrl(currentPageUrl(), await encodePlan(activeEntry(store.get()).plan)),
   copyToClipboard: async (text) => {
     try {

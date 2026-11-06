@@ -13,6 +13,7 @@ export const sv: Messages = {
     decimals: "sv-SE",
     compact: "sv-SE",
     dates: "sv",
+    csvSeparator: ";",
   },
   language: {
     switchCode: "EN",
@@ -151,6 +152,16 @@ export const sv: Messages = {
       blank: "Ny tom plan",
       blankHint: "Börja från noll, med en typisk avkastning på 7 %.",
     },
+    planFile: {
+      title: "Planfil",
+      downloadPlan: "Ladda ner den här planen",
+      downloadPlanHint: "En fil du kan spara och öppna igen senare, i vilken webbläsare som helst.",
+      downloadFigures: "Ladda ner siffrorna per år",
+      downloadFiguresHint: "Saldo, insättningar, tillväxt och uttag varje år, som en CSV-fil för ett kalkylark.",
+      open: "Öppna en planfil",
+      openHint: "Lägger till planen från en fil bredvid dina planer. Inget ersätts.",
+      downloadFailed: "Filen kunde inte skapas. Din webbläsare kanske blockerar nedladdningar.",
+    },
     deletePlan: {
       title: (name: string): string => `Ta bort "${name}"?`,
       body: "Det här tar bort planen från webbläsaren. Det går inte att ångra. Dina andra planer finns kvar.",
@@ -162,6 +173,8 @@ export const sv: Messages = {
   planCard: {
     heading: "Plan",
     renameHover: "Byt namn på planen",
+    file: "Fil",
+    fileAria: "Planfil: ladda ner eller öppna",
     delete: "Ta bort plan",
     deleteAria: (name: string): string => `Ta bort ${name}`,
     newName: (number: number): string => `Plan ${number}`,
@@ -333,6 +346,7 @@ export const sv: Messages = {
     savedPlanUnreadable: (reason: string): string =>
       `Dina sparade planer kunde inte läsas, så exempelplanen visas. ${reason}. Din nästa ändring ersätter de sparade planerna.`,
     linkUnreadable: (reason: string): string => `Länken kunde inte öppnas. ${reason}. Din egen plan visas i stället.`,
+    fileUnreadable: (reason: string): string => `Filen kunde inte öppnas som en plan. ${reason}. Dina planer är oförändrade.`,
     storageBlocked: "Din webbläsare blockerar lagring, så dina ändringar sparas inte när du stänger sidan.",
   },
   problems: {
@@ -376,5 +390,6 @@ export const sv: Messages = {
     linkTooLarge: "Länken innehåller en för stor plan",
     linkUnsupported: "Den här webbläsaren kan inte öppna komprimerade länkar",
     notAPlanLink: "Det här är inte en planlänk",
+    fileTooLarge: "Filen är alldeles för stor för att vara en plan",
   },
 };

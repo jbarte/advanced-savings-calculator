@@ -7,9 +7,11 @@ one-time deposits, set a goal and see the monthly deposit it needs, and share th
 **Live:** https://jbarte.github.io/advanced-savings-calculator/ (the address keeps the project's first name, so
 existing links keep working).
 
-> **Status:** in development. Planning, saving, sharing, a custom horizon, an inflation adjusted view and goal
-> planning work, a plan can have a name, you can keep several plans as tabs, and the Compare card puts them side by
-> side. The app is in English and Swedish. See [NEXT_STEPS.md](NEXT_STEPS.md).
+![Life Ledger: the example plan, with its balance after 30 years, the four totals and the chart with a car purchase in 2031](docs/screenshot.png)
+
+> **Status:** milestones 1–12 are done: planning, saving, sharing, several plans compared side by side, goals,
+> an inflation adjusted view, English and Swedish, files and printing. Ideas for what comes next are in
+> [NEXT_STEPS.md](NEXT_STEPS.md).
 
 ## The problem
 
@@ -44,6 +46,11 @@ long-term cost of a decision like that visible.
   would need with all your planned events kept, and when you reach it. The goal is a dashed line on the chart.
 - **Your own time horizon**, from 1 to 40 years (with 10, 20 and 30 years one click away), with an interactive
   chart for balance, deposits, growth and withdrawals.
+- **Files and printing.** Download a plan as a file and open it again in any browser (it is added next to your plans,
+  nothing is replaced), download the yearly figures as a CSV file for a spreadsheet, or print the plan with its chart
+  and a table of every year.
+- **Accessible:** text contrast checked against WCAG, keyboard use throughout, the chart readable as a table, and no
+  motion when your system asks for less.
 - **Light and dark mode** that follows the system setting.
 - **Private by design:** no accounts, no backend and no tracking. All data stays in your
   browser. A shared link contains the plan itself in the part after `#`, which is never sent

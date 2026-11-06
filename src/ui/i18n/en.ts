@@ -15,6 +15,8 @@ export const en = {
     decimals: "en",
     compact: "en",
     dates: "en",
+    /** Between the values in a downloaded CSV file, as spreadsheets in the language expect it. */
+    csvSeparator: ",",
   },
   language: {
     /** The text on the language switch: the code of the language it switches to. */
@@ -155,6 +157,16 @@ export const en = {
       blank: "New empty plan",
       blankHint: "Start from nothing, with a typical 7 % return.",
     },
+    planFile: {
+      title: "Plan file",
+      downloadPlan: "Download this plan",
+      downloadPlanHint: "A file you can keep, or open again later in any browser.",
+      downloadFigures: "Download the yearly figures",
+      downloadFiguresHint: "Balance, deposits, growth and withdrawals each year, as a CSV file for a spreadsheet.",
+      open: "Open a plan file",
+      openHint: "Adds the plan from a file next to your plans. Nothing is replaced.",
+      downloadFailed: "The file could not be made. Your browser may be blocking downloads.",
+    },
     deletePlan: {
       title: (name: string): string => `Delete "${name}"?`,
       body: "This removes the plan from this browser. It can't be undone. Your other plans stay.",
@@ -166,6 +178,8 @@ export const en = {
   planCard: {
     heading: "Plan",
     renameHover: "Rename plan",
+    file: "File",
+    fileAria: "Plan file: download or open",
     delete: "Delete plan",
     deleteAria: (name: string): string => `Delete ${name}`,
     newName: (number: number): string => `Plan ${number}`,
@@ -338,6 +352,7 @@ export const en = {
     savedPlanUnreadable: (reason: string): string =>
       `Your saved plans could not be read, so the example plan is shown. ${reason}. Your next change replaces the saved plans.`,
     linkUnreadable: (reason: string): string => `That link could not be opened. ${reason}. Your own plan is shown instead.`,
+    fileUnreadable: (reason: string): string => `That file could not be opened as a plan. ${reason}. Your plans are unchanged.`,
     storageBlocked: "Your browser is blocking storage, so your changes will not be kept after you close this page.",
   },
   /** What is wrong with a plan, from the checks in src/state. Amounts and years are formatted by the caller. */
@@ -382,5 +397,6 @@ export const en = {
     linkTooLarge: "The link holds too large a plan",
     linkUnsupported: "This browser can't open compressed links",
     notAPlanLink: "This is not a plan link",
+    fileTooLarge: "The file is far too large to be a plan",
   },
 } as const;

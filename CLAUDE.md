@@ -31,7 +31,7 @@ choices, without signing up for anything.
 https://jbarte.github.io/advanced-savings-calculator/. No accounts and no backend. All data
 stays in the user's browser.
 
-**Status:** milestones 1–11 are done (10: all interface text in one typed file, ready for a second language; 11: a plan can have a name, several plans live as tabs, and they are compared in a chart and a table): the calculation engine runs, the start amount, monthly
+**Status:** milestones 1–12 are done (10: all interface text in one typed file; 11: a plan can have a name, several plans live as tabs, and they are compared in a chart and a table; 12: Swedish, self-hosted fonts and a CSP, accessibility, files and printing). Next are the ideas in NEXT_STEPS.md: the calculation engine runs, the start amount, monthly
 deposit, return and start date are editable, withdrawals can be added, edited and removed with
 the effect of every event shown, and the monthly deposit can be changed from a month or for a period
 (including a pause). One-time deposits can be added, and all events show on one numbered list and on the chart. The plan is saved in the browser and can be shared with a link. The horizon can be set freely, results can be shown inflation adjusted, and a savings goal shows the monthly deposit needed. [NEXT_STEPS.md](NEXT_STEPS.md) has the target scenario and the milestone plan.
@@ -136,6 +136,13 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   and the share dialog). The plan is renamed from the Plan card's title ("Plan", or the plan's name), which is a button (pencil icon) that opens
   `openRenameDialog` (`rename-dialog.ts`); there is no Name field. Typed text that ends up in the plan (the name, event labels) goes through `cleanText`
   (`src/state/plan-text.ts`): control characters become a space and the ends are trimmed.
+- **Plan files and printing.** The Plan card's "File" button opens `openFileDialog` (`src/ui/file-dialog.ts`): download the open
+  plan (`planFileText`, `src/state/plan-file.ts`: the plan document as indented JSON), download its yearly figures as CSV
+  (`figuresCsv` in `src/ui/csv.ts`, the rows of `yearlyPoints`, separator `messages.locale.csvSeparator`), or open a plan file
+  (`pickTextFile`, then `readPlanFile`: a size limit, then the same checks as a link; the plan is added with `addPlan`, and a bad
+  file gives the notice `file-unreadable`). Downloads are made from a Blob in memory (`src/ui/download.ts`); nothing leaves the
+  browser. `src/ui/print.ts` prints in the light theme with closed tables opened (`data-printing` on `<html>` while it does,
+  so the yearly table's toggle doesn't save that), and `@media print` in `app.css` hides the controls.
 - **Several plans are a `PlanSet`** (`src/state/types.ts`). `AppState` has `plans: PlanEntry[]` (`{ id, plan, origin }`,
   with `origin` `"example"`, `"own"` or `"shared"`), `activeId` and `returnId` (the plan to go back to when a shared
   one is left). There is no single `state.plan`: the open plan is `activeEntry(state)` (`src/state/workspace.ts`). The ids
@@ -432,6 +439,7 @@ with the toggle.
 ├── index.html                # Page shell: title, metas, favicon link; loads fonts and src/main.ts
 ├── public/favicon.svg        # The logo as favicon, with its own dark-mode colours
 ├── public/og-image.png       # 1200 × 630 card for link previews (index.html points to it by its full address)
+├── docs/screenshot.png       # The screenshot in the README (headless Chrome, 1280 px wide at 2x)
 ├── public/fonts/             # Geist and Geist Mono (Latin, variable woff2) and their license, OFL.txt
 ├── package.json              # Scripts and dev dependencies
 ├── tsconfig.json             # Strict TypeScript config
@@ -460,6 +468,7 @@ with the toggle.
     │   ├── workspace.ts      # PlanSet changes: add, select, delete, shared plan, withPlanSetChange (+ test)
     │   ├── read-workspace.ts # The saved set of plans: read, serialize, from a single plan (+ test)
     │   ├── comparison.ts     # buildComparison: lines and end figures of every plan for the Compare card (+ test)
+    │   ├── plan-file.ts      # planFileText, readPlanFile: a plan as a file, read with a size limit and the link checks (+ test)
     │   ├── plan-variants.ts  # planWithoutEvent: a copy of the plan without one event (+ test)
     │   ├── plan-name.ts      # renamePlan: give the plan a name, or remove it, validated (+ test)
     │   ├── plan-text.ts      # cleanText: control characters out, trimmed (used for names and labels)
@@ -497,6 +506,10 @@ with the toggle.
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers
+    │   ├── csv.ts            # figuresCsv, fileBaseName: the yearly figures as CSV, file names from plan names (+ test)
+    │   ├── download.ts       # downloadText, pickTextFile: files to and from the user's computer, in memory
+    │   ├── file-dialog.ts    # "Plan file": download the plan or its yearly figures, or open a plan file
+    │   ├── print.ts          # preparePrinting: light theme and opened tables for a printout
     │   ├── year-table.ts     # The chart's figures as a table, one row a year, in a <details> under the chart
     │   ├── topbar.ts         # Sticky app bar: brand, plan tabs (+ add), share, theme toggle
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)

@@ -1,5 +1,6 @@
 import type { DepositChangeDraft, GoalPlan, OneTimeDepositDraft, PlanFields, WithdrawalDraft } from "../state/plan-document";
 import type { Language } from "../state/language";
+import type { PickedFile } from "./download";
 import type { EventKey } from "../state/timeline";
 import type { Metric } from "../state/types";
 
@@ -43,6 +44,12 @@ export interface Actions {
   toggleTheme(): void;
   /** Switches the interface language. It is saved in this browser and the page reloads in the new language. */
   setLanguage(language: Language): void;
+  /** The open plan as the text of a plan file, and the name it is shown with. */
+  planFile(): { readonly name: string; readonly text: string };
+  /** Adds the plan in a file the user picked next to their plans, or says why it can't. */
+  importPlanFile(file: PickedFile): void;
+  /** Says that a download could not be made. */
+  reportDownloadFailed(): void;
   /** The link that opens the current plan for anyone. */
   createShareLink(): Promise<string>;
   copyToClipboard(text: string): Promise<boolean>;

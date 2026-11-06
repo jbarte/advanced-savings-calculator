@@ -1,4 +1,4 @@
-import { addMonths } from "../core/year-month";
+import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
 import type { EventStatus, ProjectionPoint, ScenarioView } from "../state/types";
 import { formatYearMonth } from "./format";
 import { messages } from "./i18n";
@@ -12,6 +12,14 @@ export const STATUS_LABELS: Record<EventStatus, string> = {
 /** The points up to the plan's horizon, which is where the chart and the headline end. */
 export function visiblePoints(scenario: ScenarioView): readonly ProjectionPoint[] {
   return scenario.points.filter((p) => p.month <= scenario.horizonMonths);
+}
+
+/**
+ * The points the yearly table and the yearly CSV show: the start month, then the same month every year, through the
+ * end of the horizon.
+ */
+export function yearlyPoints(scenario: ScenarioView): readonly ProjectionPoint[] {
+  return visiblePoints(scenario).filter((point) => point.month % MONTHS_PER_YEAR === 0);
 }
 
 export function lastPoint(scenario: ScenarioView): ProjectionPoint {
