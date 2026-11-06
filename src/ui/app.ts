@@ -12,6 +12,7 @@ import { renderChartCard, renderHero } from "./projection-card";
 import { renderCompareCard } from "./compare-card";
 import { renderGoalCard } from "./goal-card";
 import { renderInputsCard } from "./side-cards";
+import { captureCharts, glideCharts } from "./chart-glide";
 import { renderAppBar } from "./topbar";
 import type { PlanTab } from "./topbar";
 import { renderEventsSection } from "./events-section";
@@ -38,6 +39,11 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   const focused = document.activeElement;
   const focusKey = focused?.getAttribute("data-key");
   const fallbackKey = focused?.getAttribute("data-focus-next");
+
+  // What the charts drew and which plan the page showed, to glide from the old chart or fade in another plan.
+  const drawnBefore = captureCharts(root);
+  const planBefore = root.querySelector(".shell")?.getAttribute("data-plan") ?? null;
+  const planSwitched = planBefore !== null && planBefore !== String(state.activeId);
 
   const timeline = buildTimeline(active.withdrawals, active.depositChanges, active.oneTimeDeposits);
   let hero = renderHero(active, state, actions);
@@ -72,11 +78,11 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
 
   const shell = h(
     "div",
-    { class: "shell" },
+    { class: "shell", "data-plan": String(state.activeId) },
     renderAppBar(tabs, state.activeId, canAddPlan(state), active, isDark, actions),
     h(
       "main",
-      { class: "canvas" },
+      { class: planSwitched ? "canvas canvas--switched" : "canvas" },
       state.notice ? renderNotice(noticeText(state.notice), actions) : null,
       origin === "shared" ? renderSharedBanner(canAddPlan(state), actions) : null,
       hero,
@@ -94,6 +100,8 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   );
 
   root.replaceChildren(shell);
+  // Another plan fades in (see `.canvas--switched`); the same plan, changed, has its chart glide to the new shape.
+  if (!planSwitched) glideCharts(root, drawnBefore);
   document.title = active.planName === null ? messages.app.pageTitle : messages.app.pageTitleNamed(active.planName);
 
   const find = (key: string | null | undefined): HTMLElement | null =>

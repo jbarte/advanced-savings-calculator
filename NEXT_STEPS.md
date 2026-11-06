@@ -380,11 +380,10 @@ a decision before any build. They overlap, so they may become one milestone ("fe
   plan. Its first button is the plan's own horizon ("Plan · 25 yrs", selected on every visit), then 10, 20 and 30 years
   without the one that equals the plan's. The zoom is not saved or shared, and goes back to the plan's own when another plan
   opens or the plan's End year changes. The End year field is the one way to change the plan's horizon.
-- **Smooth transitions when the chart changes.** The page is redrawn from scratch on every change, so lines, bars and
-  numbers jump. To investigate: animating the line and the area between two states (the chart is plain SVG, so a path
-  can be morphed when both have the same number of points), counting numbers up or down, fading dialogs in and out, and
-  how to do it with `prefers-reduced-motion` respected and without breaking the focus and click rules in CLAUDE.md
-  (renders deferred one tick, elements replaced). Likely needs the chart to be updated in place instead of replaced.
+- **Smooth transitions (done, in its PR).** Decided: the chart line and area glide to their new shape, dialogs fade and rise in, and
+  another plan fades in when the tab is switched. The headline number and tiles don't count up. Everything is off under
+  `prefers-reduced-motion`. The chart glide is not a CSS animation: it moves the paths with the page's own frames, because the
+  page is redrawn from scratch and the CSS `d` property is not animatable everywhere.
 - **Overall polish.** The look stays as it is. The goal is a premium feel from small details, for example the
   animation above. A list to build up during the investigation: hover and press states, easing and durations as tokens,
   the chart cursor and tooltip, tab and dialog transitions, empty states, loading of the fonts without a jump, and the

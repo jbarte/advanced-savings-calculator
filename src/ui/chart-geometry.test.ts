@@ -9,6 +9,7 @@ import {
   bandExtent,
   chartGoalLine,
   isAllZero,
+  interpolatePath,
   linePath,
   monthToPercent,
   nearestIndex,
@@ -292,3 +293,28 @@ describe("valueToPercent", () => {
   });
 });
 
+
+describe("interpolatePath", () => {
+  const from = linePath([[0, 100], [50, 80], [100, 60]]);
+  const to = linePath([[0, 100], [50, 40], [100, 0]]);
+
+  it("is the first path at 0 and the second at 1", () => {
+    expect(interpolatePath(from, to, 0)).toBe(from);
+    expect(interpolatePath(from, to, 1)).toBe(to);
+  });
+
+  it("moves every number part of the way in between", () => {
+    expect(interpolatePath(from, to, 0.5)).toBe("M0.00 100.00 L50.00 60.00 L100.00 30.00");
+  });
+
+  it("works for an area, whose last points are the baseline", () => {
+    const a = areaPath([[0, 90], [100, 50]], 100);
+    const b = areaPath([[0, 70], [100, 10]], 100);
+    expect(interpolatePath(a, b, 0.5)).toBe("M0.00 80.00 L100.00 30.00 L100.00 100.00 L0.00 100.00 Z");
+  });
+
+  it("gives nothing for paths of different shapes, such as a different number of points", () => {
+    expect(interpolatePath(from, linePath([[0, 100], [100, 0]]), 0.5)).toBeNull();
+    expect(interpolatePath("", to, 0.5)).toBeNull();
+  });
+});

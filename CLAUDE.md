@@ -399,6 +399,12 @@ with the toggle.
   subtitle, the chart and Compare meta lines, the events total, the Effect column header) is drawn with `renderSteadyText`:
   both wordings in one grid cell, the unused one `visibility: hidden`, so the line is as tall as the taller wording (the
   adjusted one is longer and can wrap). Use it for any new text that changes with a view switch.
+- **Motion is small and optional.** A change to the open plan makes each chart path glide from where it was drawn to its new shape
+  (`captureCharts` reads the old paths before the page is redrawn, `glideCharts` in `src/ui/chart-glide.ts` moves them with
+  `requestAnimationFrame` over 280 ms using `interpolatePath`; only between paths with the same number of points, so a new
+  horizon just appears). A Plan card slider's live preview doesn't glide (the drag is the motion), and switching plans fades the
+  page in instead (`.canvas--switched`, keyed on `data-plan` on the shell). Dialogs fade and rise in (`.modal[open]`). Under
+  `prefers-reduced-motion` the glide doesn't run, transitions and animations are off, except the spinner.
 - **No white highlights or glow.** The `--shadow-*` tokens contain only dark shadows (plus the edge).
   Do not add `rgb(255 255 255 / …)` to a shadow. Translucent white fills on coloured surfaces
   (`--on-color-fill`) are fine, since they are fills and not light.
@@ -524,6 +530,7 @@ with the toggle.
     │   ├── announcer.ts      # announce(): reads notices out once through #announcer
     │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
+    │   ├── chart-glide.ts    # captureCharts, glideCharts: the chart paths glide to their new shape
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers
     │   ├── csv.ts            # figuresCsv, fileBaseName: the yearly figures as CSV, file names from plan names (+ test)
