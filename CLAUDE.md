@@ -399,6 +399,16 @@ with the toggle.
   subtitle, the chart and Compare meta lines, the events total, the Effect column header) is drawn with `renderSteadyText`:
   both wordings in one grid cell, the unused one `visibility: hidden`, so the line is as tall as the taller wording (the
   adjusted one is longer and can wrap). Use it for any new text that changes with a view switch.
+- **Small details are tokens and global rules, not one-offs.** Timings and easing are `--duration-fast` / `--duration-base` /
+  `--duration-slow` and `--ease-out`, and a pressed control shrinks with `--press`; use them, not new numbers. Digits are tabular
+  everywhere (`body`), headings and short texts wrap balanced, `accent-color`, the caret and text selection use the green, a tap
+  has no grey flash and no double-tap delay, and the sticky bar and the page edges respect the notch (`viewport-fit=cover`,
+  `env(safe-area-inset-*)`). Anything scrolled to or focused stops below the app bar: `html { scroll-padding-top:
+  var(--appbar-clearance) }` is 88 px, and 144 px under 860 px where the bar has two rows; change it with the bar's height.
+  While Geist loads, "Geist Fallback" (Arial) and "Geist Mono Fallback" (Courier New) are sized to Geist's measured metrics in
+  `fonts.css`, so the swap barely moves the layout. Switching the theme blends the colours (`applyTheme` adds `.theme-fading`
+  for 260 ms, not on load and not under reduced motion). `motionAllowed()` (`src/ui/motion.ts`) is the one check for reduced motion
+  in script.
 - **Motion is small and optional.** A change to the open plan makes each chart path glide from where it was drawn to its new shape
   (`captureCharts` reads the old paths before the page is redrawn, `glideCharts` in `src/ui/chart-glide.ts` moves them with
   `requestAnimationFrame` over 280 ms using `interpolatePath`; only between paths with the same number of points, so a new
@@ -530,6 +540,7 @@ with the toggle.
     │   ├── announcer.ts      # announce(): reads notices out once through #announcer
     │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
+    │   ├── motion.ts         # motionAllowed(): false when the system asks for less motion
     │   ├── chart-glide.ts    # captureCharts, glideCharts: the chart paths glide to their new shape
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers

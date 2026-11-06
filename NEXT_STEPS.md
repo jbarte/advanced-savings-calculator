@@ -384,7 +384,11 @@ a decision before any build. They overlap, so they may become one milestone ("fe
   another plan fades in when the tab is switched. The headline number and tiles don't count up. Everything is off under
   `prefers-reduced-motion`. The chart glide is not a CSS animation: it moves the paths with the page's own frames, because the
   page is redrawn from scratch and the CSS `d` property is not animatable everywhere.
-- **Overall polish.** The look stays as it is. The goal is a premium feel from small details, for example the
+- **Overall polish (in progress).** Chosen with the user from a list: aligned digits, balanced wrapping, fonts without a jump,
+  brand-coloured selection and controls, phone details, focus clear of the sticky bar, easing and press tokens, a theme fade (first
+  PR, done); chart details (a draw-in, a smoother tooltip, badge entrance and selection ring) and safety nets (undo after removing an
+  event or deleting a plan, helpful empty states) follow in their own PRs. The original note:
+- **Overall polish, the original note.** The look stays as it is. The goal is a premium feel from small details, for example the
   animation above. A list to build up during the investigation: hover and press states, easing and durations as tokens,
   the chart cursor and tooltip, tab and dialog transitions, empty states, loading of the fonts without a jump, and the
   touch feel on a phone. Each detail is judged against the design rules in CLAUDE.md (no white glow, tokens only) and
