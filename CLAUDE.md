@@ -365,6 +365,14 @@ with the toggle.
   `--shadow-lift` (raised: cards, buttons), `--shadow-float` (elevated: featured card, tooltip).
 - Radius steps are 4 / 8 / 12px, border thickness 1 / 1.5 / 2px, icon sizes 16 / 20 / 24px and spacing
   4 / 8 / 16 / 24px, all as tokens.
+- **Accessibility is checked, not hoped for.** `src/styles/contrast.test.ts` reads `tokens.css` and fails when a text colour is
+  under 4.5 : 1 on a background it sits on, or the focus ring, the primary green, the withdrawal colour or a plan line is under
+  3 : 1 against the card, in both themes. Change a colour token and run the tests. Other rules: nothing moves under
+  `prefers-reduced-motion` (one rule turns every transition off); a control that is switched off has its reason read out
+  with it (`aria-describedby`, `renderHiddenHint`) and, where there is room, shown (the event and shared-plan hints), since a
+  disabled button can't be focused and a `title` is not read; a scrolling area is reachable with the keyboard and named
+  (`tabindex="0"`, `role="region"`); small click targets are at least 24 px (an input fills its whole field); and the chart has a
+  table of its figures under it (`year-table.ts`, a native `<details>`, open state in `AppState.yearTableOpen`).
 - **No white highlights or glow.** The `--shadow-*` tokens contain only dark shadows (plus the edge).
   Do not add `rgb(255 255 255 / …)` to a shadow. Translucent white fills on coloured surfaces
   (`--on-color-fill`) are fine, since they are fills and not light.
@@ -489,6 +497,7 @@ with the toggle.
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers
+    │   ├── year-table.ts     # The chart's figures as a table, one row a year, in a <details> under the chart
     │   ├── topbar.ts         # Sticky app bar: brand, plan tabs (+ add), share, theme toggle
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
@@ -516,6 +525,7 @@ with the toggle.
     └── styles/
         ├── fonts.css         # @font-face for the self-hosted Geist fonts
         ├── tokens.css        # Colour tokens (light/dark)
+        ├── contrast.test.ts  # Checks the colour tokens against WCAG 2.2 contrast in both themes
         └── app.css           # Component styles
 ```
 

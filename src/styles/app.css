@@ -475,7 +475,7 @@ button {
 /* Chart sizes, shared with the badge layout in chart-events.ts (which sets --lane per badge). */
 .chart {
   --chart-height: 280px;
-  --badge-size: 22px;
+  --badge-size: 24px;
   --badge-lane: 26px;
   display: grid;
   grid-template-columns: 60px minmax(0, 1fr);
@@ -1074,6 +1074,8 @@ button {
 .field__control input {
   flex: 1;
   min-width: 0;
+  /* The whole height of the field is the input, so the click target is the field, not just the line of text. */
+  height: 100%;
   border: 0;
   background: none;
   outline: none;
@@ -1454,6 +1456,58 @@ button {
   color: var(--ink2);
 }
 
+.notice__hint {
+  color: var(--ink2);
+}
+
+/* The table of yearly figures under the chart. */
+.years {
+  margin-top: var(--space-3);
+}
+
+.years__summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-1);
+  color: var(--ink2);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.years__summary:hover {
+  color: var(--ink);
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+}
+
+.years__summary:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus);
+}
+
+.years__table {
+  margin-top: var(--space-2);
+}
+
+/* Thirty-odd rows scroll inside the card; the header stays in view. */
+.years__scroll {
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.years__scroll thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+
+.compare-scroll:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus);
+}
+
 /* Shown by index.html when JavaScript is off. */
 .noscript {
   max-width: 560px;
@@ -1561,12 +1615,11 @@ button {
     animation-duration: 2.4s;
   }
 
-  .btn-solid,
-  .btn-secondary,
-  .btn-round,
-  .tile,
-  .switch::after {
-    transition: none;
+  /* Nothing fades or slides: the hover lift and the switch jump straight to where they end. */
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
   }
 }
 

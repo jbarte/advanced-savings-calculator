@@ -142,6 +142,14 @@ export function openModal(dialog: HTMLDialogElement): void {
   dialog.showModal();
 }
 
+/**
+ * An explanation for a control that is switched off, read out with it (`aria-describedby`). A disabled button can't
+ * be focused, and a `title` is not read by most screen readers, so the reason also goes here, out of sight.
+ */
+export function renderHiddenHint(id: string, text: string): HTMLElement {
+  return h("span", { id, class: "visually-hidden" }, text);
+}
+
 /* ---------- Step indicator ---------- */
 
 /** `current` is the zero-based index of the active step; earlier steps are done. */

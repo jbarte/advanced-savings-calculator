@@ -158,7 +158,7 @@ function renderTable(comparison: Comparison, openName: string, actions: Actions)
 
   return h(
     "div",
-    { class: "compare-scroll" },
+    { class: "compare-scroll", tabindex: 0, role: "region", "aria-label": messages.compare.tableLabel },
     h(
       "table",
       { class: "compare-table", "aria-label": messages.compare.tableLabel },

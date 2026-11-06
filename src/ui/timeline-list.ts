@@ -7,6 +7,7 @@ import type { AppState, PlannedDepositChange, ScenarioView } from "../state/type
 import type { Actions } from "./actions";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
+import { renderHiddenHint } from "./components";
 import { h } from "./dom";
 import { formatMoney, formatSignedMoney, formatSignedMoneyCompact, formatYearMonth } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
@@ -223,10 +224,12 @@ function renderRow(
           disabled: !canCopy,
           title: canCopy ? messages.list.skipHover : messages.app.plansFull(PLAN_LIMITS.maxPlans),
           "aria-label": messages.list.skipAria(parts.title),
+          "aria-describedby": canCopy ? undefined : `skip-hint-${entry.key}`,
           onclick: () => actions.copyWithoutEvent(entry.key),
         },
         messages.list.skip,
       ),
+      canCopy ? null : renderHiddenHint(`skip-hint-${entry.key}`, messages.app.plansFull(PLAN_LIMITS.maxPlans)),
       h(
         "button",
         {

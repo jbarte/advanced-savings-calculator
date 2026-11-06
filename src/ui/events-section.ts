@@ -45,6 +45,7 @@ export function renderEventsSection(
       "data-key": "event-add",
       disabled: everythingFull,
       title: everythingFull ? messages.events.full : undefined,
+      "aria-describedby": everythingFull ? "event-add-hint" : undefined,
       onclick: () => openEventTypeDialog({ full, onChoose: choose }),
     },
     messages.events.add,
@@ -78,6 +79,7 @@ export function renderEventsSection(
       h("h2", {}, messages.events.heading),
       h("div", { class: "card__head-side" }, h("span", { class: "card__meta" }, messages.events.count(total)), addButton),
     ),
+    everythingFull ? h("p", { id: "event-add-hint", class: "card__meta" }, messages.events.fullHint) : null,
     totalLine,
     body,
   );

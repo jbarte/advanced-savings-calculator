@@ -24,13 +24,13 @@
 
   --ink: #3d3833;
   --ink2: #5f5850;
-  --muted: #877f75;
+  --muted: #68615a;
 
-  --solid: #5f7f6a;
-  --solid-deep: #4d6b58;
-  --solid-hover: #6d8f78;
+  --solid: #587864;
+  --solid-deep: #4a6753;
+  --solid-hover: #5c7c67;
   --on-solid: #ffffff;
-  --on-solid-muted: #f3e8e3;
+  --on-solid-muted: #fbf6f4;
   --solid-track: #7d9c86;
 
   --elevated: #a8786b;
@@ -39,8 +39,8 @@
   --accent: oklch(0.8 0.06 150);
   --accent-soft: oklch(0.92 0.03 150);
   --accent-ink: oklch(0.4 0.07 155);
-  --focus: oklch(0.68 0.14 240);
-  --danger: #c0503f;
+  --focus: #3f7cc0;
+  --danger: #a84030;
   --edge: #b8ae9f; /* thin edge of raised surfaces, about 1.7 : 1 against the page */
 
   --shadow-inner: inset 3px 3px 7px rgb(120 105 88 / 0.28);
@@ -57,7 +57,7 @@
 
   /* Event kinds: one set of colours for the chart, the list and the legend. They point at theme colours, so
      the dark themes follow without their own copies. */
-  --kind-withdrawal: var(--elevated);
+  --kind-withdrawal: var(--elevated-deep);
   --kind-deposit-change: var(--solid);
   --kind-one-time-deposit: var(--accent-ink);
   --kind-one-time-deposit-fill: var(--accent-soft);
@@ -142,11 +142,13 @@
     --ink2: #cbc3b9;
     --muted: #968d82;
 
-    --solid: #5f8a6c;
+    --solid: #55805f;
     --solid-deep: #4d7459;
-    --solid-hover: #6c9979;
+    --solid-hover: #56815f;
     --on-solid: #ffffff;
-    --on-solid-muted: #f0e3dd;
+    --on-solid-muted: #ffffff;
+    /* The withdrawal colour: at least 3 : 1 on the dark card (lines, markers) and 4.5 : 1 under white text (badges). */
+    --kind-withdrawal: #966a5f;
     --solid-track: #7aa586;
 
     --elevated: #8d625a;
@@ -198,11 +200,12 @@
   --ink2: #cbc3b9;
   --muted: #968d82;
 
-  --solid: #5f8a6c;
+  --solid: #55805f;
   --solid-deep: #4d7459;
-  --solid-hover: #6c9979;
+  --solid-hover: #56815f;
   --on-solid: #ffffff;
-  --on-solid-muted: #f0e3dd;
+  --on-solid-muted: #ffffff;
+  --kind-withdrawal: #966a5f;
   --solid-track: #7aa586;
 
   --elevated: #8d625a;

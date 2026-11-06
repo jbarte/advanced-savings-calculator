@@ -347,10 +347,11 @@ as the browser's and a switch in the app bar changes it (it saves the choice and
   style attributes allowed, no inline scripts) is added to the built page only. Also a link-preview image
   (`public/og-image.png`, with `og:image`, `og:url` and `twitter:card`) and a `<noscript>` message in English and Swedish. A test
   keeps the code free of network calls and the page and styles free of other hosts.
-- **Accessibility:** `--muted` text is about 3.1–3.4 : 1 against its backgrounds and white on the rose badge
-  about 3.8 : 1 (4.5 : 1 is needed for small text); reduced motion misses some transitions; some explanations
-  are only in `title` on disabled buttons; a hidden table of yearly values as an alternative to the chart; the
-  Start month field may jump while editing; the month input is untested in Firefox and Safari.
+- **12C Accessibility (in its PR):** colour contrast fixed and tested (muted text, danger red, white text on the green and
+  on the withdrawal rose, the focus ring), all transitions off under reduced motion, the reasons for disabled controls read out
+  and shown, scrolling tables reachable by keyboard, 24 px click targets, and a table of yearly figures under the chart. Left:
+  the Start month field may jump while editing (could not be reproduced here: the pane can't type into a native month input),
+  and the month input is untested in Firefox and Safari.
 - **Export:** the plan as a JSON file and back (left out of milestone 5), a CSV of yearly values, print styles.
 - **README:** a screenshot and an updated feature list.
 

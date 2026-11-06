@@ -47,6 +47,7 @@ const store = createStore({
   storage: startup.storage,
   metric: "balance",
   selectedEvent: null,
+  yearTableOpen: false,
   inflationAdjusted: false,
   chartMonth: null,
   theme: loadThemePreference(),
@@ -111,6 +112,7 @@ const actions: Actions = {
   selectEvent: (selectedEvent, month) => store.update({ selectedEvent, ...(month === undefined ? {} : { chartMonth: month }) }),
   setChartMonth: (chartMonth) => store.update({ chartMonth }),
   setInflationAdjusted: (inflationAdjusted) => store.update({ inflationAdjusted }),
+  setYearTableOpen: (yearTableOpen) => store.update({ yearTableOpen }),
   updatePlan: (patch) => commitPlan((plan) => updatePlanFields(plan, patch)),
   renamePlan: (name) => commitPlan((plan) => renamePlan(plan, name)),
   startFromScratch: () => {
