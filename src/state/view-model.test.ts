@@ -6,7 +6,8 @@ import type { ScenarioView } from "./types";
 import { PLAN_SCENARIO_ID, PROJECTION_MONTHS, applyInflationAdjustment, buildScenarioView, createScenarioViewCache, toPlanInput } from "./view-model";
 
 const plan: PlanDocument = {
-  version: 3,
+  version: 4,
+  name: null,
   start: { year: 2026, month: 1 },
   startAmount: 5_000_000,
   monthlyDeposit: 300_000,
@@ -54,6 +55,11 @@ describe("buildScenarioView", () => {
     expect(PROJECTION_MONTHS).toBe(480);
     expect(view.points).toHaveLength(481);
     expect(view.points[0]?.month).toBe(0);
+  });
+
+  it("carries the plan's own name next to the shown name", () => {
+    expect(buildScenarioView(plan, "My plan", HORIZON_30).planName).toBeNull();
+    expect(buildScenarioView({ ...plan, name: "House 2031" }, "House 2031", HORIZON_30).planName).toBe("House 2031");
   });
 
   it("describes the plan for the UI", () => {

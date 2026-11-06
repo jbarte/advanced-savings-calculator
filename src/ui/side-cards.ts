@@ -3,10 +3,11 @@ import { PLAN_LIMITS } from "../state/plan-document";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { renderTextField } from "./components";
-import { h } from "./dom";
+import { h, s } from "./dom";
 import { formatKronor, formatMoneyCompact } from "./format";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
+import { openRenameDialog } from "./rename-dialog";
 import { openStartOverDialog } from "./start-over-dialog";
 import { lastPoint } from "./view-helpers";
 import { messages } from "./i18n";
@@ -53,6 +54,30 @@ function planStatusText(state: AppState): string {
   return isExample ? status.example : status.own;
 }
 
+const pencilIcon = (): SVGSVGElement =>
+  s("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" }, s("path", { d: "M4 20h4L19 9l-4-4L4 16v4ZM13.5 6.5l4 4" }));
+
+/** The card's heading: "Plan", or the plan's name. It is also the way to rename the plan, so it is a button inside the heading. */
+function renderPlanTitle(scenario: ScenarioView, actions: Actions): HTMLElement {
+  return h(
+    "h2",
+    { id: "inputs-heading" },
+    h(
+      "button",
+      {
+        class: "card__title",
+        type: "button",
+        "data-key": "plan-rename",
+        title: messages.planCard.renameHover,
+        "aria-label": messages.planCard.renameAria(scenario.planName),
+        onclick: () => openRenameDialog({ name: scenario.planName, onSave: (name) => actions.renamePlan(name) }),
+      },
+      scenario.planName ?? messages.planCard.heading,
+      pencilIcon(),
+    ),
+  );
+}
+
 function renderPlanActions(state: AppState, actions: Actions): HTMLElement {
   const isExample = state.planOrigin === "example";
   const status = h("span", { class: "card__meta" }, planStatusText(state));
@@ -94,7 +119,7 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
   return h(
     "section",
     { class: "card", "aria-labelledby": "inputs-heading" },
-    h("div", { class: "card__head" }, h("h2", { id: "inputs-heading" }, messages.planCard.heading), side),
+    h("div", { class: "card__head" }, renderPlanTitle(scenario, actions), side),
     h(
       "div",
       { class: "fields" },

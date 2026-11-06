@@ -1102,6 +1102,48 @@ button {
   display: none;
 }
 
+.card__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  border-radius: var(--radius-1);
+  cursor: pointer;
+  min-width: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.card__title svg {
+  flex: none;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card__title:hover {
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+}
+
+.card__title:hover svg {
+  stroke: var(--ink);
+}
+
+.card__title:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus);
+}
+
 .card__head-side {
   display: flex;
   align-items: center;

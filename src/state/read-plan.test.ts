@@ -32,7 +32,7 @@ describe("readPlanDocument", () => {
   });
 
   it("says when a plan comes from a newer version, and rejects other versions", () => {
-    expect(() => readPlanDocument({ ...asJson(full), version: 4 })).toThrow(/newer version/);
+    expect(() => readPlanDocument({ ...asJson(full), version: 5 })).toThrow(/newer version/);
     expect(() => readPlanDocument({ ...asJson(full), version: "1" })).toThrow(RangeError);
     const { version: _version, ...noVersion } = asJson(full);
     expect(() => readPlanDocument(noVersion)).toThrow(RangeError);
@@ -113,7 +113,7 @@ describe("upgrading a version 1 plan", () => {
 
   it("opens with a 30-year horizon and 2 % inflation, as the page showed before", () => {
     const upgraded = readPlanDocument(versionOne(full));
-    expect(upgraded).toEqual({ ...full, version: 3, horizonYears: 30, inflationPct: 2, goal: null });
+    expect(upgraded).toEqual({ ...full, version: 4, horizonYears: 30, inflationPct: 2, goal: null });
   });
 
   it("still checks everything else", () => {
@@ -169,3 +169,35 @@ describe("the goal in the plan (version 3)", () => {
   });
 });
 
+
+describe("the plan's name (version 4)", () => {
+  const named = { ...asJson(full), name: "House 2031" };
+
+  it("reads a name, and null for no name", () => {
+    expect(readPlanDocument(named).name).toBe("House 2031");
+    expect(readPlanDocument({ ...named, name: null }).name).toBeNull();
+  });
+
+  it("opens versions 1, 2 and 3 with no name", () => {
+    const { name: _name, ...v3 } = asJson(full);
+    expect(readPlanDocument({ ...v3, version: 3 })).toEqual({ ...full, name: null });
+    expect(readPlanDocument({ ...v3, version: 2 })).toEqual({ ...full, goal: null, name: null });
+  });
+
+  it("requires the name field in a version 4 plan, as text or null", () => {
+    const { name: _name, ...without } = asJson(full);
+    expect(() => readPlanDocument(without)).toThrow(RangeError);
+    expect(() => readPlanDocument({ ...named, name: 5 })).toThrow(RangeError);
+  });
+
+  it("cleans a name, turns an empty one into no name and rejects one that is too long", () => {
+    expect(readPlanDocument({ ...named, name: "  Anna\tand\nme " }).name).toBe("Anna and me");
+    expect(readPlanDocument({ ...named, name: "   " }).name).toBeNull();
+    expect(() => readPlanDocument({ ...named, name: "x".repeat(PLAN_LIMITS.maxNameLength + 1) })).toThrow(RangeError);
+  });
+
+  it("cleans control characters out of event labels, so an old save with one still opens", () => {
+    const raw = { ...named, withdrawals: [{ id: 1, date: { year: 2031, month: 1 }, amount: 100, label: "New\tcar" }] };
+    expect(readPlanDocument(raw).withdrawals[0]?.label).toBe("New car");
+  });
+});

@@ -11,6 +11,7 @@ const EVERY_PROBLEM: readonly PlanProblem[] = [
   { code: "percent", field: "annualReturn", min: -100, max: 30 },
   { code: "horizon", min: 1, max: 40 },
   { code: "label", kind: "deposit-change", max: 40 },
+  { code: "plan-name", max: 40 },
   { code: "too-many", kind: "one-time-deposit", max: 10 },
   { code: "end-before-start" },
   { code: "newer-version" },

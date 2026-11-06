@@ -48,6 +48,8 @@ describe("interface messages", () => {
     expect(messages.events.count(3)).toBe("3 events");
     expect(messages.goalCard.title("Nov 2056")).toBe("Goal by Nov 2056");
     expect(messages.inputErrors.percentMin(-100)).toBe("Use -100 % or more");
+    expect(messages.planCard.renameAria(null)).toBe("Plan: rename");
+    expect(messages.planCard.renameAria("House 2031")).toBe('Plan "House 2031": rename');
   });
 
   it("makes a translation that misses a text, or has the wrong shape, a type error", () => {

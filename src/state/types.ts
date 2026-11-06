@@ -104,6 +104,8 @@ export interface GoalSummary {
 export interface ScenarioView {
   readonly id: string;
   readonly name: string;
+  /** The name the user gave the plan, or null. `name` is what is shown: this, or a text for where the plan came from. */
+  readonly planName: string | null;
   readonly start: YearMonth;
   readonly startAmount: Ore;
   readonly monthlyDeposit: Ore;

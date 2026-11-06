@@ -18,7 +18,8 @@ function largestPlan(): PlanDocument {
   const date = { year: 2099, month: 12 };
   const many = <T>(n: number, make: (id: number) => T): T[] => Array.from({ length: n }, (_, i) => make(i + 1));
   return {
-    version: 3,
+    version: 4,
+    name: "N".repeat(PLAN_LIMITS.maxNameLength),
     start: { year: 2000, month: 1 },
     startAmount: PLAN_LIMITS.maxStartAmount,
     monthlyDeposit: PLAN_LIMITS.maxMonthlyDeposit,
@@ -75,6 +76,14 @@ describe("encodePlan and decodePlan", () => {
   it("keeps the link of the largest plan short enough to paste", async () => {
     const compressed = await encodePlan(largestPlan());
     expect(compressed.length).toBeLessThan(4000);
+  });
+});
+
+describe("a named plan", () => {
+  it("keeps its name through a link, compressed or not", async () => {
+    const named = { ...createBlankPlan({ year: 2026, month: 1 }), name: "Anna's pension" };
+    expect(await decodePlan(await encodePlan(named))).toEqual(named);
+    expect(await decodePlan(await encodePlan(named, { compress: false }))).toEqual(named);
   });
 });
 

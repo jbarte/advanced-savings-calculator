@@ -31,6 +31,7 @@ export type PlanProblem =
   | { readonly code: "percent"; readonly field: PercentField; readonly min: number; readonly max: number }
   | { readonly code: "horizon"; readonly min: number; readonly max: number }
   | { readonly code: "label"; readonly kind: PlanEventKind; readonly max: number }
+  | { readonly code: "plan-name"; readonly max: number }
   | { readonly code: "too-many"; readonly kind: PlanEventKind; readonly max: number }
   | { readonly code: "end-before-start" }
   | { readonly code: "newer-version" }

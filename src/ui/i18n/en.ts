@@ -44,6 +44,8 @@ export const en = {
   app: {
     brandName: "Life",
     brandSuffix: " Ledger",
+    pageTitle: "Life Ledger: long-term financial planner",
+    pageTitleNamed: (name: string): string => `${name} · Life Ledger`,
     scenarios: "Scenarios",
     newScenarioSoon: "New scenario (coming soon)",
     disclaimer: "Projections assume a constant return and are estimates only. This is not financial advice.",
@@ -76,6 +78,7 @@ export const en = {
   },
   share: {
     title: "Share this plan",
+    titleNamed: (name: string): string => `Share "${name}"`,
     button: "Share",
     privacyNote:
       "Anyone with this link can see your plan: the amounts, dates and labels. The plan is inside the link itself, " +
@@ -124,10 +127,17 @@ export const en = {
       from: "From month",
       until: "Until month (optional, leave empty for no end)",
     },
+    rename: {
+      title: "Rename plan",
+      label: "Name",
+      hint: "Shown at the top of the page and when you share the plan. Leave it empty for no name.",
+    },
     goal: { add: "Set a goal", edit: "Edit goal", addConfirm: "Set goal", amount: "I want to have", by: "By" },
   },
   planCard: {
     heading: "Plan",
+    renameHover: "Rename plan",
+    renameAria: (name: string | null): string => (name === null ? "Plan: rename" : `Plan "${name}": rename`),
     startOver: "Start over",
     names: { example: "Example plan", own: "My plan", shared: "Shared plan" },
     status: {
@@ -259,6 +269,7 @@ export const en = {
     monthRange: "The month must be between 01 and 12",
     yearBetween: (min: number, max: number): string => `Use a year between ${min} and ${max}`,
     labelLength: (max: number): string => `Use ${max} characters or fewer`,
+    nameLength: (max: number): string => `Use ${max} characters or fewer`,
     pickOrLater: (month: string): string => `Pick ${month} or later`,
     endBeforeStart: "The end month can't be before the start month",
   },
@@ -273,6 +284,7 @@ export const en = {
   /** What is wrong with a plan, from the checks in src/state. Amounts and years are formatted by the caller. */
   problems: {
     fields: {
+      name: "Name",
       startAmount: "Start amount",
       monthlyDeposit: "Monthly deposit",
       withdrawalAmount: "Withdrawal amount",
@@ -302,6 +314,7 @@ export const en = {
       depositChange: (max: number): string => `A plan can have at most ${max} deposit changes`,
       oneTimeDeposit: (max: number): string => `A plan can have at most ${max} one-time deposits`,
     },
+    planName: (max: number): string => `The plan name must be 1 to ${max} characters`,
     endBeforeStart: "The end month can't be before the start month",
     newerVersion: "It was made by a newer version of this app",
     damaged: "It is damaged",

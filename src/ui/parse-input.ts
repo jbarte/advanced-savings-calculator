@@ -118,6 +118,13 @@ export function parseLabel(text: string, fallback: string): ParseResult<string> 
   return { ok: true, value: label };
 }
 
+/** A plan's name: up to `maxNameLength` characters, and empty is fine (the plan has no name). */
+export function parsePlanName(text: string): ParseResult<string> {
+  const name = text.trim();
+  if (name.length > PLAN_LIMITS.maxNameLength) return fail(messages.inputErrors.nameLength(PLAN_LIMITS.maxNameLength));
+  return { ok: true, value: name };
+}
+
 /** An event's month that is not before `start`. */
 export function parseMonthOnOrAfter(text: string, start: YearMonth): ParseResult<YearMonth> {
   const result = parseYearMonth(text, PLAN_LIMITS.maxEventYear);

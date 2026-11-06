@@ -72,7 +72,7 @@ export function renderAppBar(
       type: "button",
       "data-key": "share",
       "aria-label": messages.share.title,
-      onclick: () => void openShareDialog(actions),
+      onclick: () => void openShareDialog(actions, active.planName),
     },
     h("span", { class: "btn-solid__icon", "aria-hidden": "true" }, "↗"),
     h("span", { class: "appbar__share-label" }, messages.share.button),

@@ -2,6 +2,7 @@ import type { YearMonth } from "../core/year-month";
 import { DEFAULT_HORIZON_YEARS, DEFAULT_INFLATION_PCT, PLAN_LIMITS } from "./plan-document";
 import type { DepositChangeEvent, GoalPlan, OneTimeDepositEvent, PlanDocument, WithdrawalEvent } from "./plan-document";
 import { failWith } from "./plan-problem";
+import { cleanText } from "./plan-text";
 import { validatePlanDocument } from "./validate-plan";
 
 /*
@@ -53,7 +54,7 @@ function readWithdrawal(value: unknown): WithdrawalEvent {
     id: numberField(w, "id", "A withdrawal"),
     date: yearMonth(w["date"], "A withdrawal's date"),
     amount: numberField(w, "amount", "A withdrawal"),
-    label: textField(w, "label", "A withdrawal").trim(),
+    label: cleanText(textField(w, "label", "A withdrawal")),
   };
 }
 
@@ -65,7 +66,7 @@ function readDepositChange(value: unknown): DepositChangeEvent {
     startDate: yearMonth(c["startDate"], "A deposit change's start"),
     endDate: end === null ? null : yearMonth(end, "A deposit change's end"),
     amount: numberField(c, "amount", "A deposit change"),
-    label: textField(c, "label", "A deposit change").trim(),
+    label: cleanText(textField(c, "label", "A deposit change")),
   };
 }
 
@@ -75,12 +76,12 @@ function readOneTimeDeposit(value: unknown): OneTimeDepositEvent {
     id: numberField(d, "id", "A one-time deposit"),
     date: yearMonth(d["date"], "A one-time deposit's date"),
     amount: numberField(d, "amount", "A one-time deposit"),
-    label: textField(d, "label", "A one-time deposit").trim(),
+    label: cleanText(textField(d, "label", "A one-time deposit")),
   };
 }
 
 /** The newest plan format. Older formats are upgraded when read; newer ones can't be read. */
-const CURRENT_VERSION = 3;
+const CURRENT_VERSION = 4;
 
 function readGoal(value: unknown): GoalPlan | null {
   if (value === null) return null;
@@ -88,32 +89,43 @@ function readGoal(value: unknown): GoalPlan | null {
   return { amount: numberField(g, "amount", "The goal"), date: yearMonth(g["date"], "The goal's date") };
 }
 
+function readName(doc: Raw): string | null {
+  const value = doc["name"];
+  if (value === null) return null;
+  if (typeof value !== "string") return fail('The plan: "name" must be text or null');
+  const name = cleanText(value);
+  return name === "" ? null : name;
+}
+
 /**
  * The fields that were added after version 1, read from a newer plan or filled in for an older one. A version 1 plan
- * had no horizon of its own (the page showed 30 years) and no inflation rate; a version 1 or 2 plan had no goal.
+ * had no horizon of its own (the page showed 30 years) and no inflation rate; a version 1 or 2 plan had no goal, and one before version 4 had no name.
  */
-function readVersionFields(doc: Raw, version: number): Pick<PlanDocument, "horizonYears" | "inflationPct" | "goal"> {
+function readVersionFields(doc: Raw, version: number): Pick<PlanDocument, "name" | "horizonYears" | "inflationPct" | "goal"> {
   const horizon =
     version === 1
       ? { horizonYears: DEFAULT_HORIZON_YEARS, inflationPct: DEFAULT_INFLATION_PCT }
       : { horizonYears: numberField(doc, "horizonYears", "The plan"), inflationPct: numberField(doc, "inflationPct", "The plan") };
-  if (version < 3) return { ...horizon, goal: null };
+  if (version < 3) return { ...horizon, goal: null, name: null };
   if (!("goal" in doc)) return fail('The plan: "goal" must be an object or null');
-  return { ...horizon, goal: readGoal(doc["goal"]) };
+  const goal = readGoal(doc["goal"]);
+  if (version < 4) return { ...horizon, goal, name: null };
+  if (!("name" in doc)) return fail('The plan: "name" must be text or null');
+  return { ...horizon, goal, name: readName(doc) };
 }
 
 /**
  * Reads a plan from parsed JSON. An older plan (saved or shared before the horizon, the inflation rate or the
- * goal became part of the plan) is upgraded to version 3 here, before the check, so old saves and old links keep opening.
+ * goal became part of the plan) is upgraded to the current version here, before the check, so old saves and old links keep opening.
  */
 export function readPlanDocument(value: unknown): PlanDocument {
   const doc = raw(value, "The plan");
   const version = doc["version"];
   if (typeof version === "number" && version > CURRENT_VERSION) failWith({ code: "newer-version" }, "This plan was made by a newer version of the app");
-  if (version !== 1 && version !== 2 && version !== 3) fail(`Unknown plan version ${String(version)}`);
+  if (version !== 1 && version !== 2 && version !== 3 && version !== 4) fail(`Unknown plan version ${String(version)}`);
 
   const plan: PlanDocument = {
-    version: 3,
+    version: 4,
     start: yearMonth(doc["start"], "The start date"),
     startAmount: numberField(doc, "startAmount", "The plan"),
     monthlyDeposit: numberField(doc, "monthlyDeposit", "The plan"),

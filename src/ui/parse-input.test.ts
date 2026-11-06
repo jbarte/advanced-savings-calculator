@@ -8,7 +8,7 @@ import {
   parseGoalAmount,
   parseInflationPct,
   parseKronor,
-  parseLabel,
+  parseLabel, parsePlanName,
   parseMonthOnOrAfter,
   parseOptionalMonthNotBefore,
   parseReturnPct,
@@ -125,6 +125,18 @@ describe("parseWithdrawalAmount", () => {
     expect(parseWithdrawalAmount("")).toEqual({ ok: false, message: "Enter an amount" });
     expect(parseWithdrawalAmount("-5")).toEqual({ ok: false, message: "Enter 0 or more" });
     expect(parseWithdrawalAmount("abc").ok).toBe(false);
+  });
+});
+
+describe("parsePlanName", () => {
+  it("trims the text, and empty is fine", () => {
+    expect(parsePlanName("  House 2031 ")).toEqual({ ok: true, value: "House 2031" });
+    expect(parsePlanName("   ")).toEqual({ ok: true, value: "" });
+  });
+
+  it("accepts exactly 40 characters and rejects 41", () => {
+    expect(parsePlanName("x".repeat(40))).toEqual({ ok: true, value: "x".repeat(40) });
+    expect(parsePlanName("x".repeat(41))).toEqual({ ok: false, message: "Use 40 characters or fewer" });
   });
 });
 

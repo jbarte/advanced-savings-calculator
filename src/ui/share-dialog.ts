@@ -12,7 +12,7 @@ function keepOpenAfter(action: () => Promise<void>): () => boolean {
 }
 
 /** Shows the link that opens the current plan, with a button to copy it. The link can also be selected by hand. */
-export async function openShareDialog(actions: Actions): Promise<void> {
+export async function openShareDialog(actions: Actions, planName: string | null): Promise<void> {
   let link: string | null = null;
   try {
     link = await actions.createShareLink();
@@ -43,7 +43,7 @@ export async function openShareDialog(actions: Actions): Promise<void> {
 
   openModal(
     renderModal({
-      title: messages.share.title,
+      title: planName === null ? messages.share.title : messages.share.titleNamed(planName),
       body: h(
         "div",
         { class: "modal__body" },

@@ -2,6 +2,7 @@ import { appendEvent, removeEvent, replaceEvent } from "./event-list";
 import type { EventNames } from "./event-list";
 import { PLAN_LIMITS } from "./plan-document";
 import type { OneTimeDepositDraft, OneTimeDepositEvent, PlanDocument } from "./plan-document";
+import { cleanText } from "./plan-text";
 import { validateOneTimeDepositDraft } from "./validate-plan";
 
 const NAMES: EventNames = { kind: "one-time-deposit", one: "one-time deposit", many: "one-time deposits" };
@@ -10,7 +11,7 @@ const toEvent = (draft: OneTimeDepositDraft) => (id: number): OneTimeDepositEven
   id,
   date: draft.date,
   amount: draft.amount,
-  label: draft.label.trim(),
+  label: cleanText(draft.label),
 });
 
 /** Adds a one-time deposit. Its id is one above the highest one-time deposit id. Throws a RangeError if it is invalid. */

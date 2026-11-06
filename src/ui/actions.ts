@@ -12,6 +12,8 @@ export interface Actions {
   setChartMonth(month: number): void;
   setInflationAdjusted(on: boolean): void;
   updatePlan(patch: Partial<PlanFields>): void;
+  /** Gives the plan a name, or removes it with empty text. */
+  renamePlan(name: string): void;
   startFromScratch(): void;
   /** Forgets the saved plan and shows the example again. */
   startOver(): void;

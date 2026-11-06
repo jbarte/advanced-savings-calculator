@@ -20,10 +20,10 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   that `main` has each commit. This went wrong twice (#4 and the white-glow commit).
 - **Merged since:** milestones 7–9, 10A (PR #24) and the rebrand to **Life Ledger** (PR #25; the repo, URL and storage
   keys keep the old name).
-- **Open:** milestone 10B, notices and month names out of `src/state` and `src/core` (branch `feature/m10b-strings`).
-- **Next:** the plan name (backlog request), then milestones 11 (compare plans) and 12 (Swedish and polish), see
-  NEXT_STEPS.md.
-- **Tests:** 508 (`npm test`), typecheck and build pass.
+- **Merged since:** milestone 10B (PR #26).
+- **Open:** the plan name (branch `feature/plan-name`).
+- **Next:** milestones 11 (compare plans) and 12 (Swedish and polish), see NEXT_STEPS.md.
+- **Tests:** 532 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -622,3 +622,38 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
   - The 49-state comparison from 10A was not rerun (its script was not kept). Blocked storage was checked by unit tests
     only.
 - **Left:** number formats per language (milestone 12) and the example plan's "New car" label.
+
+### A name for the plan (branch `feature/plan-name`)
+- **Why:** the hero line said "Example plan", "My plan" or "Shared plan", chosen from where the plan came from. A
+  person who shares a plan wants to refer to it by name, and milestone 11 needs names for its tabs and table.
+- **Built:**
+  - `PlanDocument` version 4 with `name: string | null`; `PLAN_LIMITS.maxNameLength` 40. Versions 1–3 are upgraded
+    with no name in `readPlanDocument`; a version 4 plan must have the field (text or null).
+  - `src/state/plan-text.ts` (`cleanText`) and `plan-name.ts` (`renamePlan`, which turns empty text into no name and
+    keeps the same plan object when nothing changes). `validatePlanName` and a new problem code `plan-name`.
+  - Event labels now go through `cleanText` too, in the three event modules and the three readers (the review finding
+    about control characters). Cleaning rather than rejecting keeps an old save with a pasted tab openable.
+  - `ScenarioView.planName`. `main.ts` shows `plan.name ?? messages.planCard.names[origin]` as the scenario name, so
+    the hero line reads "House 2031 · How your savings grow, …" and the rest of it is unchanged.
+  - The Plan card's title is a button (pencil icon, `.card__title`, `data-key="plan-rename"`) inside its `<h2>`, reading "Plan" or the plan's name (long names wrap). It
+    opens `openRenameDialog` (`src/ui/rename-dialog.ts`, built on `openFormDialog`), which calls the new action
+    `renamePlan`. `parsePlanName` checks the length while typing. A first version had a "Name" field in the card; the
+    user preferred tapping the title, so the field and its `wide` option were removed.
+  - The page title is "House 2031 · Life Ledger" (`document.title`, set in `renderApp`), and the share dialog is
+    named `Share "House 2031"`.
+- **Decisions:**
+  - A shared plan shows the name that came in the link, while the banner and the Plan card status still say it is a
+    shared copy that is not saved.
+  - Naming the example makes it the user's own plan and saves it, as every plan change does.
+- **Checked:**
+  - 532 tests (24 new): reading versions 1–3 and 4 with names, cleaning and limits, `renamePlan`, renaming through
+    `withPlanChange` (example, shared, unchanged, too long), labels with control characters, `parsePlanName`, the
+    problem code and its words, `planName` in the view, and a named plan through a link. The pinned reference values
+    did not move. Typecheck and build pass.
+  - Browser: clicking the title opens the prompt with the name selected; Enter saves and the hero line, the tab title
+    and the share dialog title change, and the plan saves (version 4) and survives a reload. Escape changes nothing,
+    and focus returns to the title button. 41 characters keep the dialog open with the field error, and saving empty
+    text falls back to "My plan" and the fixed title. A share link shows the link's name and not the saved one, with
+    the banner; renaming a shared plan changes it only in memory and leaves the saved plan alone. "Back to my plan"
+    returns the saved name. A hand-written version 3 save opens with no name and no notice. At 375 px the title row (also with a 40-character name, which wraps)
+    doesn't scroll sideways. No console errors.
