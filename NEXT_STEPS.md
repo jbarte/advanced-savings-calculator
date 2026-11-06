@@ -348,6 +348,35 @@ Split in two pull requests, like milestone 9. Decided: at most 5 plans, and the 
 - **Export:** the plan as a JSON file and back (left out of milestone 5), a CSV of yearly values, print styles.
 - **README:** a screenshot and an updated feature list.
 
+### Ideas to investigate after milestone 12
+
+Raised by the user on 2026-11-06. To be looked at once milestone 12 is done; each one starts with an investigation and
+a decision before any build. They overlap, so they may become one milestone ("feel").
+
+- **Sliders and instant feedback.** Let the main values (start amount, monthly deposit, return, horizon) be changed with
+  sliders where the chart reacts at once, not when a field is left. This is open decision 2 below: today inputs commit
+  on `change` because a full re-render replaces the field being typed in. To investigate: render the form once and
+  redraw only the results (CLAUDE.md says to ask before restructuring), which values suit a slider (and their ranges, so
+  the limits in `PLAN_LIMITS` stay true), whether a slider and the typed field share one value, and the cost of running
+  the engine on every move (about 30–55 ms for the worst plan, so it probably needs a lighter projection while
+  dragging).
+- **Show the plan's own horizon.** The horizon buttons (10 / 20 / 30 yrs) change the plan's horizon (`updatePlan`), so a
+  plan with 25 years loses its 25 the moment another button is pressed, and no button gets it back (it can only be typed
+  again as an end year). Wanted: an option that shows the plan's own horizon, and that is the default. To investigate:
+  whether the buttons should become a view setting (a zoom that isn't saved or shared, like the inflation switch) with the
+  plan's horizon kept in the plan, or stay as they are with a fourth button for the plan's horizon. The first is
+  cleaner, but it changes what "10 yrs" means (the effects and the goal are measured at the plan's horizon).
+- **Smooth transitions when the chart changes.** The page is redrawn from scratch on every change, so lines, bars and
+  numbers jump. To investigate: animating the line and the area between two states (the chart is plain SVG, so a path
+  can be morphed when both have the same number of points), counting numbers up or down, fading dialogs in and out, and
+  how to do it with `prefers-reduced-motion` respected and without breaking the focus and click rules in CLAUDE.md
+  (renders deferred one tick, elements replaced). Likely needs the chart to be updated in place instead of replaced.
+- **Overall polish.** The look stays as it is. The goal is a premium feel from small details, for example the
+  animation above. A list to build up during the investigation: hover and press states, easing and durations as tokens,
+  the chart cursor and tooltip, tab and dialog transitions, empty states, loading of the fonts without a jump, and the
+  touch feel on a phone. Each detail is judged against the design rules in CLAUDE.md (no white glow, tokens only) and
+  against accessibility (reduced motion, contrast, focus).
+
 ## Open decisions
 
 1. **Short link or self-contained link?** Decided: self-contained (`#plan=…`), built in milestone 6. A short
