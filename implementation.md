@@ -1095,3 +1095,11 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **FRAMEWORK.md:** a guide to reusing this setup in another project.
 - **Not done: a branded `Ore` type.** Trying it gave 412 type errors, about 380 of them numeric literals in tests, for a risk that the existing limits, `RangeError`s
   and pinned reference values already cover. Left as `number`; revisit only if a mix-up of units shows up.
+
+### PR checks and month picker keys
+
+- **PR checks:** `deploy.yml` also runs on pull requests to `main` (tests and build, the checks shown on the PR); the deploy job has `if: github.event_name != 'pull_request'`.
+  The concurrency group is per ref (`pages-<ref>`), so a PR run can't cancel a deploy.
+- **Month picker:** opens with focus on the chosen month; arrow keys move in the 4 × 3 grid (clamped), Home/End the first and last month, Page Up/Down the year; only one month is in the tab order.
+- **Checked:** typecheck, 693 tests. Browser: start on Nov, right/down/left/up/End/Home gave 11, 11, 10, 6, 11, 0; Page Down moved 2056 to 2057 and kept the position; Escape closed it.
+- **Known gaps:** the workflow change is only proven once this PR's own checks run; arrow keys are checked with dispatched key events.

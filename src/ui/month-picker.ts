@@ -64,6 +64,14 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
     input.focus();
   };
 
+  /** Moves focus to a month button (0-11), the one that is in the tab order from then on. */
+  const focusMonth = (index: number): void => {
+    const target = Math.min(MONTHS_PER_YEAR - 1, Math.max(0, index));
+    const buttons = [...grid.querySelectorAll<HTMLButtonElement>(".month-picker__month")];
+    buttons.forEach((candidate, position) => candidate.setAttribute("tabindex", position === target ? "0" : "-1"));
+    buttons[target]?.focus();
+  };
+
   const draw = (selected: { year: number; month: number }): void => {
     yearLabel.textContent = String(year);
     previous.toggleAttribute("disabled", year <= first);
@@ -77,6 +85,7 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
             type: "button",
             "aria-pressed": String(selected.year === year && selected.month === index + 1),
             "aria-label": `${name} ${year}`,
+            tabindex: index === (selected.year === year ? selected.month - 1 : 0) ? 0 : -1,
             onclick: () => choose(index + 1),
           },
           name,
@@ -106,12 +115,29 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
         year = Math.min(last, Math.max(first, current.year));
         draw(current);
         panel.hidden = false;
+        focusMonth(current.year === year ? current.month - 1 : 0);
         button.setAttribute("aria-expanded", "true");
         document.addEventListener("pointerdown", outside, true);
       },
     },
     calendarIcon(),
   );
+  grid.addEventListener("keydown", (event) => {
+    const buttons = [...grid.querySelectorAll<HTMLButtonElement>(".month-picker__month")];
+    const index = buttons.findIndex((candidate) => candidate === document.activeElement);
+    if (index === -1) return;
+    const columns = 4;
+    const moves: Record<string, number> = { ArrowLeft: index - 1, ArrowRight: index + 1, ArrowUp: index - columns, ArrowDown: index + columns, Home: 0, End: MONTHS_PER_YEAR - 1 };
+    const move = moves[event.key];
+    if (move !== undefined) {
+      event.preventDefault();
+      focusMonth(move);
+    } else if (event.key === "PageUp" || event.key === "PageDown") {
+      event.preventDefault();
+      go(year + (event.key === "PageUp" ? -1 : 1));
+      focusMonth(index);
+    }
+  });
   panel.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     event.stopPropagation();
