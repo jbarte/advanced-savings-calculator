@@ -446,7 +446,7 @@ with the toggle.
   never hard-coded colours. The plans in the Compare card have line colours (`--compare-1`…`--compare-6`). Event kinds have their own tokens (`--kind-withdrawal`, `--kind-deposit-change`,
   `--kind-one-time-deposit` and its `-fill`), used by the chart badges and lines, the list badges and the legend.
   Font sizes use the `--text-*` tokens where one matches. The chart's height, badge size and badge lane are
-  custom properties on `.chart`, and `chart-events.ts` only sets `--lane` on each badge.
+  custom properties on `.chart`, and `chart-events.ts` only sets `--lane` and `--pitch` on each badge (up to 12 lanes; the pitch tightens past 6).
 - Component styles live in `src/styles/app.css`.
 - Build DOM with the `h()` / `s()` helpers in `src/ui/dom.ts`. Never use `innerHTML`
   with user-provided text.

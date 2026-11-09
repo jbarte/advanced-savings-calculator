@@ -768,7 +768,7 @@ button {
 /* Numbered badges. The colours match the badges in the list. */
 .chart__badge {
   position: absolute;
-  top: calc(var(--lane, 0) * var(--badge-lane) + var(--space-1));
+  top: calc(var(--lane, 0) * var(--pitch, var(--badge-lane)) + var(--space-1));
   min-width: var(--badge-size);
   height: var(--badge-size);
   padding: 0 6px;

@@ -3,3 +3,8 @@ dist/
 .DS_Store
 *.log
 .env*
+
+# Local review notes and stray files
+ANALYS.md
+KODGRANSKNING*.md
+/tests
