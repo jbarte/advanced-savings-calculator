@@ -1084,3 +1084,14 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 
 - **What:** each step of a Plan card slider's live preview glides for 140 ms (`PREVIEW_GLIDE_MS`, `glideCharts(root, before, duration)`) from where the line is drawn right now, so dragging, a click on the track and an arrow key all move smoothly. Release continues from the current shape.
 - **Checked:** a jump of the deposit slider moved the line end in steps (23.1, 25.0, 29.1, 31.2, 31.9, 32.0); two quick steps chain without a jump; reduced motion applies at once; no console errors.
+
+### Loose ends
+
+- **Badges:** up to 12 lanes instead of 6, and the lane distance tightens (`lanePitch`, 156 px shared) when more than 6 are needed, so a dense cluster
+  overlaps a little instead of badges sitting on each other. Test: `chart-events.test.ts`.
+- **deploy.yml:** the four actions are pinned by commit SHA (with the version in a comment) and the token permissions are per job: the build job only
+  reads, the deploy job alone has `pages: write` and `id-token: write`.
+- **.gitignore:** the local review notes (`ANALYS.md`, `KODGRANSKNING*.md`) and the stray `tests` file.
+- **FRAMEWORK.md:** a guide to reusing this setup in another project.
+- **Not done: a branded `Ore` type.** Trying it gave 412 type errors, about 380 of them numeric literals in tests, for a risk that the existing limits, `RangeError`s
+  and pinned reference values already cover. Left as `number`; revisit only if a mix-up of units shows up.

@@ -8,7 +8,15 @@ import { messages } from "./i18n";
 
 /** Badges closer than this (percent of the plot width) go in different lanes. About one badge on a phone. */
 const MIN_BADGE_GAP = 8;
-const MAX_LANES = 6;
+const MAX_LANES = 12;
+/** Height the lanes may use (six full lanes at 26 px). More lanes than fit share it, overlapping a little instead of sitting on each other. */
+const LANE_AREA = 156;
+const FULL_PITCH = 26;
+
+/** The distance between lanes: full while they fit, tighter when many are needed. */
+export function lanePitch(laneCount: number): number {
+  return Math.min(FULL_PITCH, Math.floor(LANE_AREA / Math.max(1, laneCount)));
+}
 
 const KIND_LABELS: Record<TimelineEntry["kind"], string> = {
   withdrawal: messages.kinds.withdrawal,
@@ -61,7 +69,7 @@ function marker(entry: TimelineEntry, x: number, selected: boolean): HTMLElement
   });
 }
 
-function badge(entry: TimelineEntry, x: number, lane: number, selected: EventKey | null, actions: Actions): HTMLElement {
+function badge(entry: TimelineEntry, x: number, lane: number, pitch: number, selected: EventKey | null, actions: Actions): HTMLElement {
   const isSelected = entry.key === selected;
   const description = describe(entry);
   // Outside the tab order on purpose: the list rows are the keyboard path to the same events.
@@ -72,7 +80,7 @@ function badge(entry: TimelineEntry, x: number, lane: number, selected: EventKey
       type: "button",
       "data-event": entry.key,
       tabindex: -1,
-      style: `left:${x}%;--lane:${lane}`,
+      style: `left:${x}%;--lane:${lane};--pitch:${pitch}px`,
       "aria-pressed": String(isSelected),
       "aria-label": messages.chart.eventLabel(entry.number, description),
       title: description,
@@ -98,7 +106,8 @@ export function renderChartEvents(
 
   const bands = events.map((entry) => periodBand(entry, totalMonths, entry.key === selected));
   const lines = events.map((entry, i) => marker(entry, xs[i] ?? 0, entry.key === selected));
-  const badges = events.map((entry, i) => badge(entry, xs[i] ?? 0, lanes[i] ?? 0, selected, actions));
+  const pitch = lanePitch(Math.max(0, ...lanes) + 1);
+  const badges = events.map((entry, i) => badge(entry, xs[i] ?? 0, lanes[i] ?? 0, pitch, selected, actions));
   return [...bands, ...lines, ...badges].filter((element): element is HTMLElement => element !== null);
 }
 
