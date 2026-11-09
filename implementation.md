@@ -1103,3 +1103,16 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Month picker:** opens with focus on the chosen month; arrow keys move in the 4 × 3 grid (clamped), Home/End the first and last month, Page Up/Down the year; only one month is in the tab order.
 - **Checked:** typecheck, 693 tests. Browser: start on Nov, right/down/left/up/End/Home gave 11, 11, 10, 6, 11, 0; Page Down moved 2056 to 2057 and kept the position; Escape closed it.
 - **Known gaps:** the workflow change is only proven once this PR's own checks run; arrow keys are checked with dispatched key events.
+
+### The beginner's guide (branch `feature/beginners-guide`)
+
+- **What:** a "?" button in the app bar opens a dialog with six steps (what it is, the Plan card, the chart, events, the goal, compare/share/save),
+  each with an illustration, Back / Next / "Got it", progress dots and "Step n of 6". It opens by itself on the first visit only
+  (`advanced-savings-calculator:guide-seen` in `src/state/guide.ts`; storage that can't be read counts as seen), never on a share link or the design page.
+- **Illustrations:** small inline SVG drawings in `src/ui/guide-art.ts`, coloured by CSS classes (`.gart*`) that use the design tokens, so both themes work.
+  No image files. Texts are `messages.guide` in English and Swedish; the dialog is its own state like the other dialogs (`src/ui/guide-dialog.ts`).
+- **Arrow keys and motion:** left and right arrows page through the steps (clamped at both ends); each step's picture and text slide in and fade (`guide-in-forward` / `guide-in-back`, 350 ms), from the side it was reached from. Reduced motion turns it off through the global rule.
+- **The drawings move too:** when a step appears its lines draw themselves (`pathLength` 1 and `stroke-dashoffset`), slider fills grow, and dots, badges and flags pop in after, the badges one by one (`.gart*` keyframes in `app.css`, off under reduced motion).
+- **Checked:** typecheck, 694 tests, build. Browser: opens on a cleared first visit, not after a reload, reopens from the button, steps 1 to 6 reached with focus on
+  the primary button, no horizontal scroll at 375 px.
+- **Known gaps:** the guide describes the page but doesn't point at it; the illustrations are sketches, not screenshots.
