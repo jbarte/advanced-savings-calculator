@@ -1116,3 +1116,13 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Checked:** typecheck, 694 tests, build. Browser: opens on a cleared first visit, not after a reload, reopens from the button, steps 1 to 6 reached with focus on
   the primary button, no horizontal scroll at 375 px.
 - **Known gaps:** the guide describes the page but doesn't point at it; the illustrations are sketches, not screenshots.
+
+### Tap the chart to add an event (branch `feature/tap-to-add-event`)
+
+- **What:** a click or tap on the chart (not on an event badge) opens the Add event flow with the date field filled with the month under the pointer
+  (`openAddEvent` in `src/ui/add-event.ts`, shared with the Add event button; `defaultDate` on the three event dialogs). Does nothing when every kind is full.
+  The guide's events step mentions it.
+- **Hint:** a line under the chart says it (`messages.chart.addHint`), shown only when an event can still be added; the plot has a pointer cursor.
+- **Event tooltips:** the chart tooltip used to list an event only at exactly its month, about a pixel wide. Over an event's badge it now shows the tooltip at that event's month, and anywhere in a deposit change's period it lists that change (`eventsActiveAtMonth`, tested for both ends of a period).
+- **Checked:** typecheck, 695 tests. Browser: a point inside a six-year band, a point just outside it, and the edges of both badges gave the right events. A click at 40 % across a 30-year chart gave 2038-02 in the one-time deposit dialog; clicking a badge opens no dialog.
+- **Known gaps:** no keyboard path from the chart itself (the Add event button covers it); a tap on a touch screen was checked with a dispatched click.

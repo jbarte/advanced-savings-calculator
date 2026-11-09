@@ -48,7 +48,7 @@ export const en = {
         title: "Add events",
         text:
           "Press Add event to plan a withdrawal on a date, a one-time deposit, or a change to the monthly deposit " +
-          "(a raise, a cut or a pause). Each event gets a number on the chart and shows what it changes in the end.",
+          "(a raise, a cut or a pause), or click or tap the chart at the month you want. Each event gets a number on the chart and shows what it changes in the end.",
       },
       goal: {
         title: "Set a goal",
@@ -316,6 +316,7 @@ export const en = {
       date: "Month",
       tableLabel: "Yearly figures",
     },
+    addHint: "Click or tap the chart to add an event at that month.",
     keysHint: "Arrow keys move one month, Page Up and Page Down one year, Home and End to the start and the end.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Events: ${events.join(", ")}`}`,

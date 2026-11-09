@@ -1,8 +1,9 @@
+import { fullEventKinds, openAddEvent } from "./add-event";
 import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
 import { METRICS } from "../state/types";
 import { activeEntry } from "../state/workspace";
 import type { AppState, ScenarioView } from "../state/types";
-import { eventsAtMonth } from "../state/timeline";
+import { chartMonthOf, eventsActiveAtMonth } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
 import {
@@ -114,6 +115,7 @@ export function renderChartCard(
   state: AppState,
   actions: Actions,
 ): HTMLElement {
+  const chart = renderChartOrEmptyState(scenario, state, timeline, actions);
   return h(
     "section",
     { class: "card card--chart", "aria-labelledby": "chart-heading" },
@@ -130,7 +132,11 @@ export function renderChartCard(
         ),
       ),
     ),
-    renderChartOrEmptyState(scenario, state, timeline, actions),
+    chart,
+    // Tapping the chart adds an event, which nothing on it says by itself.
+    chart.classList.contains("chart") && !Object.values(fullEventKinds(scenario)).every(Boolean)
+      ? h("p", { class: "chart__hint" }, messages.chart.addHint)
+      : null,
     renderChartLegend(timeline, chartGoalValue(scenario, state) !== null),
     renderYearTable(scenario, state, actions),
   );
@@ -227,7 +233,7 @@ function renderChart(
     if (index === current && shown) return;
     current = index;
     shown = true;
-    const events = eventsAtMonth(timeline, point.month);
+    const events = eventsActiveAtMonth(timeline, point.month);
     const when = monthLabel(scenario, point.month);
     const value = formatMoney(point[state.metric]);
     const [x, y] = coord;
@@ -258,10 +264,24 @@ function renderChart(
       "aria-valuemin": 0,
       "aria-valuemax": last,
       onpointermove: (event) => {
+        // Over an event's badge the tooltip is the one at that event's month, not at the month under the pointer
+        // (the badge is wider than a month), so the badge answers like the event's own line does.
+        const key = (event.target as Element).closest("[data-event]")?.getAttribute("data-event");
+        const entry = key === null || key === undefined ? undefined : timeline.find((candidate) => candidate.key === key);
+        const badgeIndex = entry === undefined ? -1 : points.findIndex((point) => point.month === chartMonthOf(entry));
+        if (badgeIndex >= 0) return show(badgeIndex);
         const rect = plot.getBoundingClientRect();
         show(nearestIndex(((event as PointerEvent).clientX - rect.left) / rect.width, points.length));
       },
       onpointerleave: () => show(resting),
+      // A click or tap on the plot (not on an event badge) starts adding an event in the month under the pointer.
+      onclick: (event) => {
+        if ((event.target as Element).closest("button") !== null) return;
+        const rect = plot.getBoundingClientRect();
+        const index = nearestIndex(((event as MouseEvent).clientX - rect.left) / rect.width, points.length);
+        const month = points[index]?.month;
+        if (month !== undefined) openAddEvent(scenario, actions, addMonths(scenario.start, month));
+      },
       onkeydown: (event) => {
         const next = cursorAfterKey((event as KeyboardEvent).key, current, last, MONTHS_PER_YEAR);
         if (next === null) return;

@@ -31,6 +31,8 @@ export interface AmountEventDialogProps {
   readonly start: YearMonth;
   /** The fields to start from when editing. Leave out to add a new event. */
   readonly initial?: AmountEventDraft;
+  /** The month to start the date field on when adding (for example the one tapped on the chart). */
+  readonly defaultDate?: YearMonth | undefined;
   readonly onSave: (draft: AmountEventDraft) => void;
 }
 
@@ -68,7 +70,7 @@ export function openAmountEventDialog(kind: AmountEventKind, props: AmountEventD
     label: messages.common.month,
     unit: "",
     type: "month",
-    value: monthInputValue(initial?.date ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
+    value: monthInputValue(initial?.date ?? props.defaultDate ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
     dataKey: `${kind.key}-month`,
     placeholder: messages.common.yearMonthPlaceholder,
     validate: errorMessage((text) => parseMonthOnOrAfter(text, earliest)),

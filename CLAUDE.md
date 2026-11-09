@@ -334,6 +334,7 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   the primary button and Enter both call `save`, and it closes only when `save` returns true. A dialog closes
   on the backdrop only when the press starts and ends outside its box, and is named with `aria-label`. When an
   event is edited, its own date is accepted even if it is before the plan start (`earliestMonth`).
+- **Tapping the chart adds an event.** A click or tap on the chart plot (not on a badge) calls `openAddEvent(scenario, actions, date)` (`src/ui/add-event.ts`, the same flow as the Add event button: kind dialog, then the dialog with the date field starting on the tapped month through `defaultDate`). Does nothing when every kind is full. The chart's tooltip answers for events too: over a badge it shows the tooltip at that event's month, and over a deposit change's shaded period it lists that change (`eventsActiveAtMonth`, `src/state/timeline.ts`). The chart shows a hint under it (`messages.chart.addHint`, `.chart__hint`, hidden when every kind is full) and the plot has a pointer cursor.
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
   granularity, never raw `Date` objects in the core.
 - **Functions do one thing.** If a function needs a comment to explain what it does,
@@ -576,6 +577,7 @@ with the toggle.
     │   ├── topbar.ts         # Sticky app bar: brand, plan tabs (+ add), share, theme toggle
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
+    │   ├── add-event.ts      # openAddEvent, fullEventKinds: the add-event flow, optionally from a month tapped on the chart
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
     │   ├── add-plan-dialog.ts # Asks how to add a plan: a copy of the open one, or an empty one
     │   ├── month-picker.ts   # renderMonthPicker: a button and a year-and-months calendar for the month text fields

@@ -20,6 +20,8 @@ export interface DepositChangeDialogProps {
   readonly start: YearMonth;
   /** The fields to start from when editing. Leave out to add a new change. */
   readonly initial?: DepositChangeDraft;
+  /** The month to start the From field on when adding (for example the one tapped on the chart). */
+  readonly defaultDate?: YearMonth | undefined;
   readonly onSave: (draft: DepositChangeDraft) => void;
 }
 
@@ -57,7 +59,7 @@ export function openDepositChangeDialog(props: DepositChangeDialogProps): void {
     label: messages.dialogs.depositChange.from,
     unit: "",
     type: "month",
-    value: monthInputValue(initial?.startDate ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
+    value: monthInputValue(initial?.startDate ?? props.defaultDate ?? addMonths(props.start, DEFAULT_MONTHS_AHEAD)),
     dataKey: "deposit-from",
     placeholder: messages.common.yearMonthPlaceholder,
     validate: errorMessage((text) => parseMonthOnOrAfter(text, earliest)),

@@ -87,3 +87,16 @@ export function chartMonthOf(entry: TimelineEntry): number {
 export function eventsAtMonth(timeline: readonly TimelineEntry[], month: number): TimelineEntry[] {
   return timeline.filter((entry) => isPlanned(entry) && chartMonthOf(entry) === month);
 }
+
+/**
+ * What a hover at a month of the chart should mention: the events at that month, plus every deposit change whose
+ * period (start to end month, both inclusive) covers it, so the whole shaded band answers and not just its first month.
+ */
+export function eventsActiveAtMonth(timeline: readonly TimelineEntry[], month: number): TimelineEntry[] {
+  return timeline.filter(
+    (entry) =>
+      isPlanned(entry) &&
+      (chartMonthOf(entry) === month ||
+        (entry.kind === "deposit-change" && entry.change.endMonth !== null && entry.change.startMonth <= month && month <= entry.change.endMonth)),
+  );
+}
