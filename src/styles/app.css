@@ -2597,3 +2597,267 @@ button {
   }
 }
 
+
+/* Guide */
+
+.guide {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  margin-bottom: var(--space-4);
+  text-align: center;
+}
+
+.guide__art {
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+}
+
+.gart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gart__axis,
+.gart__cursor {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+
+.gart__line,
+.gart__goal {
+  fill: none;
+  stroke: var(--solid);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gart__line--ghost {
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+}
+
+.gart__line--one {
+  stroke: var(--compare-1);
+}
+
+.gart__line--two {
+  stroke: var(--compare-2);
+}
+
+.gart__line--three {
+  stroke: var(--compare-3);
+}
+
+.gart__goal {
+  stroke: var(--accent-ink);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+}
+
+.gart__flag,
+.gart__thumb {
+  fill: var(--solid);
+}
+
+.gart__track,
+.gart__label {
+  fill: var(--fill);
+}
+
+.gart__fill,
+.gart__pill--on {
+  fill: var(--solid);
+}
+
+.gart__pill,
+.gart__link {
+  fill: var(--fill);
+  stroke: var(--edge);
+  stroke-width: 1;
+}
+
+.gart__link {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+
+.gart__band {
+  fill: var(--kind-deposit-change);
+  opacity: 0.18;
+}
+
+.gart__badge--withdrawal {
+  fill: var(--kind-withdrawal);
+}
+
+.gart__badge--deposit-change {
+  fill: var(--kind-deposit-change);
+}
+
+.gart__badge--one-time {
+  fill: var(--kind-one-time-deposit-fill);
+  stroke: var(--kind-one-time-deposit);
+  stroke-width: 1.5;
+}
+
+.gart__badge-text {
+  fill: var(--on-solid);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.gart__badge--one-time + .gart__badge-text {
+  fill: var(--kind-one-time-deposit);
+}
+
+.guide__heading {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.guide__text {
+  margin: 0;
+  min-height: 7.5em;
+}
+
+.guide__dots {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.guide__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fill-hover);
+}
+
+.guide__dot[data-on] {
+  background: var(--solid);
+}
+
+.guide__progress {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.guide__nav {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* The drawings animate once when a step appears: lines draw themselves, sliders fill, badges and dots pop in after. */
+.gart__line:not(.gart__line--ghost) {
+  stroke-dasharray: 1;
+  animation: gart-draw 900ms var(--ease-out) 150ms both;
+}
+
+.gart__line--two {
+  animation-delay: 300ms;
+}
+
+.gart__line--three {
+  animation-delay: 450ms;
+}
+
+.gart__line--ghost,
+.gart__goal,
+.gart__band,
+.gart__pill,
+.gart__link,
+.gart__label {
+  animation: gart-fade 600ms var(--ease-out) 500ms both;
+}
+
+.gart__fill {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: gart-fill 700ms var(--ease-out) 150ms both;
+}
+
+.gart__thumb,
+.gart__flag,
+.gart__event .gart__badge,
+.gart__event .gart__badge-text {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gart-pop 450ms var(--ease-out) 800ms both;
+}
+
+.gart__event:nth-of-type(2) .gart__badge,
+.gart__event:nth-of-type(2) .gart__badge-text {
+  animation-delay: 950ms;
+}
+
+.gart__event:nth-of-type(3) .gart__badge,
+.gart__event:nth-of-type(3) .gart__badge-text {
+  animation-delay: 1100ms;
+}
+
+@keyframes gart-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes gart-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes gart-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes gart-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+/* A step's picture and text slide in a little and fade, from the side the step was reached from. */
+.guide__enter {
+  animation: guide-in-forward var(--duration-slow) var(--ease-out) both;
+}
+
+.guide[data-direction="back"] .guide__enter {
+  animation-name: guide-in-back;
+}
+
+@keyframes guide-in-forward {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+@keyframes guide-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+@media print {
+  .guide,
+  [data-key="guide"] {
+    display: none;
+  }
+}

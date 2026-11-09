@@ -368,13 +368,7 @@ Added on 2026-11-06, still to investigate:
   open note that the month input is untested there), whether Chrome shows the picker icon in the dialog, and a small picker of our
   own (a year with twelve months to choose from, keyboard and screen-reader friendly, in English and Swedish) that would work the
   same everywhere and could replace the native month input in all the dialogs and the Start field.
-- **A beginner's guide.** A short walk-through that explains how to use each feature, one step at a time with paging (next and
-  back, steps shown as dots, skippable), and a nice illustration on every step. To investigate: which steps (the example plan and
-  its numbers, withdrawals and other events, the Plan card and its sliders, goals, several plans and comparing them, sharing and
-  files, the inflation switch and horizon), when it appears (on the first visit, and always again from a "How it works" button),
-  whether it points at the real parts of the page or is its own dialog, and how to draw the illustrations (inline SVG in the app's
-  own colours and light and dark themes, no image files and nothing loaded from elsewhere), plus English and Swedish texts and
-  keyboard, screen-reader and reduced-motion behaviour.
+- **A beginner's guide.** Done: see "The beginner's guide" in implementation.md.
 
 - **Sliders for every Plan field (done, in its PR; asked for on 2026-11-06).** Inflation (0–6 %), the start year (2000–2060, a
   year at a time; the month stays) and the end year (1–40 years after the start) got sliders too, like the first three.

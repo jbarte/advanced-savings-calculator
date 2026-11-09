@@ -6,6 +6,7 @@ import { openAddPlanDialog } from "./add-plan-dialog";
 import { renderHiddenHint } from "./components";
 import { h, s } from "./dom";
 import { renderLogo } from "./logo";
+import { openGuideDialog } from "./guide-dialog";
 import { openShareDialog } from "./share-dialog";
 import { language, messages } from "./i18n";
 
@@ -38,6 +39,21 @@ export function renderThemeButton(isDark: boolean, actions: Actions): HTMLButton
       onclick: () => actions.toggleTheme(),
     },
     isDark ? sunIcon() : moonIcon(),
+  );
+}
+
+export function renderGuideButton(): HTMLButtonElement {
+  return h(
+    "button",
+    {
+      class: "btn-round btn-round--text",
+      type: "button",
+      "data-key": "guide",
+      "aria-label": messages.guide.title,
+      title: messages.guide.title,
+      onclick: () => openGuideDialog(),
+    },
+    "?",
   );
 }
 
@@ -135,6 +151,6 @@ export function renderAppBar(
       h("div", { class: "brand__name" }, messages.app.brandName, h("span", {}, messages.app.brandSuffix)),
     ),
     renderPlanTabs(tabs, activeId, canAdd, active, actions),
-    h("div", { class: "appbar__actions" }, share, renderLanguageButton(actions), renderThemeButton(isDark, actions)),
+    h("div", { class: "appbar__actions" }, share, renderGuideButton(), renderLanguageButton(actions), renderThemeButton(isDark, actions)),
   );
 }

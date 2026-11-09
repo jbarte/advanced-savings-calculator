@@ -15,6 +15,53 @@ export const sv: Messages = {
     dates: "sv",
     csvSeparator: ";",
   },
+  guide: {
+    button: "Guide",
+    title: "Så använder du Life Ledger",
+    progress: (step: number, total: number): string => `Steg ${step} av ${total}`,
+    back: "Tillbaka",
+    next: "Nästa",
+    done: "Uppfattat",
+    steps: {
+      intro: {
+        title: "Se vad ett beslut kostar",
+        text:
+          "Life Ledger visar hur ditt sparande växer över åren, och vad ett stort beslut, som att ta ut pengar till " +
+          "en bil eller en bostad, gör med slutresultatet. Allt stannar i din webbläsare. Inget skickas någonstans.",
+      },
+      plan: {
+        title: "Börja med din plan",
+        text:
+          "I planrutan anger du startbelopp, månadssparande, förväntad avkastning och antal år. Dra i ett reglage " +
+          "för att se diagrammet ändras direkt, eller skriv ett exakt värde. Planen sparas här automatiskt.",
+      },
+      chart: {
+        title: "Läs diagrammet",
+        text:
+          "För musen över diagrammet, eller använd piltangenterna, för att se saldot varje månad. Knapparna ovanför " +
+          "zoomar till 10, 20 eller 30 år, och omkopplaren visar belopp i dagens penningvärde.",
+      },
+      events: {
+        title: "Lägg till händelser",
+        text:
+          "Tryck på Lägg till händelse för att planera ett uttag ett visst datum, en engångsinsättning eller en " +
+          "ändring av månadssparandet (höjning, sänkning eller paus). Varje händelse får ett nummer i diagrammet " +
+          "och visar vad den ändrar i slutet.",
+      },
+      goal: {
+        title: "Sätt ett mål",
+        text:
+          "Ange hur mycket du vill ha till vilket datum, så visar målkortet vilket månadssparande du behöver, med " +
+          "dina planerade händelser inräknade.",
+      },
+      share: {
+        title: "Jämför, dela och spara",
+        text:
+          "Lägg till en plan med + i översta raden för att jämföra planer sida vid sida. Dela skickar en länk som " +
+          "innehåller hela planen, och Fil laddar ner den eller dess årssiffror. Tog du bort något av misstag? Ångra finns där.",
+      },
+    },
+  },
   language: {
     switchCode: "EN",
     switchTo: "Byt till engelska",

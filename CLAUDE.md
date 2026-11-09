@@ -145,6 +145,10 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   and the share dialog). The plan is renamed from the Plan card's title ("Plan", or the plan's name), which is a button (pencil icon) that opens
   `openRenameDialog` (`rename-dialog.ts`); there is no Name field. Typed text that ends up in the plan (the name, event labels) goes through `cleanText`
   (`src/state/plan-text.ts`): control characters become a space and the ends are trimmed.
+- **The beginner's guide** is a dialog (`openGuideDialog`, `src/ui/guide-dialog.ts`) opened by the "?" button in the app bar and, once, on
+  the first visit (`src/state/guide.ts`, key `advanced-savings-calculator:guide-seen`, decided in `main.ts`; not on a share link). Six steps from
+  `messages.guide.steps`, each with an inline SVG drawing from `guide-art.ts` (same index), styled by `.gart*` classes with the colour tokens. Left and right arrows page through the steps; each step's picture and text slide in from the side it was reached from (`.guide__enter`); the drawings animate too (lines draw, fills grow, badges pop). All off under reduced motion. A new
+  step needs a text in both languages and a drawing.
 - **The Compare card can be collapsed.** A chevron button in its header (`renderCollapseToggle` in `components.ts`,
   `aria-expanded` and `aria-controls`) collapses it to its heading; the body stays in the page with
   `hidden`. Which are collapsed is `AppState.collapsed`, remembered in this browser under `advanced-savings-calculator:collapsed`
@@ -532,6 +536,7 @@ with the toggle.
     │   ├── goal.ts           # setGoal, clearGoal: the plan's savings goal, validated (+ test)
     │   ├── view-model.ts     # buildScenarioView: engine output → ScenarioView (+ test)
     │   ├── reference-values.test.ts # Hand- and script-checked results, pinned to the öre
+    │   ├── guide.ts          # Whether the guide has been shown: read, load and save in this browser (+ test)
     │   ├── collapsed.ts      # Whether the Compare card is collapsed: read, toggle, load and save in this browser (+ test)
     │   ├── language.ts       # Language, chooseLanguage, load/save the choice, the browser's languages (+ test)
     │   ├── clock.ts          # currentYearMonth(), the only place that reads the clock
@@ -575,6 +580,8 @@ with the toggle.
     │   ├── add-plan-dialog.ts # Asks how to add a plan: a copy of the open one, or an empty one
     │   ├── month-picker.ts   # renderMonthPicker: a button and a year-and-months calendar for the month text fields
     │   ├── undo-toast.ts     # showUndoToast: "Removed … · Undo" for events, the goal and deleted plans
+    │   ├── guide-dialog.ts   # The beginner's guide: six steps with Back / Next
+    │   ├── guide-art.ts      # The guide's illustrations as inline SVG
     │   ├── rename-dialog.ts  # Prompt to name the plan, opened from the Plan card's title
     │   ├── share-dialog.ts   # "Share this plan": the link, a copy button and the privacy note
     │   ├── shared-banner.ts  # Banner while a shared plan is open: keep it as a new plan or go back

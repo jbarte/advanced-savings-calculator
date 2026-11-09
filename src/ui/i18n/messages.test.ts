@@ -36,6 +36,7 @@ function collectStrings(value: unknown, path: string, out: [string, string][] = 
 /** The texts that are the same in Swedish as in English (names, codes, units and separators), by path. */
 const SAME_IN_SWEDISH: string[] = [
   "locale.numbers",
+  "guide.button",
   "units.currency",
   "units.currencyField",
   "app.brandName",

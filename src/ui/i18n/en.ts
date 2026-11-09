@@ -18,6 +18,52 @@ export const en = {
     /** Between the values in a downloaded CSV file, as spreadsheets in the language expect it. */
     csvSeparator: ",",
   },
+  guide: {
+    button: "Guide",
+    title: "How to use Life Ledger",
+    progress: (step: number, total: number): string => `Step ${step} of ${total}`,
+    back: "Back",
+    next: "Next",
+    done: "Got it",
+    steps: {
+      intro: {
+        title: "See what a decision costs",
+        text:
+          "Life Ledger shows how your savings grow over the years, and what one big decision, like taking out money " +
+          "for a car or a home, does to the result. Everything stays in your browser. Nothing is sent anywhere.",
+      },
+      plan: {
+        title: "Start with your plan",
+        text:
+          "In the Plan card, set your start amount, monthly deposit, expected return and the years. Drag a slider " +
+          "to see the chart change live, or type an exact value. The plan is saved here automatically.",
+      },
+      chart: {
+        title: "Read the chart",
+        text:
+          "Move over the chart, or use the arrow keys, to see the balance in each month. The buttons above it " +
+          "zoom to 10, 20 or 30 years, and the switch shows amounts in today's money.",
+      },
+      events: {
+        title: "Add events",
+        text:
+          "Press Add event to plan a withdrawal on a date, a one-time deposit, or a change to the monthly deposit " +
+          "(a raise, a cut or a pause). Each event gets a number on the chart and shows what it changes in the end.",
+      },
+      goal: {
+        title: "Set a goal",
+        text:
+          "Say how much you want by when, and the goal card shows the monthly deposit you need to get there, with " +
+          "your planned events taken into account.",
+      },
+      share: {
+        title: "Compare, share and save",
+        text:
+          "Add a plan with the + in the top bar to compare plans side by side. Share sends a link that holds the " +
+          "whole plan, and File downloads it or its yearly figures. Remove something by mistake? Undo is right there.",
+      },
+    },
+  },
   language: {
     /** The text on the language switch: the code of the language it switches to. */
     switchCode: "SV",

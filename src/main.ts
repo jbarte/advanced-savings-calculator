@@ -2,6 +2,7 @@ import "./styles/fonts.css";
 import "./styles/app.css";
 import { yearsToMonths } from "./core/year-month";
 import { currentYearMonth } from "./state/clock";
+import { loadGuideSeen, saveGuideSeen } from "./state/guide";
 import { loadCollapsed, saveCollapsed, toggleCollapsed } from "./state/collapsed";
 import { saveLanguagePreference } from "./state/language";
 import { createBlankPlan, createExamplePlan } from "./state/plan-document";
@@ -29,6 +30,7 @@ import { addWithdrawal, removeWithdrawal, restoreWithdrawal, updateWithdrawal } 
 import type { Actions, Undo } from "./ui/actions";
 import { renderApp } from "./ui/app";
 import { renderDesignSystem } from "./ui/design-system";
+import { openGuideDialog } from "./ui/guide-dialog";
 import { renderErrorState } from "./ui/error-state";
 import { createRenderScheduler } from "./ui/render-scheduler";
 import { applyLanguage } from "./ui/language";
@@ -337,3 +339,8 @@ onSystemThemeChange(render);
 const linkToken = sharedPlanToken();
 if (linkToken === null) render();
 else void openSharedPlan(linkToken);
+// The guide opens by itself once, on the first visit; whoever follows a shared link or looks at the design page is left alone.
+if (linkToken === null && currentRoute() !== "design-system" && !loadGuideSeen()) {
+  saveGuideSeen();
+  openGuideDialog();
+}
