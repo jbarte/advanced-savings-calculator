@@ -3,13 +3,16 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # Pull requests run the tests and the build (the checks on the PR), but never deploy.
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -30,6 +33,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pages: write

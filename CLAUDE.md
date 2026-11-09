@@ -317,7 +317,8 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   "Add your first event" button.
 - **Month fields are text with our own picker.** Every `type: "month"` field (`renderTextField`) is a plain text input
   ("YYYY-MM", typed or picked) with a calendar button (`month-picker.ts`): the native month input has no picker in
-  Firefox or desktop Safari. The picker opens under the field, years `minStartYear`–`maxEventYear`, and writes the
+  Firefox or desktop Safari. The picker opens under the field with focus on the chosen month, years `minStartYear`–`maxEventYear`, moves with the arrow keys
+  (a grid of 4 × 3; Home/End, Page Up/Down for the year; one month is in the tab order), and writes the
   value and fires the field's own `input` and `change`. The chart's cursor, dot and tooltip move with the pointer at once (no
   transition on position; any glide made them trail a fast pointer).
 - **Dialogs keep their own state.** A dialog (`openModal` in `src/ui/components.ts`) is added
@@ -496,7 +497,7 @@ with the toggle.
 ├── tsconfig.json             # Strict TypeScript config
 ├── vite.config.ts            # Vite + Vitest config, GitHub Pages base path, and the Content-Security-Policy meta tag (build only)
 ├── .github/workflows/
-│   └── deploy.yml            # Test, build and deploy to GitHub Pages
+│   └── deploy.yml            # Test and build on pull requests; test, build and deploy to GitHub Pages on main
 └── src/
     ├── main.ts               # Entry point: creates the store and actions, renders the app
     ├── architecture.test.ts  # Enforces the layer rules by reading the sources
@@ -617,7 +618,8 @@ npm run build     # typecheck and build the static site into dist/
 npm run preview   # serve the built site locally
 ```
 
-Deploy happens automatically through GitHub Actions on every push to `main`.
+Deploy happens automatically through GitHub Actions on every push to `main`. A pull request runs the same tests and build as
+checks (`deploy.yml` has a `pull_request` trigger and the deploy job skips it).
 
 ## Test
 
