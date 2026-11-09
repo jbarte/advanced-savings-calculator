@@ -45,7 +45,7 @@ export const sv: Messages = {
         title: "Lägg till händelser",
         text:
           "Tryck på Lägg till händelse för att planera ett uttag ett visst datum, en engångsinsättning eller en " +
-          "ändring av månadssparandet (höjning, sänkning eller paus). Varje händelse får ett nummer i diagrammet " +
+          "ändring av månadssparandet (höjning, sänkning eller paus), eller klicka eller tryck i diagrammet på önskad månad. Varje händelse får ett nummer i diagrammet " +
           "och visar vad den ändrar i slutet.",
       },
       goal: {
@@ -312,6 +312,7 @@ export const sv: Messages = {
       date: "Månad",
       tableLabel: "Årsvisa siffror",
     },
+    addHint: "Klicka eller tryck i diagrammet för att lägga till en händelse den månaden.",
     keysHint: "Piltangenterna flyttar en månad, Page Up och Page Down ett år, Home och End till början och slutet.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Händelser: ${events.join(", ")}`}`,

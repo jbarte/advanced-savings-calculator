@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlannedDepositChange, PlannedOneTimeDeposit, PlannedWithdrawal } from "./types";
-import { buildTimeline, chartMonthOf, depositChangeKey, eventsAtMonth, isPlanned, oneTimeDepositKey, withdrawalKey } from "./timeline";
+import { buildTimeline, chartMonthOf, depositChangeKey, eventsActiveAtMonth, eventsAtMonth, isPlanned, oneTimeDepositKey, withdrawalKey } from "./timeline";
 
 function withdrawal(id: number, month: number): PlannedWithdrawal {
   return {
@@ -106,6 +106,16 @@ describe("events on the chart", () => {
     expect(eventsAtMonth(timeline, 60).map((e) => e.key)).toEqual([depositChangeKey(2), withdrawalKey(1)]);
     expect(eventsAtMonth(timeline, 0).map((e) => e.key)).toEqual([depositChangeKey(1)]);
     expect(eventsAtMonth(timeline, 5)).toEqual([]);
+  });
+
+  it("also finds a deposit change anywhere inside its period, ends included, but not outside it", () => {
+    const period = buildTimeline([], [{ ...depositChange(1, 10), endMonth: 14 }, depositChange(2, 12)], []);
+    const at = (month: number): string[] => eventsActiveAtMonth(period, month).map((e) => e.key);
+    expect(at(10)).toEqual([depositChangeKey(1)]);
+    expect(at(12)).toEqual([depositChangeKey(1), depositChangeKey(2)]);
+    expect(at(14)).toEqual([depositChangeKey(1)]);
+    expect(at(9)).toEqual([]);
+    expect(at(15)).toEqual([]);
   });
 });
 

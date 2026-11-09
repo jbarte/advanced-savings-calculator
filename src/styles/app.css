@@ -553,8 +553,16 @@ button {
   min-width: 0;
 }
 
+.chart__hint {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
 .chart__plot {
   position: relative;
+  cursor: pointer;
   height: var(--chart-height);
   touch-action: pan-y;
 }
