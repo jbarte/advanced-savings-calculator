@@ -628,7 +628,7 @@ npm run preview   # serve the built site locally
 ```
 
 Deploy happens automatically through GitHub Actions on every push to `main`. A pull request runs the same tests and build as
-checks (`deploy.yml` has a `pull_request` trigger and the deploy job skips it).
+checks (`deploy.yml` has a `pull_request` trigger and the deploy job skips it). `main` is protected by a repository ruleset: changes go in through a pull request whose `build` check passes, no force pushes, no deletion. Both jobs have a 10 minute timeout, only pull-request runs are cancelled by a newer push, and only a deploy uploads the Pages artifact.
 
 ## Test
 

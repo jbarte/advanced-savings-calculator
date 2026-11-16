@@ -1143,3 +1143,10 @@ From a read-through of the code (bugs, messages, edge cases):
 
 - The first step's picture was redrawn: the plan without a withdrawal (dashed) and with one (solid, with the numbered withdrawal badge as on the chart), and the gap between them at the end shaded in the withdrawal colour, so it shows what a decision costs. The old one had a bare dot on a vertical jump and read as a glitch.
 - **Checked:** typecheck, tests, build; looked at in the browser after the animation (the gap fades in last).
+
+### CI hardening (branch `chore/ci-hardening`)
+
+- **`deploy.yml`:** `timeout-minutes: 10` on both jobs; `cancel-in-progress` only for pull requests, so a deploy on `main` is never cut off halfway by the next push; the Pages artifact is uploaded only when a deploy follows.
+- **Ruleset on `main`** (a repository setting, not in the code; set with `gh api`): changes go in through a pull request, the `build` check must pass, no force pushes, no deletion. No approvals are required, so the owner can merge their own pull requests.
+- **Checked:** the workflow is valid YAML; the pull request's own run shows the checks and a skipped deploy.
+- **Not done:** Dependabot (a new config file, to be asked) and a built-site smoke test (a new dev dependency, to be asked).
