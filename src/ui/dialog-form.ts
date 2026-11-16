@@ -58,6 +58,8 @@ export function openFormDialog(props: FormDialogProps): void {
   });
   body.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
+    // Enter on a button (the month picker's) must press that button, not save the form.
+    if (event.target instanceof Element && event.target.closest("button") !== null) return;
     event.preventDefault();
     if (props.save()) dialog.close();
   });

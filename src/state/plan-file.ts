@@ -18,7 +18,7 @@ export function planFileText(plan: PlanDocument): string {
 /** Reads a plan from the text of a file. Throws a PlanError when it is too large or not a plan. */
 export function readPlanFile(text: string): PlanDocument {
   if (text.length > MAX_PLAN_FILE_CHARS) {
-    return failWith({ code: "file-too-large" }, `A plan file is at most ${MAX_PLAN_FILE_CHARS} characters`);
+    return failWith({ code: "file-too-large", max: MAX_PLAN_FILE_CHARS }, `A plan file is at most ${MAX_PLAN_FILE_CHARS} characters`);
   }
   return readPlanText(text);
 }

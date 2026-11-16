@@ -14,6 +14,8 @@ export function preparePrinting(): void {
   let restore: (() => void) | null = null;
 
   window.addEventListener("beforeprint", () => {
+    // Some browsers fire this twice before `afterprint`; a second run would take the printing theme for the user's own.
+    if (restore !== null) return;
     const root = document.documentElement;
     const theme = root.getAttribute("data-theme");
     const closed = [...document.querySelectorAll("details:not([open])")].filter((d): d is HTMLDetailsElement => d instanceof HTMLDetailsElement);

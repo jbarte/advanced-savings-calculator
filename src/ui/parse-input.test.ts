@@ -30,6 +30,11 @@ describe("parseKronor", () => {
     ["1 500,00", 150_000],
     ["1500.0", 150_000],
     ["007", 700],
+    ["1,500", 150_000],
+    ["1.500", 150_000],
+    ["1,500,000", 150_000_000],
+    ["1.500,00", 150_000],
+    ["1,000", 100_000],
   ])("accepts %j", (text, ore) => {
     expect(parseKronor(text, max)).toEqual({ ok: true, value: ore });
   });
@@ -42,6 +47,8 @@ describe("parseKronor", () => {
     ["-5", "Enter 0 or more"],
     ["1 500,50", "Use whole kronor, for example 1 500"],
     ["1,2,3", "Enter a number, for example 50 000"],
+    ["1,500.50", "Use whole kronor, for example 1 500"],
+    ["1,50,000", "Enter a number, for example 50 000"],
   ])("rejects %j with a message", (text, message) => {
     expect(parseKronor(text, max)).toEqual({ ok: false, message });
   });

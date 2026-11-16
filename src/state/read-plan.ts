@@ -145,7 +145,7 @@ export function readPlanText(text: string): PlanDocument {
   try {
     parsed = JSON.parse(text);
   } catch {
-    return fail("The saved text is not valid JSON");
+    return failWith({ code: "not-json" }, "The text is not valid JSON");
   }
   return readPlanDocument(parsed);
 }

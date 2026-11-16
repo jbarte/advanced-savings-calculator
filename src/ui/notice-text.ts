@@ -42,6 +42,8 @@ export function problemText(problem: PlanProblem): string {
       return problems.newerVersion;
     case "damaged":
       return problems.damaged;
+    case "not-json":
+      return problems.notJson;
     case "link-damaged":
       return problems.linkDamaged;
     case "link-too-large":
@@ -51,7 +53,7 @@ export function problemText(problem: PlanProblem): string {
     case "not-a-plan-link":
       return problems.notAPlanLink;
     case "file-too-large":
-      return problems.fileTooLarge;
+      return problems.fileTooLarge(new Intl.NumberFormat(messages.locale.numbers).format(problem.max));
   }
 }
 

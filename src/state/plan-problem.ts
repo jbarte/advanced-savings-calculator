@@ -38,11 +38,13 @@ export type PlanProblem =
   | { readonly code: "newer-version" }
   /** Saved or shared data that is not a plan: wrong shape, unknown version, broken ids, not JSON. */
   | { readonly code: "damaged" }
+  /** Saved, shared or uploaded text that is not JSON at all. */
+  | { readonly code: "not-json" }
   | { readonly code: "link-damaged" }
   | { readonly code: "link-too-large" }
   | { readonly code: "link-unsupported" }
   | { readonly code: "not-a-plan-link" }
-  | { readonly code: "file-too-large" };
+  | { readonly code: "file-too-large"; readonly max: number };
 
 /** A RangeError that says what is wrong with a plan as a `PlanProblem`. */
 export class PlanError extends RangeError {

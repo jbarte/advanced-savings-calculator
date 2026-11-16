@@ -74,8 +74,8 @@ describe("problem codes from the checks", () => {
 });
 
 describe("problem codes from saved and shared data", () => {
-  it("calls text that is not a plan damaged, and a plan from a newer app newer", () => {
-    expect(problemFrom(() => readPlanText("not json"))).toEqual({ code: "damaged" });
+  it("calls text that is not JSON not-json, other data that is not a plan damaged, and a plan from a newer app newer", () => {
+    expect(problemFrom(() => readPlanText("not json"))).toEqual({ code: "not-json" });
     expect(problemFrom(() => readPlanDocument({ version: 3 }))).toEqual({ code: "damaged" });
     expect(problemFrom(() => readPlanDocument({ ...createExamplePlan(plan.start), version: 99 }))).toEqual({ code: "newer-version" });
   });
