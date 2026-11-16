@@ -1157,6 +1157,12 @@ From a read-through of the code (bugs, messages, edge cases):
 - Each of them runs the same `build` check as any pull request, which the ruleset on `main` requires, so nothing is merged without passing tests and build.
 - **Checked:** the file is valid YAML; the first update pull requests will show whether the schedule and groups behave as meant (GitHub also shows the status under Insights → Dependency graph → Dependabot).
 
+### README in the course template (branch `docs/readme-template`)
+
+- The README now follows the template: one sentence on what and why, the live link, what it does, getting started (requirements, installation, configuration, run), architecture with the folder tree, a tech stack table with the reasons, limitations, and "Built with". The long feature list, the status note and the separate deployment section were folded into those parts; the screenshot stays.
+- Configuration says plainly that there are no environment variables or `.env` file, since the template expects one; the commands table sits under "Run".
+- Limitations are written from the code: constant return, no taxes or fees, the `PLAN_LIMITS` caps, data in one browser, one-variable goal solver.
+
 ### The guide: language switch and a UX pass (branch `feature/guide-language`)
 
 - **Language switch in the guide.** It opens by itself on the first visit in the browser's language, so someone who reads the other one had to close it to switch. It now has the same switch as the app bar. Switching saves the choice and the step (`resumeGuideAt`), reloads, and the guide opens again at that step in the new language (`loadGuideResumeStep`; `setLanguage(language, guideStep)`).
