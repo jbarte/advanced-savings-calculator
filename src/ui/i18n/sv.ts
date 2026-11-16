@@ -112,6 +112,7 @@ export const sv: Messages = {
     addPlan: "Lägg till en plan",
     deletePlanAria: (name: string): string => `Ta bort ${name}`,
     plansFull: (max: number): string => `Du kan ha högst ${max} planer`,
+    privacyNote: "Dina planer stannar i den här webbläsaren. Inget skickas någonstans.",
     disclaimer: "Prognoserna utgår från en konstant avkastning och är bara uppskattningar. Det här är inte ekonomisk rådgivning.",
   },
   collapse: {

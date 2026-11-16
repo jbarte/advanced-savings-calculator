@@ -3,7 +3,8 @@ import { activeEntry, canAddPlan } from "../state/workspace";
 import type { PlanPreview } from "./plan-slider";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
-import { h } from "./dom";
+import { captureHeadline, countHeadline } from "./count-up";
+import { h, s } from "./dom";
 import { formatMoney } from "./format";
 import { lastPoint, monthLabel } from "./view-helpers";
 import { announce } from "./announcer";
@@ -19,6 +20,9 @@ import { renderAppBar } from "./topbar";
 import type { PlanTab } from "./topbar";
 import { renderEventsSection } from "./events-section";
 import { messages } from "./i18n";
+
+const lockIcon = (): SVGSVGElement =>
+  s("svg", { class: "icon", viewBox: "0 0 24 24", "aria-hidden": "true" }, s("path", { d: "M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" }));
 
 export interface AppView {
   /** The open plan, ready to draw. */
@@ -51,6 +55,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   // What the charts drew and which plan the page showed, to glide from the old chart or fade in another plan.
   const drawnBefore = captureCharts(root);
   const badgesBefore = captureBadges(root);
+  const headlineBefore = captureHeadline(root);
   const planBefore = root.querySelector(".shell")?.getAttribute("data-plan") ?? null;
   const planSwitched = planBefore !== null && planBefore !== String(state.activeId);
 
@@ -136,7 +141,12 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
         goalCard,
       ),
       renderEventsSection(active, timeline, state, actions),
-      h("p", { class: "disclaimer" }, messages.app.disclaimer),
+      h(
+        "footer",
+        { class: "footer" },
+        h("p", { class: "footer__privacy" }, lockIcon(), messages.app.privacyNote),
+        h("p", { class: "disclaimer" }, messages.app.disclaimer),
+      ),
     ),
   );
 
@@ -146,6 +156,8 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   // The first drawing of the page reveals the chart; later ones only pop the badges of events that are new.
   if (drawnBefore.length === 0) introduceChart(root);
   else if (!planSwitched) popNewBadges(root, badgesBefore);
+  // The headline counts to its new amount (not while a slider drags: the preview has already shown it).
+  countHeadline(root, headlineBefore);
   document.title = active.planName === null ? messages.app.pageTitle : messages.app.pageTitleNamed(active.planName);
 
   const find = (key: string | null | undefined): HTMLElement | null =>

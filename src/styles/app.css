@@ -778,8 +778,9 @@ button {
 
 .chart__line {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 2;
+  stroke: var(--chart-line);
+  stroke-width: 2.5;
+  stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
@@ -898,7 +899,7 @@ button {
 }
 
 .chart__fill-stop {
-  stop-color: var(--ink);
+  stop-color: var(--chart-line);
 }
 
 .chart__marker {
@@ -1054,8 +1055,8 @@ button {
   bottom: 0;
   width: 2px;
   margin-left: -1px;
-  background: linear-gradient(var(--ink), transparent);
-  opacity: 0.25;
+  background: linear-gradient(var(--chart-line), transparent);
+  opacity: 0.45;
   pointer-events: none;
 }
 
@@ -1065,8 +1066,8 @@ button {
   height: 12px;
   margin: -6px 0 0 -6px;
   border-radius: 50%;
-  background: var(--accent);
-  border: var(--border-3) solid var(--ink);
+  background: var(--surface);
+  border: var(--border-3) solid var(--chart-line);
   pointer-events: none;
   transition: transform var(--duration-fast) var(--ease-out);
 }
@@ -1722,7 +1723,7 @@ button {
 }
 
 .gauge__value {
-  stroke: var(--ink);
+  stroke: var(--chart-line);
 }
 
 .gauge__tip {
@@ -2039,6 +2040,32 @@ button {
 
 .noscript p:last-child {
   margin-bottom: 0;
+}
+
+.footer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--border-1) solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.footer__privacy {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.footer__privacy .icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--chart-line);
 }
 
 .disclaimer {

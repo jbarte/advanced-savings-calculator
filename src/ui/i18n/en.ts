@@ -118,6 +118,7 @@ export const en = {
     addPlan: "Add a plan",
     deletePlanAria: (name: string): string => `Delete ${name}`,
     plansFull: (max: number): string => `You can have at most ${max} plans`,
+    privacyNote: "Your plans stay in this browser. Nothing is sent anywhere.",
     disclaimer: "Projections assume a constant return and are estimates only. This is not financial advice.",
   },
   collapse: {
