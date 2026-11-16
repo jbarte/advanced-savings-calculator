@@ -5,13 +5,11 @@ import type { EventKey, TimelineEntry } from "../state/timeline";
 import type { EventStatus, Ore } from "../state/types";
 import type { AppState, PlannedDepositChange, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
-import { openDepositChangeDialog } from "./deposit-change-dialog";
-import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
 import { renderMenu, renderSteadyText } from "./components";
+import { openEditEvent } from "./edit-event";
 import { h } from "./dom";
 import { formatMoney, formatSignedMoney, formatYearMonth } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
-import { openWithdrawalDialog } from "./withdrawal-dialog";
 import { messages } from "./i18n";
 import { showUndoToast } from "./undo-toast";
 
@@ -97,12 +95,7 @@ function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, scale: 
         formatMoney(withdrawal.lostGrowth),
       ),
     ),
-    edit: () =>
-      openWithdrawalDialog({
-        start: scenario.start,
-        initial: { label: withdrawal.label, amount: withdrawal.amount, date: withdrawal.date },
-        onSave: (draft) => actions.updateWithdrawal(withdrawal.id, draft),
-      }),
+    edit: () => openEditEvent(scenario, entry, actions),
     remove: () => showUndoToast(messages.undo.removed(withdrawal.label), actions.removeWithdrawal(withdrawal.id)),
   };
 }
@@ -120,12 +113,7 @@ function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, s
       scale,
       messages.list.depositChangeExplain(formatSignedMoney(change.effect), scale.end),
     ),
-    edit: () =>
-      openDepositChangeDialog({
-        start: scenario.start,
-        initial: { label: change.label, amount: change.amount, startDate: change.startDate, endDate: change.endDate },
-        onSave: (draft) => actions.updateDepositChange(change.id, draft),
-      }),
+    edit: () => openEditEvent(scenario, entry, actions),
     remove: () => showUndoToast(messages.undo.removed(change.label), actions.removeDepositChange(change.id)),
   };
 }
@@ -148,12 +136,7 @@ function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry,
         growthText(deposit.effect - deposit.amount),
       ),
     ),
-    edit: () =>
-      openOneTimeDepositDialog({
-        start: scenario.start,
-        initial: { label: deposit.label, amount: deposit.amount, date: deposit.date },
-        onSave: (draft) => actions.updateOneTimeDeposit(deposit.id, draft),
-      }),
+    edit: () => openEditEvent(scenario, entry, actions),
     remove: () => showUndoToast(messages.undo.removed(deposit.label), actions.removeOneTimeDeposit(deposit.id)),
   };
 }

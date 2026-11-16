@@ -719,6 +719,14 @@ button {
   min-width: 0;
 }
 
+.chart__add {
+  /* An event's name can be 40 characters: it is cut with an ellipsis instead of wrapping the button. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .chart__hint {
   margin: var(--space-2) 0 0;
   /* The same height as the button that replaces the text, so the page below doesn't move when a month is picked. */
@@ -1636,6 +1644,46 @@ button {
 }
 
 /* ---------- Goal gauge ---------- */
+
+/* The Goal card measures itself, so its layout follows its own width and not the window's (it is 350 px on a phone and 750 px beside
+   the Plan card). */
+.card--goal {
+  container-type: inline-size;
+}
+
+.goal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.goal__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.goal__side > * {
+  margin: 0;
+}
+
+/* Wide enough for the gauge beside the figures. */
+@container (min-width: 620px) {
+  .goal__body {
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .goal__body .gauge {
+    flex: 0 0 240px;
+  }
+
+  .goal__side {
+    flex: 1;
+  }
+}
 
 .gauge {
   position: relative;

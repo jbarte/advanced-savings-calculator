@@ -319,6 +319,7 @@ export const sv: Messages = {
     addHint: "Klicka i diagrammet för att lägga till en händelse den månaden.",
     addHintTouch: "Tryck i diagrammet för att välja en månad och lägg sedan till en händelse där.",
     addAt: (month: string): string => `Lägg till händelse i ${month}`,
+    editSelected: (title: string): string => `Redigera ${title}`,
     keysHint: "Piltangenterna flyttar en månad, Page Up och Page Down ett år, Home och End till början och slutet.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Händelser: ${events.join(", ")}`}`,

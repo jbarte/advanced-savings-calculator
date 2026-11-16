@@ -21,7 +21,7 @@ export interface Actions {
   /** Deletes a plan and returns how to bring it back. */
   deletePlan(id: number): Undo;
   selectMetric(metric: Metric): void;
-  /** Selects an event (or none). `month` moves the chart cursor to the event. */
+  /** Selects an event (or none). `month` moves the chart cursor to the event; selecting none takes the cursor away. */
   selectEvent(key: EventKey | null, month?: number): void;
   /** Remembers where the chart cursor is, after a key press. */
   setChartMonth(month: number): void;

@@ -325,6 +325,7 @@ export const en = {
     addHint: "Click the chart to add an event at that month.",
     addHintTouch: "Tap the chart to pick a month, then add an event there.",
     addAt: (month: string): string => `Add event in ${month}`,
+    editSelected: (title: string): string => `Edit ${title}`,
     keysHint: "Arrow keys move one month, Page Up and Page Down one year, Home and End to the start and the end.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Events: ${events.join(", ")}`}`,

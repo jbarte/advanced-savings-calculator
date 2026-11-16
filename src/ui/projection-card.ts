@@ -1,10 +1,11 @@
 import { fullEventKinds, openAddEvent } from "./add-event";
+import { eventTitle, openEditEvent } from "./edit-event";
 import { hasCoarsePointer, isTouchClick } from "./pointer";
 import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
 import { METRICS } from "../state/types";
 import { activeEntry } from "../state/workspace";
 import type { AppState, ScenarioView } from "../state/types";
-import { chartMonthOf, eventsActiveAtMonth } from "../state/timeline";
+import { chartMonthOf, eventsActiveAtMonth, isPlanned } from "../state/timeline";
 import type { TimelineEntry } from "../state/timeline";
 import type { Actions } from "./actions";
 import {
@@ -140,17 +141,36 @@ export function renderChartCard(
       ),
     ),
     chart,
-    chart.classList.contains("chart") && !Object.values(fullEventKinds(scenario)).every(Boolean) ? renderAddRow(scenario, state, actions) : null,
+    chart.classList.contains("chart") ? renderAddRow(scenario, timeline, state, actions) : null,
     renderChartLegend(timeline, chartGoalValue(scenario, state) !== null),
     renderYearTable(scenario, state, actions),
   );
 }
 
 /**
- * The line under the chart about adding an event. Once the cursor rests on a month (tapped, picked with the keys or by
- * selecting an event) it is a button that adds an event in that month; before that it says how to start.
+ * The line under the chart about adding or editing an event. With an event selected it is a button that edits that
+ * event, and nothing offers another one. Otherwise, once the cursor rests on a month (tapped, or picked with the keys) it
+ * is a button that adds an event in that month, and before that it says how to start. Null when no event can be added.
  */
-function renderAddRow(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+function renderAddRow(scenario: ScenarioView, timeline: readonly TimelineEntry[], state: AppState, actions: Actions): HTMLElement | null {
+  const selected = state.selectedEvent === null ? undefined : timeline.find((entry) => entry.key === state.selectedEvent && isPlanned(entry));
+  if (selected !== undefined) {
+    return h(
+      "div",
+      { class: "chart__hint" },
+      h(
+        "button",
+        {
+          class: "btn-secondary chart__add",
+          type: "button",
+          "data-key": "chart-edit-selected",
+          onclick: () => openEditEvent(scenario, selected, actions),
+        },
+        messages.chart.editSelected(eventTitle(selected)),
+      ),
+    );
+  }
+  if (Object.values(fullEventKinds(scenario)).every(Boolean)) return null;
   const last = visiblePoints(scenario).length - 1;
   if (state.chartMonth === null) {
     return h("p", { class: "chart__hint" }, hasCoarsePointer() ? messages.chart.addHintTouch : messages.chart.addHint);
@@ -185,18 +205,6 @@ function renderChartOrEmptyState(
     return renderEmptyState(messages.emptyMetric[state.metric], messages.chart.metricEmptyHint);
   }
   return renderChart(scenario, state, timeline, actions);
-}
-
-/** The label of an event, for the tooltip and the value text. */
-function eventLabel(entry: TimelineEntry): string {
-  switch (entry.kind) {
-    case "withdrawal":
-      return entry.withdrawal.label;
-    case "deposit-change":
-      return entry.change.label;
-    case "one-time-deposit":
-      return entry.deposit.label;
-  }
 }
 
 /**
@@ -276,9 +284,9 @@ function renderChart(
     tooltip.style.transform = `translate(-${x}%, calc(-100% - 14px))`;
     tooltipValue.textContent = value;
     tooltipLabel.textContent = when;
-    tooltipEvents.replaceChildren(...events.map((entry) => h("li", {}, messages.chart.tooltipEvent(entry.number, eventLabel(entry)))));
+    tooltipEvents.replaceChildren(...events.map((entry) => h("li", {}, messages.chart.tooltipEvent(entry.number, eventTitle(entry)))));
     plot.setAttribute("aria-valuenow", String(index));
-    plot.setAttribute("aria-valuetext", messages.chart.valueText(when, value, events.map(eventLabel)));
+    plot.setAttribute("aria-valuetext", messages.chart.valueText(when, value, events.map(eventTitle)));
   };
 
   const plot = h(
