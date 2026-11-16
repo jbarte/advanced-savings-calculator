@@ -2703,6 +2703,12 @@ button {
   opacity: 0.18;
 }
 
+.gart__gap {
+  fill: var(--kind-withdrawal);
+  opacity: 0.22;
+  animation: gart-fade 700ms var(--ease-out) 1000ms both;
+}
+
 .gart__badge--withdrawal {
   fill: var(--kind-withdrawal);
 }
