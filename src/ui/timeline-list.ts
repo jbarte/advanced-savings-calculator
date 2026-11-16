@@ -7,9 +7,9 @@ import type { AppState, PlannedDepositChange, ScenarioView } from "../state/type
 import type { Actions } from "./actions";
 import { openDepositChangeDialog } from "./deposit-change-dialog";
 import { openOneTimeDepositDialog } from "./one-time-deposit-dialog";
-import { renderHiddenHint, renderSteadyText } from "./components";
+import { renderMenu, renderSteadyText } from "./components";
 import { h } from "./dom";
-import { formatMoney, formatSignedMoney, formatSignedMoneyCompact, formatYearMonth } from "./format";
+import { formatMoney, formatSignedMoney, formatYearMonth } from "./format";
 import { STATUS_LABELS, monthLabel } from "./view-helpers";
 import { openWithdrawalDialog } from "./withdrawal-dialog";
 import { messages } from "./i18n";
@@ -32,6 +32,11 @@ interface RowParts {
 function periodText(change: PlannedDepositChange): string {
   const from = formatYearMonth(change.startDate);
   return change.endDate === null ? messages.list.periodOpen(from) : messages.list.period(from, formatYearMonth(change.endDate));
+}
+
+/** A status is shown only when it says something: an event that is counted as planned needs no label. */
+function statusChip(status: EventStatus): HTMLElement | null {
+  return status === "planned" ? null : h("span", { class: "chip" }, STATUS_LABELS[status]);
 }
 
 /** What is shared by every row's effect cell: where it is measured and how long the longest bar is. */
@@ -68,7 +73,7 @@ function effectCell(effect: Ore, status: EventStatus, scale: EffectScale, explai
     { class: `impact${tone}`, role: "cell", title: counted ? hover : noEffectReason(status, scale.end) },
     h("span", { class: "impact__label" }, messages.list.effectLabel(scale.end)),
     h("div", { class: "impact__track" }, h("div", { class: "impact__fill", style: `width:${counted ? (Math.abs(effect) / scale.max) * 100 : 0}%` })),
-    h("span", { class: "impact__value" }, counted ? formatSignedMoneyCompact(effect) : "–"),
+    h("span", { class: "impact__value" }, counted ? formatSignedMoney(effect) : "–"),
   );
 }
 
@@ -80,7 +85,7 @@ function withdrawalParts(scenario: ScenarioView, entry: WithdrawalEntry, scale: 
     title: withdrawal.label,
     sub: reduced ? messages.list.withdrawalSubReduced(when, formatMoney(withdrawal.applied)) : messages.list.withdrawalSub(when),
     amount: formatMoney(withdrawal.amount),
-    chips: [h("span", { class: "chip" }, STATUS_LABELS[withdrawal.status]), reduced ? h("span", { class: "chip chip--warn" }, messages.list.reduced) : null],
+    chips: [statusChip(withdrawal.status), reduced ? h("span", { class: "chip chip--warn" }, messages.list.reduced) : null],
     impact: effectCell(
       withdrawal.effect,
       withdrawal.status,
@@ -108,7 +113,7 @@ function depositChangeParts(scenario: ScenarioView, entry: DepositChangeEntry, s
     title: change.label,
     sub: messages.list.depositChangeSub(periodText(change)),
     amount: change.amount === 0 ? messages.list.paused : `${formatMoney(change.amount)}${messages.units.perMonth}`,
-    chips: [h("span", { class: "chip" }, STATUS_LABELS[change.status])],
+    chips: [statusChip(change.status)],
     impact: effectCell(
       change.effect,
       change.status,
@@ -131,7 +136,7 @@ function oneTimeDepositParts(scenario: ScenarioView, entry: OneTimeDepositEntry,
     title: deposit.label,
     sub: messages.list.oneTimeSub(formatYearMonth(deposit.date)),
     amount: `+${formatMoney(deposit.amount)}`,
-    chips: [h("span", { class: "chip" }, STATUS_LABELS[deposit.status])],
+    chips: [statusChip(deposit.status)],
     impact: effectCell(
       deposit.effect,
       deposit.status,
@@ -216,33 +221,22 @@ function renderRow(
         },
         messages.common.edit,
       ),
-      h(
-        "button",
-        {
-          class: "btn-text",
-          type: "button",
-          "data-key": `event-skip-${entry.key}`,
-          disabled: !canCopy,
-          title: canCopy ? messages.list.skipHover : messages.app.plansFull(PLAN_LIMITS.maxPlans),
-          "aria-label": messages.list.skipAria(parts.title),
-          "aria-describedby": canCopy ? undefined : `skip-hint-${entry.key}`,
-          onclick: () => actions.copyWithoutEvent(entry.key),
-        },
-        messages.list.skip,
-      ),
-      canCopy ? null : renderHiddenHint(`skip-hint-${entry.key}`, messages.app.plansFull(PLAN_LIMITS.maxPlans)),
-      h(
-        "button",
-        {
-          class: "btn-text btn-text--danger",
-          type: "button",
-          "data-key": `event-remove-${entry.key}`,
-          "data-focus-next": "event-add",
-          "aria-label": messages.list.removeAria(parts.title),
-          onclick: parts.remove,
-        },
-        messages.common.remove,
-      ),
+      // Used less often than Edit, so they sit behind one "more" button and the row stays quiet.
+      renderMenu({
+        label: messages.list.moreAria(parts.title),
+        dataKey: `event-menu-${entry.key}`,
+        focusNext: "event-add",
+        items: [
+          {
+            label: messages.list.skip,
+            dataKey: `event-skip-${entry.key}`,
+            disabled: !canCopy,
+            hint: canCopy ? undefined : messages.app.plansFull(PLAN_LIMITS.maxPlans),
+            onSelect: () => actions.copyWithoutEvent(entry.key),
+          },
+          { label: messages.common.remove, dataKey: `event-remove-${entry.key}`, danger: true, onSelect: parts.remove },
+        ],
+      }),
     ),
   );
 }
@@ -263,7 +257,7 @@ export function renderTimelineList(
     { class: "table__row table__row--head", role: "row" },
     h("span", { role: "columnheader" }, messages.list.eventHeader),
     h("span", { role: "columnheader" }, messages.list.amountHeader),
-    h("span", { role: "columnheader" }, messages.list.statusHeader),
+    h("span", { class: "table__status-head", role: "columnheader" }, messages.list.statusHeader),
     h(
       "span",
       { role: "columnheader" },
@@ -272,14 +266,12 @@ export function renderTimelineList(
     h("span", { class: "visually-hidden", role: "columnheader" }, messages.list.actionsHeader),
   );
 
+  const rows = timeline.map((entry) => renderRow(scenario, entry, state.selectedEvent, scale, canAddPlan(state), actions));
+  // With nothing to say about any event, the status column is left out altogether.
+  const hasStatus = rows.some((row) => row.querySelector(".chip") !== null);
   return h(
     "div",
     { class: "table-card" },
-    h(
-      "div",
-      { class: "table", role: "table", "aria-label": messages.list.ariaTable },
-      head,
-      ...timeline.map((entry) => renderRow(scenario, entry, state.selectedEvent, scale, canAddPlan(state), actions)),
-    ),
+    h("div", { class: hasStatus ? "table" : "table table--no-status", role: "table", "aria-label": messages.list.ariaTable }, head, ...rows),
   );
 }

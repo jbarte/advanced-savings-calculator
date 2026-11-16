@@ -3,7 +3,8 @@ import { PLAN_LIMITS } from "../state/plan-document";
 import { activeEntry, ownCount } from "../state/workspace";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
-import { renderTextField } from "./components";
+import { renderMenu, renderTextField } from "./components";
+import type { MenuItem } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatPercent, formatYearMonth } from "./format";
 import { ORE_PER_KRONA, SLIDER_RANGES, withPlanSlider } from "./plan-slider";
@@ -100,49 +101,45 @@ function renderPlanActions(scenario: ScenarioView, state: AppState, actions: Act
   );
   // A shared plan is kept or dropped from the banner above the chart.
   if (origin === "shared") return h("div", { class: "card__head-side" }, status, file);
+  // The untouched example has nothing of the user's to delete: it only offers a clean start.
+  if (isExample) {
+    return h(
+      "div",
+      { class: "card__head-side" },
+      status,
+      file,
+      h(
+        "button",
+        { class: "btn-text", type: "button", "data-key": "start-from-scratch", "data-focus-next": "plan-menu", onclick: () => actions.startFromScratch() },
+        messages.plan.startFromScratch,
+      ),
+    );
+  }
   const canDelete = ownCount(state.plans) > 1;
+  const deletePlan: MenuItem = {
+    label: messages.planCard.delete,
+    dataKey: "plan-delete",
+    danger: true,
+    onSelect: () => showUndoToast(messages.undo.planDeleted(scenario.name), actions.deletePlan(state.activeId)),
+  };
+  // "Start over" clears every plan and can't be undone, so it is kept out of the row, behind the "more" button.
+  const startOver: MenuItem = {
+    label: messages.planCard.startOver,
+    dataKey: "start-over",
+    danger: true,
+    onSelect: () => openStartOverDialog(() => actions.startOver()),
+  };
   return h(
     "div",
     { class: "card__head-side" },
     status,
     file,
-    canDelete
-      ? h(
-          "button",
-          {
-            class: "btn-text btn-text--danger",
-            type: "button",
-            "data-key": "plan-delete",
-            "data-focus-next": "plan-rename",
-            "aria-label": messages.planCard.deleteAria(scenario.name),
-            onclick: () => showUndoToast(messages.undo.planDeleted(scenario.name), actions.deletePlan(state.activeId)),
-          },
-          messages.planCard.delete,
-        )
-      : null,
-    isExample
-      ? h(
-          "button",
-          {
-            class: "btn-text",
-            type: "button",
-            "data-key": "start-from-scratch",
-            "data-focus-next": "start-over",
-            onclick: () => actions.startFromScratch(),
-          },
-          messages.plan.startFromScratch,
-        )
-      : h(
-          "button",
-          {
-            class: "btn-text btn-text--danger",
-            type: "button",
-            "data-key": "start-over",
-            "data-focus-next": "start-from-scratch",
-            onclick: () => openStartOverDialog(() => actions.startOver()),
-          },
-          messages.planCard.startOver,
-        ),
+    renderMenu({
+      label: messages.planCard.moreAria,
+      dataKey: "plan-menu",
+      focusNext: "start-from-scratch",
+      items: canDelete ? [deletePlan, startOver] : [startOver],
+    }),
   );
 }
 

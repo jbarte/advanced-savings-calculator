@@ -257,6 +257,8 @@ function renderChart(
       class: "chart__plot",
       tabindex: 0,
       "data-key": "chart",
+      // A month picked with the keys or by selecting an event keeps its tooltip; otherwise it shows only on hover or focus.
+      "data-pinned": state.chartMonth === null ? undefined : "",
       // A slider over the months: screen readers read the value text, and the keys follow the slider pattern.
       role: "slider",
       "aria-label": messages.chart.title(messages.metrics[state.metric]),

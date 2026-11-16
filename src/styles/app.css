@@ -905,6 +905,16 @@ button {
   flex-direction: column;
   gap: 2px;
   /* No glide on position: any delay made it trail a fast pointer. */
+  /* Hidden at rest, so it doesn't cover the end of the curve: the dot stays, and the headline has the end balance. */
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* Shown while the pointer or the keyboard is on the chart, and while a month is picked (an event is selected). */
+.chart__plot:hover .chart__tooltip,
+.chart__plot:focus-visible .chart__tooltip,
+.chart__plot[data-pinned] .chart__tooltip {
+  opacity: 1;
 }
 
 .chart__tooltip strong {
@@ -956,6 +966,15 @@ button {
   align-items: center;
   padding: 14px 20px;
   border-bottom: var(--border-1) solid var(--line);
+}
+
+.table--no-status .table__row {
+  grid-template-columns: minmax(180px, 2fr) minmax(110px, 1fr) minmax(200px, 2fr) auto;
+}
+
+.table--no-status .table__chips,
+.table--no-status .table__status-head {
+  display: none;
 }
 
 .table__row:last-child {
@@ -1097,8 +1116,9 @@ button {
 .impact__value {
   font-family: var(--font-mono);
   font-size: 12px;
-  min-width: 72px;
+  min-width: 104px;
   text-align: right;
+  white-space: nowrap;
 }
 
 /* Shown only on phones, where the column header is hidden. */
@@ -1400,6 +1420,7 @@ button {
 .table__actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: var(--space-1);
 }
 
@@ -2397,8 +2418,8 @@ button {
 
 @media (max-width: 860px) {
   :root {
-    /* The app bar has two rows here (brand and actions, then the plan tabs). */
-    --appbar-clearance: 144px;
+    /* The app bar has two rows here (brand and actions, then the plan tabs), and only the tabs stay when scrolled. */
+    --appbar-clearance: 84px;
   }
 
   .appbar {
@@ -2407,6 +2428,9 @@ button {
       "brand actions"
       "tabs tabs";
     padding: 10px var(--space-3);
+    /* Only the plan tabs stay in view while the page scrolls: the first row (10px padding, a 44px row, a 12px gap)
+       slides out, less 8px of air above the tabs. */
+    top: -58px;
   }
 
   .appbar__tabs {
@@ -2462,23 +2486,24 @@ button {
   .table__row {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "who who"
+      "who actions"
       "amount chips"
-      "impact impact"
-      "actions actions";
+      "impact impact";
     row-gap: var(--space-2);
+  }
+
+  .table--no-status .table__row {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .table__who {
     grid-area: who;
   }
 
+  /* Edit and the "more" button sit beside the event's name, so a card has no row of its own for them. */
   .table__actions {
     grid-area: actions;
-    justify-content: flex-start;
-    gap: var(--space-3);
-    padding-top: var(--space-1);
-    border-top: var(--border-1) solid var(--line);
+    align-self: start;
   }
 
   .table__amount {
@@ -2505,6 +2530,11 @@ button {
 /* On a narrow phone the Share button shows only its arrow (its name stays in aria-label), so the brand fits. */
 @media (max-width: 420px) {
   .appbar__share-label {
+    display: none;
+  }
+
+  /* The logo alone names the app here; the wordmark would run under the buttons. */
+  .brand__name {
     display: none;
   }
 
@@ -2959,6 +2989,79 @@ button {
 @media print {
   .guide,
   [data-key="guide"] {
+    display: none;
+  }
+}
+
+/* Menu ("more" button) */
+
+.menu {
+  display: inline-flex;
+}
+
+.menu__button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-control);
+  color: var(--ink2);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.menu__button:hover,
+.menu__button[aria-expanded="true"] {
+  background: var(--fill);
+}
+
+.menu__dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+.menu__panel {
+  position: fixed;
+  z-index: 20;
+  min-width: 180px;
+  max-width: min(280px, calc(100vw - 16px));
+  padding: var(--space-1);
+  display: grid;
+  gap: 2px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-float), 0 0 0 var(--border-1) var(--edge);
+}
+
+.menu__item {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.menu__item:hover:not(:disabled),
+.menu__item:focus-visible {
+  background: var(--fill);
+}
+
+.menu__item--danger {
+  color: var(--danger);
+}
+
+.menu__item:disabled {
+  color: var(--muted);
+}
+
+.menu__hint {
+  padding: 0 var(--space-3) var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+@media print {
+  .menu {
     display: none;
   }
 }
