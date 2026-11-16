@@ -1182,3 +1182,25 @@ From a review of the whole app on desktop, phone and dark theme (items 3, 5, 6 a
 - **Tooltip at rest.** The chart tooltip sat on the end of the curve all the time. It now shows on hover, on keyboard focus and while a month is picked (an event is selected); the dot stays. Same for the Compare chart.
 - **Checked:** typecheck, 704 tests, build. Browser, desktop and 375 px: the menu opens under its button, arrow keys and Escape work and focus returns to the button; Remove through the menu shows the undo toast and moves focus to Add event, Undo restores; "Try without" adds the plan; the plan menu deletes a plan (with undo) and opens the Start over confirmation; the tooltip is hidden at rest and shown when an event is selected; no horizontal scroll.
 - **Known gaps:** the Share, guide, language and theme buttons scroll away on a phone (scroll to the top to reach them); the menu has no unit tests (no DOM test setup); the unused texts `skipHover`, `skipAria`, `removeAria` and `deleteAria` were removed.
+
+### UX pass 2: Goal card, KPI tiles, Compare table (branch `feature/ux-pass-2`)
+
+Items 4, 8 and 9 of the app review.
+- **Goal card (4).** The gauge was as wide as the card (about 350 px for one number); it is now at most 240 px, with a 44 px number. The bento cards no longer stretch to the same height (an empty box under the Goal card), and the Plan card's fields are two columns (200 px minimum) so the two cards are 393 and 520 px instead of 291 and 520.
+- **KPI tiles (8).** The review said the Compare card used a dropdown for the same choice; that was a misreading: it was a label ("Balance") next to the card's collapse chevron, which did look like a select. Now the tiles have a caption, "Show on the chart", and are a labelled group; the Compare card's label reads "Showing balance" and sits under the heading, with the collapse button beside the heading.
+- **Compare table (9).** On a phone only "Plan", "Ends" and part of "Balance" showed, with nothing saying it scrolls. The plan column is now sticky (it stays at the same x while the figures scroll) and a soft shadow on the right edge shows while there is more to scroll to.
+- **Checked:** typecheck, 704 tests, build. Browser at 1280 px and 375 px: the caption and group, the gauge width, the card heights, the sticky plan column (x stays 36 while scrolled 160 px), no horizontal page scroll.
+- **Known gaps:** the right-edge shadow was seen in one screenshot only (the screenshot tool lagged behind scrolling afterwards); not checked on a real phone.
+
+### Tap to read, then add (in `feature/ux-pass-2`; item 2 of the app review)
+
+- **The problem.** A click on the chart opened the Add event dialog, so on a phone a tap, which is how you read a value, could not just show it.
+- **Now.** With a mouse a click still opens the add flow at that month. With a finger a tap moves the cursor there and shows the tooltip; the line under the chart becomes a button, "Add event in Apr 2040", that opens the add flow for that month. The button shows whenever the cursor rests on a month, so it is also the way to add at a month for someone using the arrow keys. The hint says "Click the chart…" or, on a phone, "Tap the chart to pick a month, then add an event there". The hint and the button share a 44 px slot, so nothing below moves. The guide's events step says "pick a month on the chart".
+- **Checked:** typecheck, 704 tests, build. Browser: a touch click (a dispatched `PointerEvent` with `pointerType: "touch"`) showed the tooltip and the button and opened no dialog; the button opened the flow and the date field held 2038-11; a mouse click opened the dialog directly; the slot kept its height; no horizontal scroll at 375 px.
+- **Known gaps:** touch was tested with dispatched events, not a real finger; `isTouchClick` has no unit test (it reads the DOM).
+
+### Delete a plan from its tab (in `feature/ux-pass-2`)
+
+- "Delete plan" was only in the Plan card's "more" menu, which was hard to find. The open plan's tab now has a trash button inside its pill (28 px, grey, red on hover, named "Delete <plan>"). It shows only on the open tab and only for an own plan that isn't the last one; it deletes with the same undo toast as before, and the menu entry stays. A tab is now a `.tabs__tab` wrapper (the pill look moved to it) around the name button and the trash button.
+- **Checked:** typecheck, 704 tests, build. Browser: with two plans the trash is on the open tab only and moves when another tab is opened; it deleted the open plan, showed "Deleted plan" with Undo, and Undo brought the plan back as the second tab; with one plan left there is no trash.
+- **Known gaps:** not looked at on a real phone; a long plan name makes the pill wider (the name is cut at 220 px as before).

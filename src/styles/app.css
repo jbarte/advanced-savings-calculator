@@ -321,6 +321,51 @@ button {
   box-shadow: var(--shadow-lift-sm);
 }
 
+/* A plan's tab: its name, and for the open plan a trash button inside the same pill. The pill carries the "open" look. */
+.tabs__tab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-control);
+  transition: background var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+}
+
+.tabs__tab:has([aria-current="true"]) {
+  background: var(--surface);
+  box-shadow: var(--shadow-lift-sm);
+}
+
+.tabs__tab .tabs__item[aria-current="true"] {
+  background: none;
+  box-shadow: none;
+}
+
+.tabs__tab:has(.tabs__delete) .tabs__item {
+  padding-right: 8px;
+}
+
+.tabs__delete {
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.tabs__delete:hover {
+  background: var(--fill);
+  color: var(--danger);
+}
+
+.tabs__delete .icon {
+  width: 16px;
+  height: 16px;
+}
+
 .tabs__item--add {
   width: 36px;
   padding: 0;
@@ -406,6 +451,12 @@ button {
   color: var(--ink2);
 }
 
+.kpis__caption {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
 .kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -416,6 +467,8 @@ button {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-4);
+  /* Each card is as tall as its content: the Goal card is shorter than the Plan card, and stretching it left an empty box. */
+  align-items: start;
 }
 
 /* ---------- Cards ---------- */
@@ -555,9 +608,20 @@ button {
 
 .chart__hint {
   margin: var(--space-2) 0 0;
+  /* The same height as the button that replaces the text, so the page below doesn't move when a month is picked. */
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--muted);
   font-size: var(--text-sm);
   text-align: center;
+}
+
+@media print {
+  .chart__hint {
+    display: none;
+  }
 }
 
 .chart__plot {
@@ -1168,10 +1232,11 @@ button {
 
 /* ---------- Inputs card ---------- */
 
-/* 160 px keeps the month field ("November 2026") readable; five fields wrap instead of squeezing. */
+/* 200 px keeps the month field ("November 2026") readable and gives two columns in the Plan card beside the Goal card,
+   so the two cards are about as tall; six fields wrap instead of squeezing. */
 .fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
 
@@ -1464,8 +1529,9 @@ button {
 }
 
 .gauge svg {
-  width: 100%;
+  width: min(100%, 240px);
   display: block;
+  margin: 0 auto;
 }
 
 .gauge__track {
@@ -1482,8 +1548,9 @@ button {
 
 .gauge__label {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  width: min(100%, 240px);
+  transform: translateX(-50%);
   bottom: 0;
   display: flex;
   flex-direction: column;
@@ -1497,7 +1564,7 @@ button {
 }
 
 .gauge__number strong {
-  font-size: 56px;
+  font-size: 44px;
   font-weight: 600;
   letter-spacing: -0.05em;
   line-height: 1;
@@ -1619,9 +1686,19 @@ button {
   margin-bottom: var(--space-3);
 }
 
+.compare-card__meta {
+  /* Tucked under the heading, closer than the card's usual gap. */
+  margin: -12px 0 0;
+}
+
 .compare-scroll {
   overflow-x: auto;
   border-radius: var(--radius-control);
+  /* A soft edge on the right while there is more to scroll to: the cover moves with the content and hides the fixed
+     shadow once the end is reached. */
+  background:
+    linear-gradient(to left, var(--surface), var(--surface)) right center / 20px 100% no-repeat local,
+    linear-gradient(to left, color-mix(in oklab, var(--ink) 16%, transparent), transparent) right center / 20px 100% no-repeat scroll;
 }
 
 .compare-table {
@@ -1651,6 +1728,16 @@ button {
 .compare-table thead th:first-child {
   text-align: left;
   font-family: var(--font-sans);
+  /* The plan name stays in view while the figures scroll under it. */
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  box-shadow: 1px 0 0 var(--line);
+}
+
+.compare-table tr[aria-current="true"] th[scope="row"] {
+  background: var(--fill);
 }
 
 .compare-table tr[aria-current="true"] {

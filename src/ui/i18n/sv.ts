@@ -46,7 +46,7 @@ export const sv: Messages = {
       events: {
         title: "Lägg till händelser",
         text:
-          "Tryck på Lägg till händelse, eller klicka eller tryck i diagrammet på en månad, för att planera ett uttag, " +
+          "Tryck på Lägg till händelse, eller välj en månad i diagrammet, för att planera ett uttag, " +
           "en engångsinsättning eller en ändring av månadssparandet (höjning, sänkning eller paus). Varje händelse " +
           "får ett nummer i diagrammet och visar vad den ändrar i slutet.",
       },
@@ -110,6 +110,7 @@ export const sv: Messages = {
     pageTitleNamed: (name: string): string => `${name} · Life Ledger`,
     plans: "Planer",
     addPlan: "Lägg till en plan",
+    deletePlanAria: (name: string): string => `Ta bort ${name}`,
     plansFull: (max: number): string => `Du kan ha högst ${max} planer`,
     disclaimer: "Prognoserna utgår från en konstant avkastning och är bara uppskattningar. Det här är inte ekonomisk rådgivning.",
   },
@@ -260,7 +261,7 @@ export const sv: Messages = {
   },
   compare: {
     heading: "Jämför planer",
-    meta: (metric: string, inflationAdjusted: boolean): string => `${metric}${inflationAdjusted ? " · inflationsjusterat" : ""}`,
+    meta: (metric: string, inflationAdjusted: boolean): string => `Visar ${metric.toLowerCase()}${inflationAdjusted ? " · inflationsjusterat" : ""}`,
     chartLabel: (metric: string): string => `${metric} för varje plan`,
     legendLabel: "Planer",
     tableLabel: "Planerna sida vid sida, vid slutet av varje plan",
@@ -294,6 +295,7 @@ export const sv: Messages = {
     subtitle: (name: string): string => `${name} · Så växer ditt sparande, och vad varje händelse tillför eller kostar.`,
     subtitleAdjusted: (name: string, inflationPct: number): string =>
       `${name} · Inflationsjusterat med ${num(inflationPct)} % per år. Det du anger förblir som du skrev det.`,
+    pickMetric: "Visa i diagrammet",
     eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>
       `${metric} per ${month}${inflationAdjusted ? " · inflationsjusterat" : ""}`,
     timeHorizon: "Tidshorisont",
@@ -314,7 +316,9 @@ export const sv: Messages = {
       date: "Månad",
       tableLabel: "Årsvisa siffror",
     },
-    addHint: "Klicka eller tryck i diagrammet för att lägga till en händelse den månaden.",
+    addHint: "Klicka i diagrammet för att lägga till en händelse den månaden.",
+    addHintTouch: "Tryck i diagrammet för att välja en månad och lägg sedan till en händelse där.",
+    addAt: (month: string): string => `Lägg till händelse i ${month}`,
     keysHint: "Piltangenterna flyttar en månad, Page Up och Page Down ett år, Home och End till början och slutet.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Händelser: ${events.join(", ")}`}`,
