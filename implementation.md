@@ -1156,3 +1156,9 @@ From a read-through of the code (bugs, messages, edge cases):
 - `.github/dependabot.yml`: every Monday, one pull request for the pinned GitHub Actions (grouped), and for the npm dev dependencies one grouped pull request for minor and patch updates (at most 3 open); a major update is its own pull request. Commit messages start with `ci` and `deps`. There are no runtime dependencies to watch.
 - Each of them runs the same `build` check as any pull request, which the ruleset on `main` requires, so nothing is merged without passing tests and build.
 - **Checked:** the file is valid YAML; the first update pull requests will show whether the schedule and groups behave as meant (GitHub also shows the status under Insights → Dependency graph → Dependabot).
+
+### README in the course template (branch `docs/readme-template`)
+
+- The README now follows the template: one sentence on what and why, the live link, what it does, getting started (requirements, installation, configuration, run), architecture with the folder tree, a tech stack table with the reasons, limitations, and "Built with". The long feature list, the status note and the separate deployment section were folded into those parts; the screenshot stays.
+- Configuration says plainly that there are no environment variables or `.env` file, since the template expects one; the commands table sits under "Run".
+- Limitations are written from the code: constant return, no taxes or fees, the `PLAN_LIMITS` caps, data in one browser, one-variable goal solver.
