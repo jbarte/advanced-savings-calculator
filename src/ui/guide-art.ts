@@ -22,13 +22,17 @@ const track = (y: number, thumbX: number): SVGElement[] => [
   s("rect", { class: "gart__label", x: 20, y: y - 4, width: 36, height: 8, rx: 4 }),
 ];
 
-/** What the tool is about: a savings curve and the dip one withdrawal makes in it. */
+/**
+ * What the tool is about: the plan without a withdrawal (dashed), the plan with one (solid) and the shaded gap between
+ * them at the end, which is what the decision costs.
+ */
 const intro: Art = () =>
   art(
     axes(),
-    line("M20 96 C60 90 90 74 120 58 L120 76 C150 62 190 38 226 18"),
-    line("M120 58 C160 46 195 28 226 10", " gart__line--ghost"),
-    s("circle", { class: "gart__badge gart__badge--withdrawal", cx: 120, cy: 67, r: 5 }),
+    s("path", { class: "gart__gap", d: "M103.7 77.4C145.4 64.6 186.4 45.2 226 20L226 48C190 70 150 86 103.7 91Z" }),
+    line("M20 94C90 88 160 62 226 20", " gart__line--ghost"),
+    line("M20 94C48 91.6 76 86 103.7 77.4L103.7 91C150 86 190 70 226 48"),
+    badge(104, 20, "withdrawal", "1"),
   );
 
 /** The Plan card: four fields with a slider each. */

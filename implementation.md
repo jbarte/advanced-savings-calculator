@@ -1138,3 +1138,8 @@ From a read-through of the code (bugs, messages, edge cases):
 - **Typed amounts:** "1,500", "1.500", "1,500,000" and "1.500,00" are thousands separators (a separator plus exactly three digits in groups), so "1,500" is 1 500 kr and not an error. Before, "1,000" meant one krona.
 - **Checked:** typecheck, 702 tests, build. Browser (synthetic events): Enter on the picker button is not prevented and the dialog stays open, Enter in an input still validates, Escape in the picker is prevented and closes only the panel, two `beforeprint`s then `afterprint` restore the theme and the tables.
 - **Not changed:** the rest of the review list (hardcoded values, doc comments, edge-case guards, missing tests) is still open.
+
+### The guide's first drawing (branch `fix/guide-intro-art`)
+
+- The first step's picture was redrawn: the plan without a withdrawal (dashed) and with one (solid, with the numbered withdrawal badge as on the chart), and the gap between them at the end shaded in the withdrawal colour, so it shows what a decision costs. The old one had a bare dot on a vertical jump and read as a glitch.
+- **Checked:** typecheck, tests, build; looked at in the browser after the animation (the gap fades in last).
