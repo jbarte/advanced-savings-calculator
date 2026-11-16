@@ -1172,3 +1172,13 @@ From a read-through of the code (bugs, messages, edge cases):
 - **Texts.** The events step is tighter, and the last step says the ? button opens the guide again.
 - **Checked:** typecheck, 704 tests (2 new for the resume step), build. Browser: all six steps the same height on desktop and at 375 × 667; arrows, dots, Back hidden on step 1, "Got it" on the last; a switch at step 3 came back in Swedish at step 3; a touch swipe turned the page, a diagonal one and a mouse drag did not; the close button closes.
 - **Known gaps:** swipe and the phone layout were checked with an emulated size and synthetic pointer events, not on a real phone; the DOM part has no unit tests (no DOM test setup).
+
+### UX pass: phone app bar, quieter events, safer plan actions, tooltip at rest (branch `feature/ux-pass`)
+
+From a review of the whole app on desktop, phone and dark theme (items 3, 5, 6 and 7 of that list):
+- **Phone app bar.** It took 124 px of the screen all the time and the Share button ran over the wordmark at 375 px. Under 860 px only the plan tabs now stay in view while scrolling (66 px; `top: -58px`), and under 420 px the wordmark is hidden (the logo stays). `--appbar-clearance` is 84 px there.
+- **Events list.** The "Planned" chip on every row is gone: a status shows only when it is not planned, and the column disappears when no row has one. "Try without" and "Remove" moved into a "more" menu beside Edit (`renderMenu`, a new component). Effects are written in full like the amounts ("−773 834 kr", not "-773.8K kr"). On a phone Edit and the menu sit beside the event's name, so each card lost a row.
+- **Plan card.** "Delete plan" and "Start over" were two red links side by side, one undoable and one not. Both are now in a "more" menu next to File; "Start over" still asks first.
+- **Tooltip at rest.** The chart tooltip sat on the end of the curve all the time. It now shows on hover, on keyboard focus and while a month is picked (an event is selected); the dot stays. Same for the Compare chart.
+- **Checked:** typecheck, 704 tests, build. Browser, desktop and 375 px: the menu opens under its button, arrow keys and Escape work and focus returns to the button; Remove through the menu shows the undo toast and moves focus to Add event, Undo restores; "Try without" adds the plan; the plan menu deletes a plan (with undo) and opens the Start over confirmation; the tooltip is hidden at rest and shown when an event is selected; no horizontal scroll.
+- **Known gaps:** the Share, guide, language and theme buttons scroll away on a phone (scroll to the top to reach them); the menu has no unit tests (no DOM test setup); the unused texts `skipHover`, `skipAria`, `removeAria` and `deleteAria` were removed.

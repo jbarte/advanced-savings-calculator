@@ -152,6 +152,139 @@ export function renderHiddenHint(id: string, text: string): HTMLElement {
   return h("span", { id, class: "visually-hidden" }, text);
 }
 
+/* ---------- Menu ---------- */
+
+export interface MenuItem {
+  readonly label: string;
+  readonly onSelect: () => void;
+  /** Red text, for an action that removes something. */
+  readonly danger?: boolean;
+  readonly disabled?: boolean;
+  /** Why the item is switched off, shown under it and read out with it. */
+  readonly hint?: string | undefined;
+  readonly dataKey?: string;
+}
+
+export interface MenuProps {
+  /** The accessible name of the "more" button, e.g. "More actions for New car". */
+  readonly label: string;
+  readonly dataKey: string;
+  /** Where focus goes when the button disappears with what the menu removed. */
+  readonly focusNext?: string;
+  readonly items: readonly MenuItem[];
+}
+
+const dotsIcon = (): SVGSVGElement =>
+  s(
+    "svg",
+    { class: "icon", viewBox: "0 0 24 24", "aria-hidden": "true" },
+    ...[5, 12, 19].map((cx) => s("circle", { class: "menu__dot", cx, cy: 12, r: 1.6 })),
+  );
+
+/**
+ * A "more" button (three dots) that opens a small menu of actions used less often. The panel is placed with fixed
+ * coordinates, so a scrolling or clipping parent (the events table) can't cut it off, and it closes on a choice,
+ * Escape, Tab, a press outside, or when the page scrolls. Arrow keys, Home and End move between the items.
+ */
+export function renderMenu(props: MenuProps): HTMLElement {
+  const panel = h("div", { class: "menu__panel", role: "menu", "aria-label": props.label, hidden: true });
+  const enabledItems = (): HTMLButtonElement[] => [...panel.querySelectorAll<HTMLButtonElement>(".menu__item:not(:disabled)")];
+
+  const close = (): void => {
+    panel.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+    document.removeEventListener("pointerdown", outside, true);
+    window.removeEventListener("scroll", close, true);
+    window.removeEventListener("resize", close);
+  };
+  const outside = (event: Event): void => {
+    // A re-render can remove the menu while it is open; its listeners then let go of themselves.
+    if (!panel.isConnected || !(event.target instanceof Node) || (!panel.contains(event.target) && !button.contains(event.target))) close();
+  };
+
+  /** Under the button and right-aligned with it, or above it when there is no room below. */
+  const place = (): void => {
+    const anchor = button.getBoundingClientRect();
+    const size = panel.getBoundingClientRect();
+    const below = anchor.bottom + 4;
+    const top = below + size.height > window.innerHeight - 8 ? Math.max(8, anchor.top - 4 - size.height) : below;
+    panel.style.top = `${top}px`;
+    panel.style.left = `${Math.max(8, Math.min(anchor.right - size.width, window.innerWidth - size.width - 8))}px`;
+  };
+
+  const open = (): void => {
+    panel.hidden = false;
+    place();
+    button.setAttribute("aria-expanded", "true");
+    enabledItems()[0]?.focus();
+    document.addEventListener("pointerdown", outside, true);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+  };
+
+  const button = h(
+    "button",
+    {
+      class: "menu__button",
+      type: "button",
+      "data-key": props.dataKey,
+      "data-focus-next": props.focusNext,
+      "aria-label": props.label,
+      title: props.label,
+      "aria-haspopup": "menu",
+      "aria-expanded": "false",
+      onclick: () => (panel.hidden ? open() : close()),
+    },
+    dotsIcon(),
+  );
+
+  panel.append(
+    ...props.items.flatMap((item, index) => {
+      const hintId = `${props.dataKey}-hint-${index}`;
+      const hint = item.hint === undefined ? null : h("span", { id: hintId, class: "menu__hint" }, item.hint);
+      const element = h(
+        "button",
+        {
+          class: item.danger === true ? "menu__item menu__item--danger" : "menu__item",
+          type: "button",
+          role: "menuitem",
+          "data-key": item.dataKey,
+          disabled: item.disabled === true,
+          "aria-describedby": hint === null ? undefined : hintId,
+          onclick: () => {
+            close();
+            // Focus goes back to the button first, so the page's focus rules apply to what the action changes.
+            button.focus();
+            item.onSelect();
+          },
+        },
+        item.label,
+      );
+      return hint === null ? [element] : [element, hint];
+    }),
+  );
+
+  panel.addEventListener("keydown", (event) => {
+    const items = enabledItems();
+    const index = items.findIndex((item) => item === document.activeElement);
+    const targets: Record<string, number> = { ArrowDown: index + 1, ArrowUp: index - 1, Home: 0, End: items.length - 1 };
+    const target = targets[event.key];
+    if (target !== undefined) {
+      event.preventDefault();
+      items[(target + items.length) % items.length]?.focus();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+      button.focus();
+    } else if (event.key === "Tab") {
+      close();
+    }
+  });
+
+  return h("div", { class: "menu" }, button, panel);
+}
+
 /** The button that collapses a card to its heading or opens it again. It names the card, and says which way it goes. */
 export function renderCollapseToggle(props: {
   readonly expanded: boolean;

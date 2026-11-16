@@ -329,6 +329,11 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   a taken id gets the next free one), the plan at its old place (`restorePlan`) or the goal, in the plan it was
   removed from. "Start over" keeps its confirmation, since it can't be undone. An empty event list has an
   "Add your first event" button.
+- **Actions used less often sit behind a "more" button** (`renderMenu` in `components.ts`: three dots, `aria-haspopup="menu"`, items with
+  `role="menuitem"`, arrow keys, Escape, closes on a press outside or a scroll; the panel is `position: fixed` so the events table can't clip it). An
+  event row has Edit plus a menu with "Try without" and "Remove"; the Plan card has File plus a menu with "Delete plan" and "Start over", so the one
+  that can't be undone is not a link beside the others. A switched-off item shows its reason under it. An event's status chip shows only when it is
+  not "planned", and the status column is left out when no row has one (`table--no-status`). Amounts and effects are both written in full.
 - **Month fields are text with our own picker.** Every `type: "month"` field (`renderTextField`) is a plain text input
   ("YYYY-MM", typed or picked) with a calendar button (`month-picker.ts`): the native month input has no picker in
   Firefox or desktop Safari. The picker opens under the field with focus on the chosen month, years `minStartYear`–`maxEventYear`, moves with the arrow keys
@@ -431,7 +436,7 @@ with the toggle.
   everywhere (`body`), headings and short texts wrap balanced, `accent-color`, the caret and text selection use the green, a tap
   has no grey flash and no double-tap delay, and the sticky bar and the page edges respect the notch (`viewport-fit=cover`,
   `env(safe-area-inset-*)`). Anything scrolled to or focused stops below the app bar: `html { scroll-padding-top:
-  var(--appbar-clearance) }` is 88 px, and 144 px under 860 px where the bar has two rows; change it with the bar's height.
+  var(--appbar-clearance) }` is 88 px, and 84 px under 860 px, where the bar has two rows and only the plan tabs stay in view while the page scrolls (`top: -58px` on `.appbar`; the brand and the buttons scroll away, and the wordmark is hidden under 420 px); change it with the bar's height.
   While Geist loads, "Geist Fallback" (Arial) and "Geist Mono Fallback" (Courier New) are sized to Geist's measured metrics in
   `fonts.css`, so the swap barely moves the layout. Switching the theme blends the colours (`applyTheme` adds `.theme-fading`
   for 260 ms, not on load and not under reduced motion). `motionAllowed()` (`src/ui/motion.ts`) is the one check for reduced motion
@@ -444,7 +449,7 @@ with the toggle.
   `prefers-reduced-motion` the glide doesn't run, transitions and animations are off, except the spinner.
 - **Chart details.** The first drawing of the page reveals the main chart left to right (`.chart__svg--intro`, a `clip-path`
   animation, set by `introduceChart` only when no chart was on the page before); the tooltip, dot and cursor follow the pointer
-  with no transition on position, and the dot grows while the pointer is over the chart. A badge for an event
+  with no transition on position, and the dot grows while the pointer is over the chart. The tooltip is hidden at rest (it covered the end of the curve): it shows on hover, on keyboard focus, and while a month is picked (`data-pinned` on the plot when `AppState.chartMonth` is set); the Compare chart's follows the same rule. A badge for an event
   that was not on the chart before gets `.chart__badge--new` and pops in (`captureBadges` and `popNewBadges`, keyed on
   `data-event`), so redraws don't make the existing badges pop again; the selected badge has a ring in `--focus` and is larger.
 - **No white highlights or glow.** The `--shadow-*` tokens contain only dark shadows (plus the edge).
