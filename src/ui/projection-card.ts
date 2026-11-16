@@ -25,7 +25,7 @@ import {
 import { renderChartEvents, renderChartLegend } from "./chart-events";
 import { renderEmptyState, renderSteadyText, renderToggle } from "./components";
 import { h, s } from "./dom";
-import { formatKronor, formatMoney, formatMoneyCompact } from "./format";
+import { formatCompact, formatKronor, formatMoney, formatMoneyCompact, formatPercent } from "./format";
 import { lastPoint, monthLabel, visiblePoints } from "./view-helpers";
 import { horizonOptions } from "./horizon-options";
 import { messages } from "./i18n";
@@ -38,9 +38,27 @@ function isLongAmount(ore: number): boolean {
   return formatKronor(ore).replace(/\D/g, "").length >= LONG_AMOUNT_DIGITS;
 }
 
+/**
+ * The line under the headline: what the plan's money does ("The 3.2M kr you put in grows by 6.1M kr, and 450K kr is taken
+ * out"), or the general line when there is nothing to say (no savings, or a return of exactly nothing).
+ */
 function heroSubtitle(scenario: ScenarioView): HTMLElement {
+  const { deposited, growth, withdrawn } = lastPoint(scenario);
+  if (deposited <= 0 || growth === 0) {
+    return renderSteadyText(
+      (adjusted) => [adjusted ? messages.hero.subtitleAdjusted(scenario.name, scenario.inflationPct) : messages.hero.subtitle(scenario.name)],
+      scenario.inflationAdjusted,
+    );
+  }
+  const insight = messages.hero.insight(
+    scenario.name,
+    formatMoneyCompact(deposited),
+    formatMoneyCompact(Math.abs(growth)),
+    withdrawn > 0 ? formatMoneyCompact(withdrawn) : null,
+    growth < 0,
+  );
   return renderSteadyText(
-    (adjusted) => [adjusted ? messages.hero.subtitleAdjusted(scenario.name, scenario.inflationPct) : messages.hero.subtitle(scenario.name)],
+    (adjusted) => [adjusted ? `${insight} ${messages.hero.adjustedNote(scenario.inflationPct)}` : insight],
     scenario.inflationAdjusted,
   );
 }
@@ -91,7 +109,7 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
       h(
         "div",
         {},
-        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, renderSteadyText((adjusted) => [messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(scenario, end.month), adjusted)], scenario.inflationAdjusted)),
+        h("h1", { id: "hero-heading", class: "hero__eyebrow", tabindex: -1, "data-key": "hero-heading" }, renderSteadyText((adjusted) => [messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(scenario, end.month), formatPercent(scenario.annualReturnPct), adjusted)], scenario.inflationAdjusted)),
         h(
           "p",
           { class: isLongAmount(end[state.metric]) ? "hero__value hero__value--long" : "hero__value" },
@@ -178,6 +196,9 @@ function renderAddRow(scenario: ScenarioView, timeline: readonly TimelineEntry[]
   if (Object.values(fullEventKinds(scenario)).every(Boolean)) return null;
   const last = visiblePoints(scenario).length - 1;
   if (state.chartMonth === null) {
+    // Once the plan has events the way to add one has been found, so the hint goes; its slot stays, so nothing moves when
+    // a month is picked and the button takes its place.
+    if (timeline.some(isPlanned)) return h("p", { class: "chart__hint", "aria-hidden": "true" });
     return h("p", { class: "chart__hint" }, hasCoarsePointer() ? messages.chart.addHintTouch : messages.chart.addHint);
   }
   const month = Math.min(last, Math.max(0, state.chartMonth));
@@ -357,7 +378,8 @@ function renderChart(
   show(current);
   const keysHint = h("p", { id: "chart-keys", class: "visually-hidden" }, messages.chart.keysHint);
 
-  const yLabels = ticks.map((tick) => h("span", {}, formatMoneyCompact(tick)));
+  // Only the top label names the unit; the others are bare numbers.
+  const yLabels = ticks.map((tick, i) => h("span", {}, i === 0 ? formatMoneyCompact(tick) : formatCompact(tick)));
   const xLabels = axisMonths(totalMonths).map((month) => h("span", {}, String(addMonths(scenario.start, month).year)));
 
   return h(

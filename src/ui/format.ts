@@ -33,6 +33,8 @@ export function createFormatters({ locale, currency }: FormatSettings) {
   const formatMoney = (amount: Ore): string => `${formatKronor(amount)} ${currency}`;
 
   /** 171609335 öre → "1.7M kr" in English, "1,7 mn kr" in Swedish. */
+  /** 171609335 öre → "1.7M" (compact, no unit): for an axis whose top label carries the unit. */
+  const formatCompact = (amount: Ore): string => compactFormat.format(amount / ORE_PER_KRONA);
   const formatMoneyCompact = (amount: Ore): string => `${compactFormat.format(amount / ORE_PER_KRONA)} ${currency}`;
 
   /** −81411474 öre → "−814 115 kr", 54274305 → "+542 743 kr". For effects, where the sign is the point. */
@@ -47,8 +49,8 @@ export function createFormatters({ locale, currency }: FormatSettings) {
   /** { year: 2031, month: 4 } → "Apr 2031", with the month name in the language in use. */
   const formatYearMonth = (ym: YearMonth): string => monthFormat.format(Date.UTC(ym.year, ym.month - 1));
 
-  return { formatKronor, formatMoney, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact, formatPercent, formatYearMonth };
+  return { formatKronor, formatMoney, formatCompact, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact, formatPercent, formatYearMonth };
 }
 
-export const { formatKronor, formatMoney, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact, formatPercent, formatYearMonth } =
+export const { formatKronor, formatMoney, formatCompact, formatMoneyCompact, formatSignedMoney, formatSignedMoneyCompact, formatPercent, formatYearMonth } =
   createFormatters({ locale: messages.locale, currency: messages.units.currency });
