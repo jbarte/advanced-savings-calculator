@@ -501,6 +501,7 @@ with the toggle.
 ├── package.json              # Scripts and dev dependencies
 ├── tsconfig.json             # Strict TypeScript config
 ├── vite.config.ts            # Vite + Vitest config, GitHub Pages base path, and the Content-Security-Policy meta tag (build only)
+├── .github/dependabot.yml    # Weekly update pull requests for the actions and the dev dependencies
 ├── .github/workflows/
 │   └── deploy.yml            # Test and build on pull requests; test, build and deploy to GitHub Pages on main
 └── src/
@@ -628,7 +629,7 @@ npm run preview   # serve the built site locally
 ```
 
 Deploy happens automatically through GitHub Actions on every push to `main`. A pull request runs the same tests and build as
-checks (`deploy.yml` has a `pull_request` trigger and the deploy job skips it). `main` is protected by a repository ruleset: changes go in through a pull request whose `build` check passes, no force pushes, no deletion. Both jobs have a 10 minute timeout, only pull-request runs are cancelled by a newer push, and only a deploy uploads the Pages artifact.
+checks (`deploy.yml` has a `pull_request` trigger and the deploy job skips it). `main` is protected by a repository ruleset: changes go in through a pull request whose `build` check passes, no force pushes, no deletion. Dependabot (`.github/dependabot.yml`) opens a weekly pull request for the pinned actions and one for minor and patch updates of the dev dependencies; a major update comes as its own pull request, and every one of them runs the same checks. Both jobs have a 10 minute timeout, only pull-request runs are cancelled by a newer push, and only a deploy uploads the Pages artifact.
 
 ## Test
 
