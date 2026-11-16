@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS } from "../state/plan-document";
-import { ORE_PER_KRONA, SLIDER_RANGES } from "./plan-slider";
+import { ORE_PER_KRONA } from "../core/money";
+import { SLIDER_RANGES } from "./plan-slider";
 
 /** Every value a slider can give, from its range and step. */
 function stops({ min, max, step }: { readonly min: number; readonly max: number; readonly step: number }): number[] {

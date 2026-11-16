@@ -39,24 +39,27 @@ export function axisTicks({ min, max, step }: Scale): number[] {
   return Array.from({ length: count + 1 }, (_, i) => max - i * step);
 }
 
+/** The height of a scale, never 0, so a flat scale (which `niceScale` never makes) can't divide by zero. */
+const heightOf = ({ min, max }: Scale): number => max - min || 1;
+
 /** Places values evenly along x and scales them to the scale on y. */
-export function toPoints(values: readonly number[], { min, max }: Scale): Point[] {
+export function toPoints(values: readonly number[], scale: Scale): Point[] {
   const n = values.length;
-  return values.map((v, i) => [n === 1 ? 50 : (i / (n - 1)) * 100, ((max - v) / (max - min)) * 100]);
+  return values.map((v, i) => [n === 1 ? 50 : (i / (n - 1)) * 100, ((scale.max - v) / heightOf(scale)) * 100]);
 }
 
 /**
  * Places a line that starts `firstMonth` and has one value per month on a shared calendar axis that runs from
  * `spanFirst` to `spanLast` (all as month counts), so plans that start at different months line up by date.
  */
-export function calendarPoints(values: readonly number[], firstMonth: number, spanFirst: number, spanLast: number, { min, max }: Scale): Point[] {
+export function calendarPoints(values: readonly number[], firstMonth: number, spanFirst: number, spanLast: number, scale: Scale): Point[] {
   const width = Math.max(1, spanLast - spanFirst);
-  return values.map((v, i) => [((firstMonth + i - spanFirst) / width) * 100, ((max - v) / (max - min)) * 100]);
+  return values.map((v, i) => [((firstMonth + i - spanFirst) / width) * 100, ((scale.max - v) / heightOf(scale)) * 100]);
 }
 
 /** Where zero is on the y axis (0 = top, 100 = bottom). */
-export function zeroLine({ min, max }: Scale): number {
-  return (max / (max - min)) * 100;
+export function zeroLine(scale: Scale): number {
+  return (scale.max / heightOf(scale)) * 100;
 }
 
 /** True when there is nothing to draw: every value is zero (or there are none). */
@@ -104,6 +107,8 @@ export function nearestIndex(fraction: number, count: number): number {
 
 /** Where a month falls along the x axis, as 0–100. Months outside the horizon are clamped to the edges. */
 export function monthToPercent(month: number, totalMonths: number): number {
+  // A horizon of no months has nowhere to put anything: everything is at the start.
+  if (totalMonths <= 0) return 0;
   return Math.min(100, Math.max(0, (month / totalMonths) * 100));
 }
 
@@ -190,6 +195,6 @@ export function chartGoalLine(goal: number | null, maxValue: number): number | n
 }
 
 /** Where a value falls on the y axis of a scale, as 0–100 (0 = top, 100 = bottom). The same rule as `toPoints`. */
-export function valueToPercent(value: number, { min, max }: Scale): number {
-  return ((max - value) / (max - min)) * 100;
+export function valueToPercent(value: number, scale: Scale): number {
+  return ((scale.max - value) / heightOf(scale)) * 100;
 }

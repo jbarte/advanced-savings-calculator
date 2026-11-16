@@ -32,6 +32,12 @@ export interface AppView {
   readonly preview: (patch: PlanPreview) => ScenarioView | null;
 }
 
+/**
+ * Draws the whole page into `root`, replacing what was there. Around that it keeps the page steady: keyboard focus is put
+ * back (by `data-key`, or the element named by `data-focus-next` when the focused one is gone), the charts glide from
+ * where they were drawn, a new badge pops, another plan fades in, and a Plan card slider's live preview redraws only the
+ * headline, the chart and the Goal card (`drawPreview`), leaving the slider being dragged where it is.
+ */
 export function renderApp(root: HTMLElement, view: AppView, actions: Actions): void {
   const { view: active, views, tabs, state, isDark } = view;
   const origin = activeEntry(state).origin;

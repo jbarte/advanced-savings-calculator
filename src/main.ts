@@ -221,7 +221,11 @@ const actions: Actions = {
   },
   dismissNotice: () => store.update({ notice: null }),
   setLanguage: (language, guideStep) => {
-    saveLanguagePreference(language);
+    // The language is read from storage when the page loads, so a switch that can't be saved can't work: say so instead of reloading into the same one.
+    if (!saveLanguagePreference(language)) {
+      store.update({ notice: { kind: "storage-blocked" } });
+      return;
+    }
     if (guideStep !== undefined) resumeGuideAt(guideStep);
     // The texts are chosen once when the page loads, so the new language takes a reload. Plans are saved, and a
     // share link stays in the address.
@@ -237,6 +241,10 @@ const actions: Actions = {
     return { name: displayName(entry), text: planFileText(entry.plan) };
   },
   importPlanFile: (file) => {
+    if ("unreadable" in file) {
+      store.update({ notice: { kind: "file-unreadable", problem: { code: "damaged" } } });
+      return;
+    }
     if ("tooLarge" in file) {
       store.update({ notice: { kind: "file-unreadable", problem: { code: "file-too-large", max: MAX_PLAN_FILE_CHARS } } });
       return;
@@ -263,6 +271,7 @@ const actions: Actions = {
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
+      // Clipboard blocked or missing (an insecure page, an old browser): the share dialog asks the person to copy by hand.
       return false;
     }
   },

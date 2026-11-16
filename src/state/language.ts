@@ -19,12 +19,14 @@ export function loadLanguagePreference(): Language | null {
   }
 }
 
-/** Remembers the user's choice. If storage is blocked the choice is lost on the next visit, which is the best we can do. */
-export function saveLanguagePreference(language: Language): void {
+/** Remembers the user's choice. Returns false when storage is blocked: the page picks its language when it loads, so then a switch can't take effect. */
+export function saveLanguagePreference(language: Language): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, language);
+    return true;
   } catch {
-    // Storage blocked (private mode etc.). The choice just won't persist.
+    // Storage blocked (private mode etc.): the caller says the switch can't be kept.
+    return false;
   }
 }
 

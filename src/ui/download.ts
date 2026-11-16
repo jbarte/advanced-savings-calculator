@@ -3,7 +3,10 @@
  * memory, and a file the user picks is read in memory.
  */
 
-/** Offers text as a file to save. Returns false when the browser refuses (for example blocked downloads). */
+/**
+ * Offers text as a file to save. Returns false when the file could not be made. A browser that blocks the download
+ * itself says nothing to the page, so that case can't be told from success.
+ */
 export function downloadText(fileName: string, text: string, type: string): boolean {
   try {
     const url = URL.createObjectURL(new Blob([text], { type }));
@@ -22,13 +25,14 @@ export function downloadText(fileName: string, text: string, type: string): bool
   }
 }
 
-/**
- * Lets the user pick a file and reads it as text. Resolves with null when they cancel, or when the file is larger than
- * `maxBytes` (so a huge file is never read into memory; the caller's own check reports it).
- */
-/** A file the user picked: its text, or that it was too large to read. */
-export type PickedFile = { readonly text: string } | { readonly tooLarge: true };
+/** A file the user picked: its text, or why there is none (too large to read, or the browser could not read it). */
+export type PickedFile = { readonly text: string } | { readonly tooLarge: true } | { readonly unreadable: true };
 
+/**
+ * Lets the user pick a file and reads it as text. Resolves with null when they cancel, with `tooLarge` for a file over
+ * `maxBytes` (so a huge file is never read into memory; the caller's own check reports it) and with `unreadable` when
+ * the browser can't read it.
+ */
 export function pickTextFile(accept: string, maxBytes: number): Promise<PickedFile | null> {
   return new Promise((resolve) => {
     const input = document.createElement("input");
@@ -43,7 +47,7 @@ export function pickTextFile(accept: string, maxBytes: number): Promise<PickedFi
         (text) => resolve({ text }),
         (error: unknown) => {
           console.error(error);
-          resolve(null);
+          resolve({ unreadable: true });
         },
       );
     });

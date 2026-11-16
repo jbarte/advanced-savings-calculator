@@ -86,6 +86,7 @@ function mapPlan(plan: PlanDocument, months: number): MappedPlan {
   };
 }
 
+/** The engine's input for a plan: dates become month offsets from the start, and events dated outside the projection are dropped. */
 export function toPlanInput(plan: PlanDocument, months: number): PlanInput {
   return mapPlan(plan, months).input;
 }
@@ -121,7 +122,10 @@ function buildGoalSummary(plan: PlanDocument, goal: GoalPlan, input: PlanInput, 
   if (month < 0) return goalWithoutNumbers(goal, "before-start", month, plan);
   if (month > PROJECTION_MONTHS) return goalWithoutNumbers(goal, "after-projection", month, plan);
 
-  const balanceAtGoal = points[month]?.balance ?? 0;
+  const point = points[month];
+  // The projection runs to PROJECTION_MONTHS, so a goal inside it has a point; a silent 0 would show "0 % reached".
+  if (!point) throw new RangeError(`The projection has no month ${month}`);
+  const balanceAtGoal = point.balance;
   return {
     status: "ok",
     target: goal.amount,

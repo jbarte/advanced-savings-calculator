@@ -1,6 +1,9 @@
 import type { Ore } from "./types";
 import { MONTHS_PER_YEAR } from "./year-month";
 
+/** One krona in öre. Money is stored in öre, and anything shown or typed in kronor converts with this. */
+export const ORE_PER_KRONA = 100;
+
 /**
  * Converts a yearly return in percent to the equivalent monthly rate, so that
  * twelve months of compounding give exactly the yearly return:

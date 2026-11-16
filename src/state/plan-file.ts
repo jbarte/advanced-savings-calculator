@@ -10,6 +10,9 @@ import { readPlanText } from "./read-plan";
 /** Text longer than this is not a plan file. Generous: the largest allowed plan, pretty-printed, is under 40 000. */
 export const MAX_PLAN_FILE_CHARS = 200_000;
 
+/** The same limit in bytes, for a file not yet read: a character takes at most 4 bytes in UTF-8. */
+export const MAX_PLAN_FILE_BYTES = MAX_PLAN_FILE_CHARS * 4;
+
 /** The text of a plan file: the plan document as indented JSON. */
 export function planFileText(plan: PlanDocument): string {
   return `${JSON.stringify(plan, null, 2)}\n`;

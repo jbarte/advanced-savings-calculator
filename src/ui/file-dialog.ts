@@ -1,5 +1,5 @@
 import { addMonths } from "../core/year-month";
-import { MAX_PLAN_FILE_CHARS } from "../state/plan-file";
+import { MAX_PLAN_FILE_BYTES } from "../state/plan-file";
 import type { ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { openModal, renderModal } from "./components";
@@ -29,7 +29,7 @@ function downloadFigures(scenario: ScenarioView, actions: Actions): void {
 }
 
 async function openPlanFile(actions: Actions): Promise<void> {
-  const picked = await pickTextFile("application/json,.json", MAX_PLAN_FILE_CHARS * 4);
+  const picked = await pickTextFile("application/json,.json", MAX_PLAN_FILE_BYTES);
   if (picked !== null) actions.importPlanFile(picked);
 }
 

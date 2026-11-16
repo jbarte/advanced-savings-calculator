@@ -48,13 +48,16 @@ export interface GoalPlan {
   readonly date: YearMonth;
 }
 
+/** The newest plan format, 4 since the plan got a name. Older formats are upgraded when read (`readPlanDocument`). */
+export const PLAN_VERSION = 4;
+
 /**
  * Everything that defines a plan, in a shape that can be saved and shared. Dates are real
  * year-months (not offsets), so changing the start date never moves an event.
  */
 export interface PlanDocument {
-  /** 4 since the plan got a name. Version 1, 2 and 3 plans are upgraded when read. */
-  readonly version: 4;
+  /** Always `PLAN_VERSION`: a plan read from an older format has been upgraded. */
+  readonly version: typeof PLAN_VERSION;
   /** A name the user gave the plan, so it can be referred to, or null. */
   readonly name: string | null;
   readonly start: YearMonth;
@@ -116,7 +119,7 @@ export const DEFAULT_INFLATION_PCT = 2;
 /** A worked example for first-time visitors, starting this month, with a car purchase five years in. */
 export function createExamplePlan(today: YearMonth, carLabel: string = "New car"): PlanDocument {
   return {
-    version: 4,
+    version: PLAN_VERSION,
     name: null,
     start: today,
     startAmount: 5_000_000,
@@ -134,7 +137,7 @@ export function createExamplePlan(today: YearMonth, carLabel: string = "New car"
 /** An empty plan: nothing saved yet, with a typical return so it works as soon as an amount is typed. */
 export function createBlankPlan(today: YearMonth): PlanDocument {
   return {
-    version: 4,
+    version: PLAN_VERSION,
     name: null,
     start: today,
     startAmount: 0,

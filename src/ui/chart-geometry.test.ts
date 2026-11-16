@@ -140,6 +140,22 @@ describe("zeroLine", () => {
   });
 });
 
+describe("a flat or empty scale", () => {
+  const flat = { min: 5, max: 5, step: 1 };
+
+  it("never gives NaN or Infinity, so a path can't break", () => {
+    for (const n of [toPoints([5, 5], flat), calendarPoints([5, 5], 0, 0, 1, flat)].flat(2)) expect(Number.isFinite(n)).toBe(true);
+    expect(Number.isFinite(zeroLine(flat))).toBe(true);
+    expect(Number.isFinite(valueToPercent(5, flat))).toBe(true);
+  });
+
+  it("puts every month at the start when the horizon has no months", () => {
+    expect(monthToPercent(0, 0)).toBe(0);
+    expect(monthToPercent(12, 0)).toBe(0);
+    expect(monthToPercent(6, -3)).toBe(0);
+  });
+});
+
 describe("paths", () => {
   it("builds a line path", () => {
     expect(linePath([[0, 100], [100, 0]])).toBe("M0.00 100.00 L100.00 0.00");

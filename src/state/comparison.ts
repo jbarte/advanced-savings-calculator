@@ -91,5 +91,7 @@ export function buildComparison(views: readonly ScenarioView[], openId: string, 
 
   const firsts = lines.map((line) => line.firstMonth);
   const lasts = lines.map((line) => line.firstMonth + line.values.length - 1);
+  // With no plans there are no lines to span (Math.min of nothing is Infinity).
+  if (lines.length === 0) return { metric, lines, rows, firstMonth: 0, lastMonth: 0 };
   return { metric, lines, rows, firstMonth: Math.min(...firsts), lastMonth: Math.max(...lasts) };
 }
