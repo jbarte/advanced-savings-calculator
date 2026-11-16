@@ -23,6 +23,17 @@ const fail = (message: string): { ok: false; message: string } => ({ ok: false, 
 const MAX_DIGITS = 12;
 
 /**
+ * Splits a typed amount into its whole part and its fraction. A separator followed by exactly three digits, in groups
+ * ("1,500", "1.500.000", "1.500,00"), is a thousands separator, so "1,500" is fifteen hundred and not one and a half.
+ */
+function splitAmount(text: string): { readonly whole: string; readonly fraction: string } | null {
+  const grouped = /^(\d{1,3}(?:[.,]\d{3})+)(?:[.,](\d*))?$/.exec(text);
+  if (grouped) return { whole: (grouped[1] ?? "").replace(/[.,]/g, ""), fraction: grouped[2] ?? "" };
+  const plain = /^(\d+)(?:[.,](\d*))?$/.exec(text);
+  return plain ? { whole: plain[1] ?? "", fraction: plain[2] ?? "" } : null;
+}
+
+/**
  * Reads whole kronor typed by a person ("50 000", "3000 kr", "1 500,00") into öre. The conversion
  * works on the digits, never on a float. Fractions other than zero are rejected.
  */
@@ -31,10 +42,10 @@ export function parseKronor(text: string, maxOre: Ore): ParseResult<Ore> {
   if (cleaned === "") return fail(messages.inputErrors.enterAmount);
   if (cleaned.startsWith("-")) return /^-\d/.test(cleaned) ? fail(messages.inputErrors.enterZeroOrMore) : fail(messages.inputErrors.enterNumber);
 
-  const match = /^(\d+)(?:[.,](\d*))?$/.exec(cleaned);
-  if (!match) return fail(messages.inputErrors.enterNumber);
-  const whole = (match[1] ?? "").replace(/^0+(?=\d)/, "");
-  const fraction = match[2] ?? "";
+  const parts = splitAmount(cleaned);
+  if (!parts) return fail(messages.inputErrors.enterNumber);
+  const whole = parts.whole.replace(/^0+(?=\d)/, "");
+  const { fraction } = parts;
   if (/[1-9]/.test(fraction)) return fail(messages.inputErrors.wholeKronor);
 
   const maxMessage = messages.inputErrors.amountMax(formatKronor(maxOre));

@@ -69,7 +69,7 @@ export function readWorkspaceText(text: string): SavedWorkspace {
   try {
     parsed = JSON.parse(text);
   } catch {
-    return damaged("The saved text is not valid JSON");
+    return failWith({ code: "not-json" }, "The saved text is not valid JSON");
   }
   return readWorkspaceDocument(parsed);
 }

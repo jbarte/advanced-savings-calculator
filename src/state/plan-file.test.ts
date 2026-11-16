@@ -33,13 +33,13 @@ describe("planFileText and readPlanFile", () => {
   });
 
   it("refuses text that is not a plan, a plan with a bad value, and one from a newer app", () => {
-    expect(problemFrom(() => readPlanFile("not json"))).toEqual({ code: "damaged" });
+    expect(problemFrom(() => readPlanFile("not json"))).toEqual({ code: "not-json" });
     expect(problemFrom(() => readPlanFile('{"hello": 1}'))).toEqual({ code: "damaged" });
     expect(problemFrom(() => readPlanFile(planFileText({ ...plan, startAmount: -1 })))).toMatchObject({ code: "amount", field: "startAmount" });
     expect(problemFrom(() => readPlanFile(JSON.stringify({ ...plan, version: 99 })))).toEqual({ code: "newer-version" });
   });
 
   it("refuses a file that is far too large before reading it", () => {
-    expect(problemFrom(() => readPlanFile(" ".repeat(MAX_PLAN_FILE_CHARS + 1)))).toEqual({ code: "file-too-large" });
+    expect(problemFrom(() => readPlanFile(" ".repeat(MAX_PLAN_FILE_CHARS + 1)))).toEqual({ code: "file-too-large", max: MAX_PLAN_FILE_CHARS });
   });
 });

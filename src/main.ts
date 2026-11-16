@@ -17,6 +17,7 @@ import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, open
 import type { AppState, PlanEntry, PlanSet, ScenarioView } from "./state/types";
 import { clearSavedPlans, loadSavedPlans, savePlans } from "./state/plan-storage";
 import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
+import { MAX_PLAN_FILE_CHARS } from "./state/plan-file";
 import { buildShareUrl, decodePlan, encodePlan } from "./state/share-link";
 import { STORAGE_BLOCKED_NOTICE, resolveStartupPlan } from "./state/startup-plan";
 import { createStore } from "./state/store";
@@ -232,7 +233,7 @@ const actions: Actions = {
   },
   importPlanFile: (file) => {
     if ("tooLarge" in file) {
-      store.update({ notice: { kind: "file-unreadable", problem: { code: "file-too-large" } } });
+      store.update({ notice: { kind: "file-unreadable", problem: { code: "file-too-large", max: MAX_PLAN_FILE_CHARS } } });
       return;
     }
     let plan: PlanDocument;
@@ -246,7 +247,12 @@ const actions: Actions = {
     commitPlanSet((set) => addPlan(set, plan));
   },
   reportDownloadFailed: () => store.update({ notice: { kind: "download-failed" } }),
-  createShareLink: async () => buildShareUrl(currentPageUrl(), await encodePlan(activeEntry(store.get()).plan)),
+  createShareLink: async () => {
+    const page = currentPageUrl();
+    // Without the page's own address the link would be just "#plan=…", which opens nothing.
+    if (page === "") throw new Error("The address of the page is not available");
+    return buildShareUrl(page, await encodePlan(activeEntry(store.get()).plan));
+  },
   copyToClipboard: async (text) => {
     try {
       await navigator.clipboard.writeText(text);

@@ -140,6 +140,8 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
   });
   panel.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    // preventDefault as well: the dialog's own Escape (closing it) is a default action that stopPropagation doesn't stop.
+    event.preventDefault();
     event.stopPropagation();
     close();
     button.focus();

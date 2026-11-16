@@ -17,10 +17,12 @@ const EVERY_PROBLEM: readonly PlanProblem[] = [
   { code: "end-before-start" },
   { code: "newer-version" },
   { code: "damaged" },
+  { code: "not-json" },
   { code: "link-damaged" },
   { code: "link-too-large" },
   { code: "link-unsupported" },
   { code: "not-a-plan-link" },
+  { code: "file-too-large", max: 200_000 },
 ];
 
 describe("problemText", () => {
@@ -51,9 +53,9 @@ describe("noticeText", () => {
   const problem: PlanProblem = { code: "damaged" };
 
   it("words each kind of notice around the problem", () => {
-    expect(noticeText({ kind: "change-rejected", problem })).toBe("That change was not applied. It is damaged");
+    expect(noticeText({ kind: "change-rejected", problem })).toBe("That change was not applied. Its contents are not a valid plan");
     expect(noticeText({ kind: "saved-plan-unreadable", problem })).toBe(
-      "Your saved plans could not be read, so the example plan is shown. It is damaged. Your next change replaces the saved plans.",
+      "Your saved plans could not be read, so the example plan is shown. Its contents are not a valid plan. Your next change replaces the saved plans.",
     );
     expect(noticeText({ kind: "link-unreadable", problem: { code: "not-a-plan-link" } })).toBe(
       "That link could not be opened. This is not a plan link. Your own plan is shown instead.",

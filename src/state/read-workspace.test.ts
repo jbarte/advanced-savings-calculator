@@ -56,9 +56,9 @@ describe("readWorkspaceDocument", () => {
     expect(problemOf(() => readWorkspaceDocument({ ...doc, version: 2 }))).toEqual({ code: "newer-version" });
   });
 
-  it("reads text, and calls text that is not JSON damaged", () => {
+  it("reads text, and calls text that is not JSON not-json", () => {
     expect(readWorkspaceText(JSON.stringify(doc)).plans).toHaveLength(2);
-    expect(problemOf(() => readWorkspaceText("{oops"))).toEqual({ code: "damaged" });
+    expect(problemOf(() => readWorkspaceText("{oops"))).toEqual({ code: "not-json" });
   });
 });
 

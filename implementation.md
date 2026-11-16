@@ -1126,3 +1126,15 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Event tooltips:** the chart tooltip used to list an event only at exactly its month, about a pixel wide. Over an event's badge it now shows the tooltip at that event's month, and anywhere in a deposit change's period it lists that change (`eventsActiveAtMonth`, tested for both ends of a period).
 - **Checked:** typecheck, 695 tests. Browser: a point inside a six-year band, a point just outside it, and the edges of both badges gave the right events. A click at 40 % across a 30-year chart gave 2038-02 in the one-time deposit dialog; clicking a badge opens no dialog.
 - **Known gaps:** no keyboard path from the chart itself (the Add event button covers it); a tap on a touch screen was checked with a dispatched click.
+
+### Review fixes (branch `fix/review-items`)
+
+From a read-through of the code (bugs, messages, edge cases):
+- **Enter on a month picker button** pressed the form's save instead of the button ([dialog-form.ts](src/ui/dialog-form.ts)): Enter on any button now does what the button does.
+- **Escape in the open month picker** also closed the dialog: the panel's handler now calls `preventDefault`.
+- **Printing:** a second `beforeprint` before `afterprint` (some browsers) took the printing theme for the user's own and left the page light; it is now ignored while a print is being prepared.
+- **Share link without a page address:** `createShareLink` throws instead of returning `#plan=…`, so the dialog says the link could not be created.
+- **Messages:** text that is not JSON is its own problem code (`not-json`) with its own wording; `damaged` reads as "Its contents are not a valid plan"; the too-large file message names the limit (`file-too-large` now carries `max`); the damaged-link message says what to do. Swedish updated alike.
+- **Typed amounts:** "1,500", "1.500", "1,500,000" and "1.500,00" are thousands separators (a separator plus exactly three digits in groups), so "1,500" is 1 500 kr and not an error. Before, "1,000" meant one krona.
+- **Checked:** typecheck, 702 tests, build. Browser (synthetic events): Enter on the picker button is not prevented and the dialog stays open, Enter in an input still validates, Escape in the picker is prevented and closes only the panel, two `beforeprint`s then `afterprint` restore the theme and the tables.
+- **Not changed:** the rest of the review list (hardcoded values, doc comments, edge-case guards, missing tests) is still open.
