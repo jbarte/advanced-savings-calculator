@@ -335,6 +335,7 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   so the chart can be watched while the inputs change, with the Goal card under the chart on the left. Below 1100 px the Plan card is far from the chart,
   so while a Plan card slider moves a pill at the top (`.live-readout`, drawn from the same preview as the headline, gone 1.5 s after the last move)
   shows the result; it is hidden in the sticky layout and in print.
+- **The Goal card lays itself out by its own width** (`container-type: inline-size` on `.card--goal`, `@container (min-width: 620px)`): stacked (gauge, figures, note) when narrow, and with the gauge on the left and the figures and the note on the right when wide (about 750 px beside the Plan card on a desktop). A window width can't decide it, since the same card is 750 px wide on a desktop and 414 px on a tablet.
 - **The goal dialog has an amount slider** (`withFieldSlider` in `plan-slider.ts`, range `SLIDER_RANGES.goalAmount`: 100 000 to 20 000 000 kr in steps of 100 000), kept in step with the typed amount both ways: moving it writes the amount and the field checks itself; typing moves it, to the end of its range for a larger amount. It saves nothing: the dialog's Save does. The typed field still takes anything up to `maxGoalAmount`.
 - **The KPI tiles choose what the chart shows**, and say so: a caption "Show on the chart" sits above them and they form a labelled group
   (`.kpis-group`). The Compare card follows the same choice, and says "Showing balance" under its heading; its collapse button sits beside the
@@ -367,8 +368,9 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   `defaultDate`). With a finger a tap only moves the cursor there (`actions.setChartMonth`), since a tap is also how the chart is read
   (`isTouchClick`, `src/ui/pointer.ts`: the click's `pointerType`, else the device's `(pointer: coarse)`). The line under the chart (`renderAddRow`) says
   how to start ("Click the chart…" or, on a coarse pointer, "Tap the chart to pick a month, then add an event there") until the cursor rests on a month
-  (tapped, picked with the arrow keys or by selecting an event); then it is a button "Add event in Nov 2038" that opens the same flow for that month,
-  which is also the keyboard path. Does nothing when every kind is full. The chart's tooltip answers for events too: over a badge it shows the
+  (tapped, or picked with the arrow keys); then it is a button "Add event in Nov 2038" that opens the same flow for that month, which is also
+  the keyboard path. With an event selected (`AppState.selectedEvent`) the line is instead a button that edits that event ("Edit New car",
+  `openEditEvent` in `src/ui/edit-event.ts`, which the list's Edit button uses too) and nothing offers another event. Letting the event go (clicking it again, or removing it) takes the chart cursor away too (`selectEvent(null)` clears `AppState.chartMonth`), so the line goes back to the "Click the chart…" hint and does not offer to add at the month the event was in. Does nothing when every kind is full. The chart's tooltip answers for events too: over a badge it shows the
   tooltip at that event's month, and over a deposit change's shaded period it lists that change (`eventsActiveAtMonth`, `src/state/timeline.ts`).
   The hint and the button share one 44 px slot so the page doesn't move, and the plot has a pointer cursor.
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
@@ -615,6 +617,7 @@ with the toggle.
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
     │   ├── pointer.ts        # hasCoarsePointer, isTouchClick: a finger or a mouse
+    │   ├── edit-event.ts     # openEditEvent, eventTitle: the edit dialog of any event, from the list or the chart
     │   ├── add-event.ts      # openAddEvent, fullEventKinds: the add-event flow, optionally from a month tapped on the chart
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
     │   ├── add-plan-dialog.ts # Asks how to add a plan: a copy of the open one, or an empty one

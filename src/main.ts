@@ -107,7 +107,7 @@ const newPlanName = (set: PlanSet): string => {
 
 /** Removing the selected event must not leave its key behind, since a later event can reuse the id. */
 const deselectIf = (key: string): void => {
-  if (store.get().selectedEvent === key) store.update({ selectedEvent: null });
+  if (store.get().selectedEvent === key) store.update({ selectedEvent: null, chartMonth: null });
 };
 
 const NO_UNDO: Undo = () => undefined;
@@ -126,7 +126,10 @@ const isDark = (): boolean => {
 const actions: Actions = {
   selectPlan: (id) => commitPlanSet((set) => selectPlan(set, id)),
   selectMetric: (metric) => store.update({ metric }),
-  selectEvent: (selectedEvent, month) => store.update({ selectedEvent, ...(month === undefined ? {} : { chartMonth: month }) }),
+  // Selecting an event puts the cursor at its month; letting it go takes the cursor away too, so the chart doesn't keep
+  // offering to add an event where the selected one was.
+  selectEvent: (selectedEvent, month) =>
+    store.update({ selectedEvent, ...(selectedEvent === null ? { chartMonth: null } : month === undefined ? {} : { chartMonth: month }) }),
   setChartMonth: (chartMonth) => store.update({ chartMonth }),
   setInflationAdjusted: (inflationAdjusted) => store.update({ inflationAdjusted }),
   setYearTableOpen: (yearTableOpen) => store.update({ yearTableOpen }),

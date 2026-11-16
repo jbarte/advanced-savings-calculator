@@ -1220,3 +1220,21 @@ Items 4, 8 and 9 of the app review.
 - The range is tested against `PLAN_LIMITS.maxGoalAmount` and for whole-krona steps like the other sliders.
 - **Checked:** typecheck, 704 tests, build. Browser: drag to 5 000 000 filled "5 000 000"; typing 12 000 000 moved the thumb to 60 %; 75 000 000 put it at the end with no error; "abc" showed the error and kept the thumb; dragging again cleared the error; Save made the goal; Edit reopened with 3 000 000 and the thumb at 14.6 %.
 - **Known gaps:** no live preview on the chart while the slider moves (it was chosen to keep the slider in the dialog); a keyboard drag was not tried separately (the browser's range input handles the arrow keys).
+
+### The Goal card in two columns when wide (branch `feature/goal-card-wide`)
+
+- On a desktop the Goal card is about 750 px wide (under the chart, beside the sticky Plan card) and its gauge and list were centred in that, which looked sparse. The gauge and the figures are now in a `.goal__body` (gauge, then a `.goal__side` with the list and the note): stacked when the card is narrow, side by side from 620 px. It follows the card's own width (a container query on `.card--goal`), not the window's: the card is 748 px wide on a desktop, 414 px on a tablet and 343 px on a phone. Height on desktop went from 520 to 299 px.
+- **Checked:** typecheck, 704 tests, build. Browser: 1280 px row (gauge 240 px at the left, figures 420 px at the right, 299 px tall), 900 px and 375 px stacked as before, no horizontal scroll.
+- **Known gaps:** a goal outside the 40-year projection shows only its message, as before; the Compare card and chart were not touched.
+
+### Edit the selected event from the chart (in `feature/goal-card-wide`)
+
+- Selecting an event in the list moved the chart cursor to its month, and the line under the chart then offered "Add event in <month>", which is the opposite of what was wanted with an event selected. With an event selected that line is now a button that edits it ("Edit New car", opening the same edit dialog as the list's Edit button), and nothing offers another event; deselect it and the usual line comes back. It also shows when every kind of event is full, since editing needs no room.
+- `openEditEvent` and `eventTitle` moved to `src/ui/edit-event.ts` (the list and the chart both use them); the chart's own copy of the label function is gone.
+- **Checked:** typecheck, 704 tests, build. Browser: selecting an event showed "Edit New car" and no add button; the dialog held the event's label, amount and month; saving 200 000 updated the list and kept the event selected; deselecting brought "Add event in Nov 2031" back; the list's Edit still works.
+- **Known gaps:** a badge click selects (as before) and so shows the edit button.
+
+### Deselecting an event clears the chart cursor (in `feature/goal-card-wide`)
+
+- After an event was deselected the chart cursor stayed at its month, so the line under the chart turned into "Add event in <that month>" at the same spot. `selectEvent(null)` now clears `chartMonth` (and so does removing the selected event), which takes the pinned tooltip away and brings back the "Click the chart…" hint. Selecting an event still puts the cursor at its month; the arrow keys still set it.
+- **Checked:** typecheck, 704 tests, build. Browser: select then deselect from the list, select then deselect with the badge, and removing the selected event each ended on the hint with no pinned tooltip; an arrow key still gave "Add event in Nov 2056".

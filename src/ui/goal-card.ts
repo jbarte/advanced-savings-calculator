@@ -72,19 +72,28 @@ function renderGoalDetails(scenario: ScenarioView, goal: GoalSummary): HTMLEleme
     goal.reachedMonth === null
       ? messages.goalCard.notWithin(PLAN_LIMITS.maxHorizonYears)
       : formatYearMonth(addMonths(scenario.start, goal.reachedMonth));
+  // The gauge and the figures are stacked; in a wide card (see `.goal__body`) the gauge is on the left and the figures on the right.
   return [
-    renderGauge(goal),
     h(
-      "dl",
-      { class: "stats" },
-      stat(messages.goalCard.projected, formatMoney(goal.balanceAtGoal)),
-      stat(messages.goalCard.depositNeeded, deposit.value),
-      stat(messages.goalCard.reached, reached),
-      stat(messages.goalCard.adjusted, formatMoney(goal.targetInflationAdjusted)),
+      "div",
+      { class: "goal__body" },
+      renderGauge(goal),
+      h(
+        "div",
+        { class: "goal__side" },
+        h(
+          "dl",
+          { class: "stats" },
+          stat(messages.goalCard.projected, formatMoney(goal.balanceAtGoal)),
+          stat(messages.goalCard.depositNeeded, deposit.value),
+          stat(messages.goalCard.reached, reached),
+          stat(messages.goalCard.adjusted, formatMoney(goal.targetInflationAdjusted)),
+        ),
+        h("p", { class: "card__meta goal__message" }, deposit.note),
+        goal.withinHorizon ? null : h("p", { class: "card__meta goal__message" }, messages.goalCard.afterEndYear),
+      ),
     ),
-    h("p", { class: "card__meta goal__message" }, deposit.note),
-    goal.withinHorizon ? null : h("p", { class: "card__meta goal__message" }, messages.goalCard.afterEndYear),
-  ].filter((element): element is HTMLElement => element !== null);
+  ];
 }
 
 /** The goal card: a prompt to set a goal, or how the plan stands against it with buttons to edit or remove it. */
