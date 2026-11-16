@@ -1657,6 +1657,28 @@ button {
   gap: 20px;
 }
 
+.goal__slider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.goal__slider-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.goal__slider-head strong {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--ink);
+}
+
 .goal__side {
   display: flex;
   flex-direction: column;

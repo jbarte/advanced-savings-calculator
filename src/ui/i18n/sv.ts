@@ -380,6 +380,8 @@ export const sv: Messages = {
     heading: "Sparmål",
     prompt: "Välj ett belopp och ett datum för att se hur mycket du behöver spara varje månad.",
     setButton: "Sätt ett mål",
+    sliderTitle: "Målbelopp",
+    sliderLabel: "Justera målbeloppet",
     title: (month: string): string => `Mål till ${month}`,
     onTrack: "På rätt spår",
     short: (amount: string): string => `Saknas ${amount}`,

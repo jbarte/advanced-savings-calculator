@@ -1,4 +1,4 @@
-import type { PlanFields } from "../state/plan-document";
+import type { GoalPlan, PlanFields } from "../state/plan-document";
 import { h } from "./dom";
 import { inputIn } from "./dialog-form";
 
@@ -21,7 +21,10 @@ export const SLIDER_RANGES = {
 } as const;
 
 /** A preview of the plan with some fields changed, drawn without saving anything. */
-export type PreviewPlan = (patch: Partial<PlanFields>) => void;
+/** What a live preview can change: any of the plan's fields, or its goal (the Goal card's slider). */
+export type PlanPreview = Partial<PlanFields> & { readonly goal?: GoalPlan };
+
+export type PreviewPlan = (patch: PlanPreview) => void;
 
 export interface PlanSliderProps {
   /** The text field the slider sits under; its text follows the slider while it is dragged. */
