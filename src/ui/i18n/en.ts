@@ -22,6 +22,9 @@ export const en = {
     button: "Guide",
     title: "How to use Life Ledger",
     progress: (step: number, total: number): string => `Step ${step} of ${total}`,
+    /** The name of a progress dot, which opens that step. */
+    goTo: (step: number, title: string): string => `Step ${step}: ${title}`,
+    stepsLabel: "All steps",
     back: "Back",
     next: "Next",
     done: "Got it",
@@ -47,8 +50,9 @@ export const en = {
       events: {
         title: "Add events",
         text:
-          "Press Add event to plan a withdrawal on a date, a one-time deposit, or a change to the monthly deposit " +
-          "(a raise, a cut or a pause), or click or tap the chart at the month you want. Each event gets a number on the chart and shows what it changes in the end.",
+          "Press Add event, or click or tap the chart at a month, to plan a withdrawal, a one-time deposit or a change " +
+          "to the monthly deposit (a raise, a cut or a pause). Each event gets a number on the chart and shows what " +
+          "it changes in the end.",
       },
       goal: {
         title: "Set a goal",
@@ -60,7 +64,7 @@ export const en = {
         title: "Compare, share and save",
         text:
           "Add a plan with the + in the top bar to compare plans side by side. Share sends a link that holds the " +
-          "whole plan, and File downloads it or its yearly figures. Remove something by mistake? Undo is right there.",
+          "whole plan, and File downloads it or its yearly figures. Remove something by mistake? Undo is right there. The ? button opens this guide again.",
       },
     },
   },

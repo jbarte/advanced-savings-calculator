@@ -42,7 +42,7 @@ export function renderThemeButton(isDark: boolean, actions: Actions): HTMLButton
   );
 }
 
-export function renderGuideButton(): HTMLButtonElement {
+export function renderGuideButton(actions: Actions): HTMLButtonElement {
   return h(
     "button",
     {
@@ -51,7 +51,7 @@ export function renderGuideButton(): HTMLButtonElement {
       "data-key": "guide",
       "aria-label": messages.guide.title,
       title: messages.guide.title,
-      onclick: () => openGuideDialog(),
+      onclick: () => openGuideDialog(actions),
     },
     "?",
   );
@@ -151,6 +151,6 @@ export function renderAppBar(
       h("div", { class: "brand__name" }, messages.app.brandName, h("span", {}, messages.app.brandSuffix)),
     ),
     renderPlanTabs(tabs, activeId, canAdd, active, actions),
-    h("div", { class: "appbar__actions" }, share, renderGuideButton(), renderLanguageButton(actions), renderThemeButton(isDark, actions)),
+    h("div", { class: "appbar__actions" }, share, renderGuideButton(actions), renderLanguageButton(actions), renderThemeButton(isDark, actions)),
   );
 }

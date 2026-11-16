@@ -2,7 +2,7 @@ import "./styles/fonts.css";
 import "./styles/app.css";
 import { yearsToMonths } from "./core/year-month";
 import { currentYearMonth } from "./state/clock";
-import { loadGuideSeen, saveGuideSeen } from "./state/guide";
+import { loadGuideResumeStep, loadGuideSeen, resumeGuideAt, saveGuideSeen } from "./state/guide";
 import { loadCollapsed, saveCollapsed, toggleCollapsed } from "./state/collapsed";
 import { saveLanguagePreference } from "./state/language";
 import { createBlankPlan, createExamplePlan } from "./state/plan-document";
@@ -216,8 +216,9 @@ const actions: Actions = {
     return removed ? () => commitOnPlan(planId, (current) => restoreOneTimeDeposit(current, removed)) : NO_UNDO;
   },
   dismissNotice: () => store.update({ notice: null }),
-  setLanguage: (language) => {
+  setLanguage: (language, guideStep) => {
     saveLanguagePreference(language);
+    if (guideStep !== undefined) resumeGuideAt(guideStep);
     // The texts are chosen once when the page loads, so the new language takes a reload. Plans are saved, and a
     // share link stays in the address.
     window.location.reload();
@@ -347,6 +348,7 @@ if (linkToken === null) render();
 else void openSharedPlan(linkToken);
 // The guide opens by itself once, on the first visit; whoever follows a shared link or looks at the design page is left alone.
 if (linkToken === null && currentRoute() !== "design-system" && !loadGuideSeen()) {
+  const step = loadGuideResumeStep();
   saveGuideSeen();
-  openGuideDialog();
+  openGuideDialog(actions, step);
 }
