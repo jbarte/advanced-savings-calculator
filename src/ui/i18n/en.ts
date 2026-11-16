@@ -50,7 +50,7 @@ export const en = {
       events: {
         title: "Add events",
         text:
-          "Press Add event, or click or tap the chart at a month, to plan a withdrawal, a one-time deposit or a change " +
+          "Press Add event, or pick a month on the chart, to plan a withdrawal, a one-time deposit or a change " +
           "to the monthly deposit (a raise, a cut or a pause). Each event gets a number on the chart and shows what " +
           "it changes in the end.",
       },
@@ -116,6 +116,7 @@ export const en = {
     pageTitleNamed: (name: string): string => `${name} · Life Ledger`,
     plans: "Plans",
     addPlan: "Add a plan",
+    deletePlanAria: (name: string): string => `Delete ${name}`,
     plansFull: (max: number): string => `You can have at most ${max} plans`,
     disclaimer: "Projections assume a constant return and are estimates only. This is not financial advice.",
   },
@@ -266,7 +267,7 @@ export const en = {
   },
   compare: {
     heading: "Compare plans",
-    meta: (metric: string, inflationAdjusted: boolean): string => `${metric}${inflationAdjusted ? " · inflation adjusted" : ""}`,
+    meta: (metric: string, inflationAdjusted: boolean): string => `Showing ${metric.toLowerCase()}${inflationAdjusted ? " · inflation adjusted" : ""}`,
     chartLabel: (metric: string): string => `${metric} of every plan`,
     legendLabel: "Plans",
     tableLabel: "The plans side by side, at the end of each plan",
@@ -300,6 +301,7 @@ export const en = {
     subtitle: (name: string): string => `${name} · How your savings grow, and what each event adds or costs.`,
     subtitleAdjusted: (name: string, inflationPct: number): string =>
       `${name} · Inflation adjusted at ${inflationPct} % a year. What you enter stays as entered.`,
+    pickMetric: "Show on the chart",
     eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>
       `${metric} by ${month}${inflationAdjusted ? " · inflation adjusted" : ""}`,
     timeHorizon: "Time horizon",
@@ -320,7 +322,9 @@ export const en = {
       date: "Month",
       tableLabel: "Yearly figures",
     },
-    addHint: "Click or tap the chart to add an event at that month.",
+    addHint: "Click the chart to add an event at that month.",
+    addHintTouch: "Tap the chart to pick a month, then add an event there.",
+    addAt: (month: string): string => `Add event in ${month}`,
     keysHint: "Arrow keys move one month, Page Up and Page Down one year, Home and End to the start and the end.",
     valueText: (when: string, value: string, events: readonly string[]): string =>
       `${when}: ${value}${events.length === 0 ? "" : `. Events: ${events.join(", ")}`}`,

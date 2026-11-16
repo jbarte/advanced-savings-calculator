@@ -329,6 +329,12 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   a taken id gets the next free one), the plan at its old place (`restorePlan`) or the goal, in the plan it was
   removed from. "Start over" keeps its confirmation, since it can't be undone. An empty event list has an
   "Add your first event" button.
+- **The KPI tiles choose what the chart shows**, and say so: a caption "Show on the chart" sits above them and they form a labelled group
+  (`.kpis-group`). The Compare card follows the same choice, and says "Showing balance" under its heading; its collapse button sits beside the
+  heading, not beside that label (next to it, it read as a dropdown). In the Compare table the plan column is sticky and a soft edge shows on the right
+  while there is more to scroll to (`.compare-scroll`). The Goal card's gauge is at most 240 px wide, and the bento cards are as tall as their content
+  (`align-items: start`); the Plan card's fields are two columns beside the Goal card (`minmax(200px, 1fr)`).
+- **The open plan has a trash button in its tab** (`.tabs__delete`, inside the same pill as the name, `PlanTab.deletable`: an own plan, and not the last one). It does what the Plan card's "Delete plan" does: `actions.deletePlan` with the undo toast. Only the open tab shows it, so a stray tap on another tab can't delete that one. A plan opened from a link is dropped from its banner instead.
 - **Actions used less often sit behind a "more" button** (`renderMenu` in `components.ts`: three dots, `aria-haspopup="menu"`, items with
   `role="menuitem"`, arrow keys, Escape, closes on a press outside or a scroll; the panel is `position: fixed` so the events table can't clip it). An
   event row has Edit plus a menu with "Try without" and "Remove"; the Plan card has File plus a menu with "Delete plan" and "Start over", so the one
@@ -349,7 +355,15 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   the primary button and Enter both call `save`, and it closes only when `save` returns true. A dialog closes
   on the backdrop only when the press starts and ends outside its box, and is named with `aria-label`. When an
   event is edited, its own date is accepted even if it is before the plan start (`earliestMonth`).
-- **Tapping the chart adds an event.** A click or tap on the chart plot (not on a badge) calls `openAddEvent(scenario, actions, date)` (`src/ui/add-event.ts`, the same flow as the Add event button: kind dialog, then the dialog with the date field starting on the tapped month through `defaultDate`). Does nothing when every kind is full. The chart's tooltip answers for events too: over a badge it shows the tooltip at that event's month, and over a deposit change's shaded period it lists that change (`eventsActiveAtMonth`, `src/state/timeline.ts`). The chart shows a hint under it (`messages.chart.addHint`, `.chart__hint`, hidden when every kind is full) and the plot has a pointer cursor.
+- **The chart adds events from a month.** With a mouse, a click on the chart plot (not on a badge) calls `openAddEvent(scenario, actions, date)`
+  (`src/ui/add-event.ts`, the same flow as the Add event button: kind dialog, then the dialog with the date field starting on that month through
+  `defaultDate`). With a finger a tap only moves the cursor there (`actions.setChartMonth`), since a tap is also how the chart is read
+  (`isTouchClick`, `src/ui/pointer.ts`: the click's `pointerType`, else the device's `(pointer: coarse)`). The line under the chart (`renderAddRow`) says
+  how to start ("Click the chart…" or, on a coarse pointer, "Tap the chart to pick a month, then add an event there") until the cursor rests on a month
+  (tapped, picked with the arrow keys or by selecting an event); then it is a button "Add event in Nov 2038" that opens the same flow for that month,
+  which is also the keyboard path. Does nothing when every kind is full. The chart's tooltip answers for events too: over a badge it shows the
+  tooltip at that event's month, and over a deposit change's shaded period it lists that change (`eventsActiveAtMonth`, `src/state/timeline.ts`).
+  The hint and the button share one 44 px slot so the page doesn't move, and the plot has a pointer cursor.
 - **Dates are year-month values** (`YearMonth` in `src/core/year-month.ts`), with monthly
   granularity, never raw `Date` objects in the core.
 - **Functions do one thing.** If a function needs a comment to explain what it does,
@@ -593,6 +607,7 @@ with the toggle.
     │   ├── topbar.ts         # Sticky app bar: brand, plan tabs (+ add), share, theme toggle
     │   ├── logo.ts           # renderLogo(): the Life Ledger mark (same shape as public/favicon.svg)
     │   ├── projection-card.ts # Hero (headline number, horizon switch, KPI tiles) and chart card
+    │   ├── pointer.ts        # hasCoarsePointer, isTouchClick: a finger or a mouse
     │   ├── add-event.ts      # openAddEvent, fullEventKinds: the add-event flow, optionally from a month tapped on the chart
     │   ├── events-section.ts # "Planned events": Add event button and the timeline list
     │   ├── add-plan-dialog.ts # Asks how to add a plan: a copy of the open one, or an empty one

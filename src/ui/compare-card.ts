@@ -189,17 +189,12 @@ export function renderCompareCard(views: readonly ScenarioView[], active: Scenar
   return h(
     "section",
     { class: "card compare-card", "aria-labelledby": "compare-heading" },
+    // The collapse button sits by the title; with the label beside it, it read as the caret of a dropdown.
+    h("div", { class: "card__head" }, h("h2", { id: "compare-heading" }, messages.compare.heading), toggle),
     h(
-      "div",
-      { class: "card__head" },
-      h("h2", { id: "compare-heading" }, messages.compare.heading),
-      h("div", { class: "card__head-side" }, h(
-          "span",
-          { class: "card__meta" },
-          renderSteadyText((adjusted) => [messages.compare.meta(messages.metrics[state.metric], adjusted)], active.inflationAdjusted),
-        ),
-        toggle,
-      ),
+      "p",
+      { class: "card__meta compare-card__meta" },
+      renderSteadyText((adjusted) => [messages.compare.meta(messages.metrics[state.metric], adjusted)], active.inflationAdjusted),
     ),
     h(
       "div",

@@ -1,4 +1,5 @@
 import { fullEventKinds, openAddEvent } from "./add-event";
+import { hasCoarsePointer, isTouchClick } from "./pointer";
 import { MONTHS_PER_YEAR, addMonths } from "../core/year-month";
 import { METRICS } from "../state/types";
 import { activeEntry } from "../state/workspace";
@@ -105,7 +106,13 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
         renderToggle({ label: messages.hero.inflationAdjusted, checked: scenario.inflationAdjusted, onChange: (on) => actions.setInflationAdjusted(on) }),
       ),
     ),
-    h("div", { class: "kpis" }, ...tiles),
+    // The tiles choose what the chart (and the Compare card) shows, which nothing said before.
+    h(
+      "div",
+      { class: "kpis-group", role: "group", "aria-labelledby": "kpis-caption" },
+      h("p", { id: "kpis-caption", class: "kpis__caption" }, messages.hero.pickMetric),
+      h("div", { class: "kpis" }, ...tiles),
+    ),
   );
 }
 
@@ -133,12 +140,35 @@ export function renderChartCard(
       ),
     ),
     chart,
-    // Tapping the chart adds an event, which nothing on it says by itself.
-    chart.classList.contains("chart") && !Object.values(fullEventKinds(scenario)).every(Boolean)
-      ? h("p", { class: "chart__hint" }, messages.chart.addHint)
-      : null,
+    chart.classList.contains("chart") && !Object.values(fullEventKinds(scenario)).every(Boolean) ? renderAddRow(scenario, state, actions) : null,
     renderChartLegend(timeline, chartGoalValue(scenario, state) !== null),
     renderYearTable(scenario, state, actions),
+  );
+}
+
+/**
+ * The line under the chart about adding an event. Once the cursor rests on a month (tapped, picked with the keys or by
+ * selecting an event) it is a button that adds an event in that month; before that it says how to start.
+ */
+function renderAddRow(scenario: ScenarioView, state: AppState, actions: Actions): HTMLElement {
+  const last = visiblePoints(scenario).length - 1;
+  if (state.chartMonth === null) {
+    return h("p", { class: "chart__hint" }, hasCoarsePointer() ? messages.chart.addHintTouch : messages.chart.addHint);
+  }
+  const month = Math.min(last, Math.max(0, state.chartMonth));
+  return h(
+    "div",
+    { class: "chart__hint" },
+    h(
+      "button",
+      {
+        class: "btn-secondary chart__add",
+        type: "button",
+        "data-key": "chart-add-here",
+        onclick: () => openAddEvent(scenario, actions, addMonths(scenario.start, month)),
+      },
+      messages.chart.addAt(monthLabel(scenario, month)),
+    ),
   );
 }
 
@@ -276,13 +306,17 @@ function renderChart(
         show(nearestIndex(((event as PointerEvent).clientX - rect.left) / rect.width, points.length));
       },
       onpointerleave: () => show(resting),
-      // A click or tap on the plot (not on an event badge) starts adding an event in the month under the pointer.
+      // A click with a mouse (not on an event badge) starts adding an event in the month under the pointer. A tap with a
+      // finger only moves the cursor there, since a tap is also how the chart is read: the "Add event" button under the
+      // chart then adds at that month.
       onclick: (event) => {
         if ((event.target as Element).closest("button") !== null) return;
         const rect = plot.getBoundingClientRect();
         const index = nearestIndex(((event as MouseEvent).clientX - rect.left) / rect.width, points.length);
         const month = points[index]?.month;
-        if (month !== undefined) openAddEvent(scenario, actions, addMonths(scenario.start, month));
+        if (month === undefined) return;
+        if (isTouchClick(event as MouseEvent)) actions.setChartMonth(month);
+        else openAddEvent(scenario, actions, addMonths(scenario.start, month));
       },
       onkeydown: (event) => {
         const next = cursorAfterKey((event as KeyboardEvent).key, current, last, MONTHS_PER_YEAR);

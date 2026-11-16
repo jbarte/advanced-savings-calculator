@@ -13,7 +13,7 @@ import { updatePlanFields } from "./state/plan-fields";
 import { fitPlanName, renamePlan } from "./state/plan-name";
 import { planWithoutEvent } from "./state/plan-variants";
 import { planFileText, readPlanFile } from "./state/plan-file";
-import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, openSharedPlan as addSharedPlan, restorePlan, selectPlan, withPlanSetChange } from "./state/workspace";
+import { activeEntry, addPlan, deletePlan, keepSharedPlan, leaveSharedPlan, ownCount, openSharedPlan as addSharedPlan, restorePlan, selectPlan, withPlanSetChange } from "./state/workspace";
 import type { AppState, PlanEntry, PlanSet, ScenarioView } from "./state/types";
 import { clearSavedPlans, loadSavedPlans, savePlans } from "./state/plan-storage";
 import { clearShareHash, currentPageUrl, currentRoute, sharedPlanToken } from "./state/route";
@@ -328,7 +328,7 @@ const render = (): void => {
     const view = viewOf(entry, state.viewHorizonYears ?? entry.plan.horizonYears);
     // Only the Compare card needs the other plans, so they are not drawn up with a single plan.
     const views = state.plans.length > 1 ? state.plans.map((plan) => viewOf(plan, plan.plan.horizonYears)) : [view];
-    renderApp(root, { view, views, preview: (patch) => previewOf(state, patch), tabs: state.plans.map((plan) => ({ id: plan.id, label: displayName(plan), origin: plan.origin })), state, isDark: isDark() }, actions);
+    renderApp(root, { view, views, preview: (patch) => previewOf(state, patch), tabs: state.plans.map((plan) => ({ id: plan.id, label: displayName(plan), origin: plan.origin, deletable: plan.origin !== "shared" && ownCount(state.plans) > 1 })), state, isDark: isDark() }, actions);
   } catch (error) {
     console.error(error);
     renderErrorState(root, error, actions);

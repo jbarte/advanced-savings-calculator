@@ -9,6 +9,7 @@ import { renderLogo } from "./logo";
 import { openGuideDialog } from "./guide-dialog";
 import { openShareDialog } from "./share-dialog";
 import { language, messages } from "./i18n";
+import { showUndoToast } from "./undo-toast";
 
 function renderBrandLogo(): SVGSVGElement {
   const logo = renderLogo();
@@ -62,6 +63,8 @@ export interface PlanTab {
   readonly id: number;
   readonly label: string;
   readonly origin: PlanOrigin;
+  /** True for a plan of the user's own when it isn't their last: it can be deleted from its tab. */
+  readonly deletable: boolean;
 }
 
 /** A button that switches to the other language. It shows the code of that language ("SV" while the page is English). */
@@ -82,21 +85,44 @@ export function renderLanguageButton(actions: Actions): HTMLButtonElement {
   );
 }
 
+const trashIcon = (): SVGSVGElement =>
+  s("svg", { class: "icon", viewBox: "0 0 24 24", "aria-hidden": "true" }, s("path", { d: "M4 7h16M10 11v6M14 11v6M6 7l1 12h10l1-12M9 7V4h6v3" }));
+
 function renderPlanTabs(tabs: readonly PlanTab[], activeId: number, canAdd: boolean, view: ScenarioView, actions: Actions): HTMLElement {
-  const items = tabs.map((tab) =>
-    h(
+  const items = tabs.map((tab) => {
+    const active = tab.id === activeId;
+    const select = h(
       "button",
       {
         class: "tabs__item",
         type: "button",
         "data-key": `plan-tab-${tab.id}`,
-        "aria-current": tab.id === activeId ? "true" : "false",
+        "aria-current": active ? "true" : "false",
         title: tab.origin === "shared" ? messages.planCard.status.shared : tab.label,
         onclick: () => actions.selectPlan(tab.id),
       },
       tab.label,
-    ),
-  );
+    );
+    // The open plan can be deleted right here, not only from the Plan card's menu. Only the open one shows the button,
+    // so a stray tap on another tab can't delete it; the removal is undone from the toast, as everywhere else.
+    const remove =
+      active && tab.deletable
+        ? h(
+            "button",
+            {
+              class: "tabs__delete",
+              type: "button",
+              "data-key": "plan-tab-delete",
+              "data-focus-next": "plan-rename",
+              "aria-label": messages.app.deletePlanAria(tab.label),
+              title: messages.app.deletePlanAria(tab.label),
+              onclick: () => showUndoToast(messages.undo.planDeleted(tab.label), actions.deletePlan(tab.id)),
+            },
+            trashIcon(),
+          )
+        : null;
+    return h("div", { class: "tabs__tab" }, select, remove);
+  });
   const add = h(
     "button",
     {
