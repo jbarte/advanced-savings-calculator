@@ -1150,3 +1150,9 @@ From a read-through of the code (bugs, messages, edge cases):
 - **Ruleset on `main`** (a repository setting, not in the code; set with `gh api`): changes go in through a pull request, the `build` check must pass, no force pushes, no deletion. No approvals are required, so the owner can merge their own pull requests.
 - **Checked:** the workflow is valid YAML; the pull request's own run shows the checks and a skipped deploy.
 - **Not done:** Dependabot (a new config file, to be asked) and a built-site smoke test (a new dev dependency, to be asked).
+
+### Dependabot (branch `chore/dependabot`)
+
+- `.github/dependabot.yml`: every Monday, one pull request for the pinned GitHub Actions (grouped), and for the npm dev dependencies one grouped pull request for minor and patch updates (at most 3 open); a major update is its own pull request. Commit messages start with `ci` and `deps`. There are no runtime dependencies to watch.
+- Each of them runs the same `build` check as any pull request, which the ruleset on `main` requires, so nothing is merged without passing tests and build.
+- **Checked:** the file is valid YAML; the first update pull requests will show whether the schedule and groups behave as meant (GitHub also shows the status under Insights → Dependency graph → Dependabot).
