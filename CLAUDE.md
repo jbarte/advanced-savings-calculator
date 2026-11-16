@@ -145,10 +145,20 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   and the share dialog). The plan is renamed from the Plan card's title ("Plan", or the plan's name), which is a button (pencil icon) that opens
   `openRenameDialog` (`rename-dialog.ts`); there is no Name field. Typed text that ends up in the plan (the name, event labels) goes through `cleanText`
   (`src/state/plan-text.ts`): control characters become a space and the ends are trimmed.
-- **The beginner's guide** is a dialog (`openGuideDialog`, `src/ui/guide-dialog.ts`) opened by the "?" button in the app bar and, once, on
+- **The beginner's guide** is a dialog (`openGuideDialog(actions, startAt)`, `src/ui/guide-dialog.ts`) opened by the "?" button in the app bar and, once, on
   the first visit (`src/state/guide.ts`, key `advanced-savings-calculator:guide-seen`, decided in `main.ts`; not on a share link). Six steps from
-  `messages.guide.steps`, each with an inline SVG drawing from `guide-art.ts` (same index), styled by `.gart*` classes with the colour tokens. Left and right arrows page through the steps; each step's picture and text slide in from the side it was reached from (`.guide__enter`); the drawings animate too (lines draw, fills grow, badges pop). All off under reduced motion. A new
+  `messages.guide.steps`, each with an inline SVG drawing from `guide-art.ts` (same index), styled by `.gart*` classes with the colour tokens. A new
   step needs a text in both languages and a drawing.
+  - **Layout:** the title is on the left with the language switch and a close button in the corner (`.guide__tools`; the dialog has no button row of its own,
+    `renderModal` without labels). Under the picture and text is one row: Back, the step dots, Next ("Got it" on the last step). Back is hidden on the first
+    step but keeps its place. Every step's heading and text sit in one grid cell (`.guide__stack`, the open one shown with `aria-hidden="false"`), so the
+    dialog is as tall as the longest step and nothing moves when the page turns. Under 480 px the dots get their own row; on a short screen the picture shrinks.
+  - **Moving:** Next and Back, the dots (buttons, `aria-current="step"`), the left and right arrow keys, and a sideways swipe on a touch screen
+    (`SWIPE_MIN`). Nothing happens past either end. A visually hidden status reads out the step number, heading and text when the page turns.
+  - **Motion:** each step's picture and text slide in from the side it was reached from (`.guide__enter`), and the drawings animate (lines draw, fills
+    grow, badges pop). All off under reduced motion.
+  - **Language:** the switch in the guide calls `setLanguage(language, step)`: `resumeGuideAt(step)` replaces the "seen" mark with the step, the page
+    reloads in the new language, and `main.ts` opens the guide again at that step (`loadGuideResumeStep`).
 - **The Compare card can be collapsed.** A chevron button in its header (`renderCollapseToggle` in `components.ts`,
   `aria-expanded` and `aria-controls`) collapses it to its heading; the body stays in the page with
   `hidden`. Which are collapsed is `AppState.collapsed`, remembered in this browser under `advanced-savings-calculator:collapsed`

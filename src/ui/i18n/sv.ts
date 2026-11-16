@@ -19,6 +19,8 @@ export const sv: Messages = {
     button: "Guide",
     title: "Så använder du Life Ledger",
     progress: (step: number, total: number): string => `Steg ${step} av ${total}`,
+    goTo: (step: number, title: string): string => `Steg ${step}: ${title}`,
+    stepsLabel: "Alla steg",
     back: "Tillbaka",
     next: "Nästa",
     done: "Uppfattat",
@@ -44,9 +46,9 @@ export const sv: Messages = {
       events: {
         title: "Lägg till händelser",
         text:
-          "Tryck på Lägg till händelse för att planera ett uttag ett visst datum, en engångsinsättning eller en " +
-          "ändring av månadssparandet (höjning, sänkning eller paus), eller klicka eller tryck i diagrammet på önskad månad. Varje händelse får ett nummer i diagrammet " +
-          "och visar vad den ändrar i slutet.",
+          "Tryck på Lägg till händelse, eller klicka eller tryck i diagrammet på en månad, för att planera ett uttag, " +
+          "en engångsinsättning eller en ändring av månadssparandet (höjning, sänkning eller paus). Varje händelse " +
+          "får ett nummer i diagrammet och visar vad den ändrar i slutet.",
       },
       goal: {
         title: "Sätt ett mål",
@@ -58,7 +60,7 @@ export const sv: Messages = {
         title: "Jämför, dela och spara",
         text:
           "Lägg till en plan med + i översta raden för att jämföra planer sida vid sida. Dela skickar en länk som " +
-          "innehåller hela planen, och Fil laddar ner den eller dess årssiffror. Tog du bort något av misstag? Ångra finns där.",
+          "innehåller hela planen, och Fil laddar ner den eller dess årssiffror. Tog du bort något av misstag? Ångra finns där. Knappen ? öppnar guiden igen.",
       },
     },
   },
