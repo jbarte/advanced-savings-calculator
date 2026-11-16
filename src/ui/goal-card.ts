@@ -105,7 +105,7 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
     setGoalButton.setAttribute("data-focus-next", "goal-edit");
     return h(
       "section",
-      { class: "card", "aria-labelledby": "goal-heading", role: "group" },
+      { class: "card card--goal", "aria-labelledby": "goal-heading", role: "group" },
       h("div", { class: "card__head" }, h("h2", { id: "goal-heading" }, messages.goalCard.heading)),
       h("p", { class: "card__meta goal__message" }, messages.goalCard.prompt),
       setGoalButton,
@@ -116,7 +116,7 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
     goal.status !== "ok" ? null : h("span", { class: "status" }, goal.shortfall === 0 ? messages.goalCard.onTrack : messages.goalCard.short(formatMoneyCompact(goal.shortfall)));
   return h(
     "section",
-    { class: "card", "aria-labelledby": "goal-heading", role: "group" },
+    { class: "card card--goal", "aria-labelledby": "goal-heading", role: "group" },
     h(
       "div",
       { class: "card__head" },

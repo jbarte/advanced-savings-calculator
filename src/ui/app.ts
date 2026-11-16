@@ -4,6 +4,8 @@ import type { PlanFields } from "../state/plan-document";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
+import { formatMoney } from "./format";
+import { lastPoint, monthLabel } from "./view-helpers";
 import { announce } from "./announcer";
 import { noticeText } from "./notice-text";
 import { renderNotice } from "./error-state";
@@ -56,10 +58,25 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
    */
   let pending: Partial<PlanFields> | null = null;
   let frame = 0;
+  // Where the Plan card is far from the chart (a phone, a narrow window) the result shows in a pill at the top while a
+  // slider moves, then goes away. The CSS hides it when the chart is beside the Plan card.
+  const readout = h("div", { class: "live-readout", "aria-hidden": "true", hidden: true });
+  let readoutTimer = 0;
+  const showReadout = (previewed: ScenarioView): void => {
+    const end = lastPoint(previewed);
+    readout.replaceChildren(
+      h("span", {}, messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(previewed, end.month), previewed.inflationAdjusted)),
+      h("strong", {}, formatMoney(end[state.metric])),
+    );
+    readout.hidden = false;
+    window.clearTimeout(readoutTimer);
+    readoutTimer = window.setTimeout(() => (readout.hidden = true), 1500);
+  };
   const drawPreview = (patch: Partial<PlanFields>): void => {
     const previewed = view.preview(patch);
     if (!previewed) return;
     const previewTimeline = buildTimeline(previewed.withdrawals, previewed.depositChanges, previewed.oneTimeDeposits);
+    showReadout(previewed);
     const nextHero = renderHero(previewed, state, actions);
     const nextChart = renderChartCard(previewed, previewTimeline, state, actions);
     // Where the line is drawn right now (possibly part of the way from the last step), so each step glides on from there.
@@ -83,6 +100,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   const shell = h(
     "div",
     { class: "shell", "data-plan": String(state.activeId) },
+    readout,
     renderAppBar(tabs, state.activeId, canAddPlan(state), active, isDark, actions),
     h(
       "main",
@@ -90,11 +108,13 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
       state.notice ? renderNotice(noticeText(state.notice), actions) : null,
       origin === "shared" ? renderSharedBanner(canAddPlan(state), actions) : null,
       hero,
-      chartCard,
-      views.length > 1 ? renderCompareCard(views, active, state, actions) : null,
+      // The chart, the comparison, the inputs and the goal. On a wide screen the Plan card is a column beside the chart
+      // that stays in view while the page scrolls, so the chart can be watched while it is changed.
       h(
         "div",
-        { class: "bento" },
+        { class: views.length > 1 ? "workspace workspace--compare" : "workspace" },
+        chartCard,
+        views.length > 1 ? renderCompareCard(views, active, state, actions) : null,
         renderInputsCard(active, state, actions, livePreview),
         renderGoalCard(active, actions),
       ),

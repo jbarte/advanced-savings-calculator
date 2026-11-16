@@ -329,6 +329,13 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
   a taken id gets the next free one), the plan at its old place (`restorePlan`) or the goal, in the plan it was
   removed from. "Start over" keeps its confirmation, since it can't be undone. An empty event list has an
   "Add your first event" button.
+- **The workspace** (`.workspace` in `app.ts`: the chart card, the Compare card when there are two or more plans, the Plan card and the Goal card) is a
+  grid with named areas. One column on a phone (chart, compare, plan, goal); from 761 px the Plan and Goal cards sit side by side under the chart;
+  from 1100 px the Plan card is a 380 px column beside the chart and the comparison, `position: sticky` (and scrolling inside itself on a short window),
+  so the chart can be watched while the inputs change, with the Goal card under the chart on the left. Below 1100 px the Plan card is far from the chart,
+  so while a Plan card slider moves a pill at the top (`.live-readout`, drawn from the same preview as the headline, gone 1.5 s after the last move)
+  shows the result; it is hidden in the sticky layout and in print.
+- **The goal dialog has an amount slider** (`withFieldSlider` in `plan-slider.ts`, range `SLIDER_RANGES.goalAmount`: 100 000 to 20 000 000 kr in steps of 100 000), kept in step with the typed amount both ways: moving it writes the amount and the field checks itself; typing moves it, to the end of its range for a larger amount. It saves nothing: the dialog's Save does. The typed field still takes anything up to `maxGoalAmount`.
 - **The KPI tiles choose what the chart shows**, and say so: a caption "Show on the chart" sits above them and they form a labelled group
   (`.kpis-group`). The Compare card follows the same choice, and says "Showing balance" under its heading; its collapse button sits beside the
   heading, not beside that label (next to it, it read as a dropdown). In the Compare table the plan column is sticky and a soft edge shows on the right

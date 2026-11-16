@@ -16,6 +16,8 @@ export const SLIDER_RANGES = {
   inflation: { min: 0, max: 6, step: 0.5 },
   /** Whole years: the start month stays as it is. */
   startYear: { min: 2000, max: 2060, step: 1 },
+  /** The goal's amount in the goal dialog: from 100 000 kr to 20 000 000 kr, the span most goals fall in. */
+  goalAmount: { min: 100_000, max: 20_000_000, step: 100_000 },
 } as const;
 
 /** A preview of the plan with some fields changed, drawn without saving anything. */
@@ -71,6 +73,61 @@ export function withPlanSlider(props: PlanSliderProps): HTMLElement {
   });
   slider.addEventListener("change", () => props.commit(props.patch(Number(slider.value))));
   show(clamped);
+  props.field.append(slider);
+  return props.field;
+}
+
+export interface FieldSliderProps {
+  /** The text field the slider sits under. */
+  readonly field: HTMLElement;
+  readonly label: string;
+  readonly min: number;
+  readonly max: number;
+  readonly step: number;
+  /** The amount the field's text means, in the slider's units, or null while it isn't a valid amount. */
+  readonly read: (text: string) => number | null;
+  /** A slider value as the field shows it ("5 000 000"). */
+  readonly fieldText: (value: number) => string;
+  /** A slider value as a screen reader says it ("5 000 000 kr"). */
+  readonly valueText: (value: number) => string;
+  readonly dataKey: string;
+}
+
+/**
+ * A slider under a text field in a dialog, kept in step with it both ways: moving the slider writes the amount into the
+ * field (which then checks itself), and typing moves the slider, to the end of its range for an amount beyond it.
+ * Nothing is saved by it; the dialog's own Save does that.
+ */
+export function withFieldSlider(props: FieldSliderProps): HTMLElement {
+  const fieldInput = inputIn(props.field);
+  const slider = h("input", {
+    class: "slider field__slider",
+    type: "range",
+    min: props.min,
+    max: props.max,
+    step: props.step,
+    value: props.min,
+    "data-key": props.dataKey,
+    "aria-label": props.label,
+  });
+  const show = (value: number): void => {
+    const clamped = Math.min(props.max, Math.max(props.min, value));
+    slider.value = String(clamped);
+    slider.style.setProperty("--pct", `${((clamped - props.min) / (props.max - props.min)) * 100}%`);
+    slider.setAttribute("aria-valuetext", props.valueText(clamped));
+  };
+  slider.addEventListener("input", () => {
+    const value = Number(slider.value);
+    show(value);
+    fieldInput.value = props.fieldText(value);
+    // The field checks itself on input, so an amount that was invalid until now loses its message.
+    fieldInput.dispatchEvent(new Event("input"));
+  });
+  fieldInput.addEventListener("input", () => {
+    const value = props.read(fieldInput.value);
+    if (value !== null) show(value);
+  });
+  show(props.read(fieldInput.value) ?? props.min);
   props.field.append(slider);
   return props.field;
 }

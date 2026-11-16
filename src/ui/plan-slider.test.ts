@@ -15,13 +15,15 @@ describe("the Plan card sliders", () => {
     expect(SLIDER_RANGES.annualReturn.max).toBeLessThanOrEqual(PLAN_LIMITS.maxReturnPct);
     expect(SLIDER_RANGES.inflation.min).toBeGreaterThanOrEqual(PLAN_LIMITS.minInflationPct);
     expect(SLIDER_RANGES.inflation.max).toBeLessThanOrEqual(PLAN_LIMITS.maxInflationPct);
+    expect(SLIDER_RANGES.goalAmount.max * ORE_PER_KRONA).toBeLessThanOrEqual(PLAN_LIMITS.maxGoalAmount);
+    expect(SLIDER_RANGES.goalAmount.min * ORE_PER_KRONA).toBeGreaterThanOrEqual(1);
     expect(SLIDER_RANGES.startYear.min).toBeGreaterThanOrEqual(PLAN_LIMITS.minStartYear);
     expect(SLIDER_RANGES.startYear.max).toBeLessThanOrEqual(PLAN_LIMITS.maxStartYear);
     expect(Number.isInteger(SLIDER_RANGES.startYear.step)).toBe(true);
   });
 
   it("land on whole kronor and on round steps, with the end of the range as a stop", () => {
-    for (const range of [SLIDER_RANGES.startAmount, SLIDER_RANGES.monthlyDeposit]) {
+    for (const range of [SLIDER_RANGES.startAmount, SLIDER_RANGES.monthlyDeposit, SLIDER_RANGES.goalAmount]) {
       const values = stops(range);
       expect(values.every((value) => Number.isInteger(value * ORE_PER_KRONA))).toBe(true);
       expect(values.at(-1)).toBe(range.max);

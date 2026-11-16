@@ -463,12 +463,125 @@ button {
   gap: 12px;
 }
 
-.bento {
+/* The chart, the comparison, the inputs and the goal. One column on a phone; the Plan card beside the Goal card from 761 px;
+   and from 1100 px the Plan card is a column of its own beside the chart, sticky so the chart stays in view while it is changed.
+   Each card is as tall as its content (the Goal card is shorter than the Plan card, and stretching it left an empty box). */
+.workspace {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "chart"
+    "plan"
+    "goal";
   gap: var(--space-4);
-  /* Each card is as tall as its content: the Goal card is shorter than the Plan card, and stretching it left an empty box. */
   align-items: start;
+}
+
+.workspace--compare {
+  grid-template-areas:
+    "chart"
+    "compare"
+    "plan"
+    "goal";
+}
+
+.workspace > .card--chart {
+  grid-area: chart;
+}
+
+.workspace > .compare-card {
+  grid-area: compare;
+}
+
+.workspace > .card--plan {
+  grid-area: plan;
+}
+
+.workspace > .card--goal {
+  grid-area: goal;
+}
+
+@media (min-width: 761px) {
+  .workspace {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "chart chart"
+      "plan goal";
+  }
+
+  .workspace--compare {
+    grid-template-areas:
+      "chart chart"
+      "compare compare"
+      "plan goal";
+  }
+}
+
+@media (min-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    grid-template-areas:
+      "chart plan"
+      "goal plan";
+  }
+
+  .workspace--compare {
+    grid-template-areas:
+      "chart plan"
+      "compare plan"
+      "goal plan";
+  }
+
+  .workspace > .card--plan {
+    position: sticky;
+    top: calc(var(--appbar-clearance) - 16px);
+    /* On a short window the card scrolls inside itself instead of its end being out of reach. */
+    max-height: calc(100vh - var(--appbar-clearance));
+    overflow-y: auto;
+  }
+
+  /* Two columns of fields fit the narrow card. */
+  .card--plan .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The result while a Plan card slider moves, where that card is far from the chart (not in the sticky layout). */
+.live-readout {
+  position: fixed;
+  top: calc(var(--appbar-clearance) - 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: calc(100vw - 32px);
+  padding: 8px 16px;
+  border-radius: var(--radius-card);
+  background: var(--solid);
+  color: var(--on-solid);
+  box-shadow: var(--shadow-float);
+  font-size: var(--text-xs);
+  pointer-events: none;
+}
+
+.live-readout strong {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+@media (min-width: 1100px) {
+  .live-readout {
+    display: none;
+  }
+}
+
+@media print {
+  .live-readout {
+    display: none;
+  }
 }
 
 /* ---------- Cards ---------- */
@@ -2542,10 +2655,6 @@ button {
 
   .kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .bento {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .card {

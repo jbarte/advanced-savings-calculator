@@ -148,7 +148,7 @@ export function renderInputsCard(scenario: ScenarioView, state: AppState, action
 
   return h(
     "section",
-    { class: "card", "aria-labelledby": "inputs-heading" },
+    { class: "card card--plan", "aria-labelledby": "inputs-heading" },
     h("div", { class: "card__head" }, renderPlanTitle(scenario, actions), side),
     h(
       "div",
