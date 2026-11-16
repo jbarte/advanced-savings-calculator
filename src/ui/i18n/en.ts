@@ -386,6 +386,8 @@ export const en = {
     heading: "Savings goal",
     prompt: "Pick an amount and a date to see how much you need to save each month.",
     setButton: "Set a goal",
+    sliderTitle: "Goal amount",
+    sliderLabel: "Adjust the goal amount",
     title: (month: string): string => `Goal by ${month}`,
     onTrack: "On track",
     short: (amount: string): string => `Short ${amount}`,

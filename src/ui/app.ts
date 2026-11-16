@@ -1,6 +1,6 @@
 import { buildTimeline } from "../state/timeline";
 import { activeEntry, canAddPlan } from "../state/workspace";
-import type { PlanFields } from "../state/plan-document";
+import type { PlanPreview } from "./plan-slider";
 import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { h } from "./dom";
@@ -29,7 +29,7 @@ export interface AppView {
   readonly state: AppState;
   readonly isDark: boolean;
   /** The open plan with some fields changed, as it would be drawn, or null when the change is not valid. */
-  readonly preview: (patch: Partial<PlanFields>) => ScenarioView | null;
+  readonly preview: (patch: PlanPreview) => ScenarioView | null;
 }
 
 export function renderApp(root: HTMLElement, view: AppView, actions: Actions): void {
@@ -56,7 +56,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
    * While a slider in the Plan card moves, only the headline and the chart are drawn again, from a preview that is not
    * saved; the rest of the page (and the slider being dragged) stays. At most once a frame, with the latest value.
    */
-  let pending: Partial<PlanFields> | null = null;
+  let pending: PlanPreview | null = null;
   let frame = 0;
   // Where the Plan card is far from the chart (a phone, a narrow window) the result shows in a pill at the top while a
   // slider moves, then goes away. The CSS hides it when the chart is beside the Plan card.
@@ -72,11 +72,12 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
     window.clearTimeout(readoutTimer);
     readoutTimer = window.setTimeout(() => (readout.hidden = true), 1500);
   };
-  const drawPreview = (patch: Partial<PlanFields>): void => {
+  const drawPreview = (patch: PlanPreview): void => {
     const previewed = view.preview(patch);
     if (!previewed) return;
     const previewTimeline = buildTimeline(previewed.withdrawals, previewed.depositChanges, previewed.oneTimeDeposits);
-    showReadout(previewed);
+    // The goal slider sits beside the gauge it moves, so it needs no pill with the balance.
+    if (patch.goal === undefined) showReadout(previewed);
     const nextHero = renderHero(previewed, state, actions);
     const nextChart = renderChartCard(previewed, previewTimeline, state, actions);
     // Where the line is drawn right now (possibly part of the way from the last step), so each step glides on from there.
@@ -86,8 +87,16 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
     glideCharts(nextChart, drawn, PREVIEW_GLIDE_MS);
     hero = nextHero;
     chartCard = nextChart;
+    // The Goal card follows too (the gauge, the figures, the deposit needed), but its slider stays: only the parts around
+    // it are swapped, so the slider being dragged is not rebuilt under the pointer.
+    const nextGoal = renderGoalCard(previewed, actions, livePreview);
+    for (const part of [".card__head", ".goal__body"]) {
+      const current = goalCard.querySelector(part);
+      const next = nextGoal.querySelector(part);
+      if (current !== null && next !== null) current.replaceWith(next);
+    }
   };
-  const livePreview = (patch: Partial<PlanFields>): void => {
+  const livePreview = (patch: PlanPreview): void => {
     pending = patch;
     if (frame !== 0) return;
     frame = requestAnimationFrame(() => {
@@ -96,6 +105,8 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
       pending = null;
     });
   };
+
+  const goalCard = renderGoalCard(active, actions, livePreview);
 
   const shell = h(
     "div",
@@ -116,7 +127,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
         chartCard,
         views.length > 1 ? renderCompareCard(views, active, state, actions) : null,
         renderInputsCard(active, state, actions, livePreview),
-        renderGoalCard(active, actions),
+        goalCard,
       ),
       renderEventsSection(active, timeline, state, actions),
       h("p", { class: "disclaimer" }, messages.app.disclaimer),

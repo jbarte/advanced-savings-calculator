@@ -7,6 +7,8 @@ import { h, s } from "./dom";
 import { formatMoney, formatMoneyCompact, formatYearMonth } from "./format";
 import { horizonEndOf, openGoalDialog } from "./goal-dialog";
 import { requiredDepositText } from "./goal-text";
+import { ORE_PER_KRONA, SLIDER_RANGES } from "./plan-slider";
+import type { PreviewPlan } from "./plan-slider";
 import { monthLabel } from "./view-helpers";
 import { messages } from "./i18n";
 import { showUndoToast } from "./undo-toast";
@@ -96,8 +98,44 @@ function renderGoalDetails(scenario: ScenarioView, goal: GoalSummary): HTMLEleme
   ];
 }
 
+/**
+ * A slider for the goal's amount. While it moves, the chart's goal line, the gauge and the figures follow from a preview;
+ * nothing is saved until it is let go (or a key press ends), as with the Plan card's sliders. The goal dialog stays the
+ * way to an exact amount, to the date, and to the whole allowed range, which is wider than the slider's.
+ */
+function renderGoalSlider(goal: GoalSummary, actions: Actions, preview: PreviewPlan): HTMLElement {
+  const { min, max, step } = SLIDER_RANGES.goalAmount;
+  const clamped = Math.min(max, Math.max(min, goal.target / ORE_PER_KRONA));
+  const value = h("strong", {}, formatMoney(clamped * ORE_PER_KRONA));
+  const slider = h("input", {
+    class: "slider",
+    type: "range",
+    min,
+    max,
+    step,
+    value: clamped,
+    "data-key": "slider-goal-amount",
+    "aria-label": messages.goalCard.sliderLabel,
+    "aria-valuetext": formatMoney(clamped * ORE_PER_KRONA),
+  });
+  const show = (kronor: number): void => {
+    slider.style.setProperty("--pct", `${((kronor - min) / (max - min)) * 100}%`);
+    slider.setAttribute("aria-valuetext", formatMoney(kronor * ORE_PER_KRONA));
+    value.textContent = formatMoney(kronor * ORE_PER_KRONA);
+  };
+  const goalAt = (kronor: number): { readonly amount: number; readonly date: GoalSummary["date"] } => ({ amount: kronor * ORE_PER_KRONA, date: goal.date });
+  slider.addEventListener("input", () => {
+    const kronor = Number(slider.value);
+    show(kronor);
+    preview({ goal: goalAt(kronor) });
+  });
+  slider.addEventListener("change", () => actions.setGoal(goalAt(Number(slider.value))));
+  show(clamped);
+  return h("div", { class: "goal__slider" }, h("div", { class: "goal__slider-head" }, h("span", {}, messages.goalCard.sliderTitle), value), slider);
+}
+
 /** The goal card: a prompt to set a goal, or how the plan stands against it with buttons to edit or remove it. */
-export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLElement {
+export function renderGoalCard(scenario: ScenarioView, actions: Actions, preview: PreviewPlan): HTMLElement {
   const { goal } = scenario;
 
   if (goal === null) {
@@ -154,5 +192,6 @@ export function renderGoalCard(scenario: ScenarioView, actions: Actions): HTMLEl
       ),
     ),
     ...renderGoalDetails(scenario, goal),
+    renderGoalSlider(goal, actions, preview),
   );
 }

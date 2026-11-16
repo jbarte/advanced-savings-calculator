@@ -6,7 +6,7 @@ import { loadGuideResumeStep, loadGuideSeen, resumeGuideAt, saveGuideSeen } from
 import { loadCollapsed, saveCollapsed, toggleCollapsed } from "./state/collapsed";
 import { saveLanguagePreference } from "./state/language";
 import { createBlankPlan, createExamplePlan } from "./state/plan-document";
-import type { PlanDocument, PlanFields } from "./state/plan-document";
+import type { PlanDocument } from "./state/plan-document";
 import { withPlanChange } from "./state/plan-change";
 import { problemOf } from "./state/plan-problem";
 import { updatePlanFields } from "./state/plan-fields";
@@ -29,6 +29,7 @@ import { clearGoal, setGoal } from "./state/goal";
 import { addDepositChange, removeDepositChange, restoreDepositChange, updateDepositChange } from "./state/deposit-changes";
 import { addWithdrawal, removeWithdrawal, restoreWithdrawal, updateWithdrawal } from "./state/withdrawals";
 import type { Actions, Undo } from "./ui/actions";
+import type { PlanPreview } from "./ui/plan-slider";
 import { renderApp } from "./ui/app";
 import { renderDesignSystem } from "./ui/design-system";
 import { openGuideDialog } from "./ui/guide-dialog";
@@ -295,11 +296,13 @@ const openSharedPlan = async (token: string): Promise<void> => {
  * The open plan with some fields changed, drawn as it would be but not saved: what a Plan card slider shows while it
  * moves. Null for a change the plan's checks refuse (the sliders' ranges never give one).
  */
-const previewOf = (state: AppState, patch: Partial<PlanFields>): ScenarioView | null => {
+const previewOf = (state: AppState, patch: PlanPreview): ScenarioView | null => {
   const entry = activeEntry(state);
   let plan: PlanDocument;
   try {
-    plan = updatePlanFields(entry.plan, patch);
+    const { goal, ...fields } = patch;
+    const changed = updatePlanFields(entry.plan, fields);
+    plan = goal === undefined ? changed : setGoal(changed, goal);
   } catch (error) {
     // An invalid preview is simply not drawn; the value is checked again, with a notice, when it is let go.
     if (error instanceof RangeError) return null;

@@ -1238,3 +1238,10 @@ Items 4, 8 and 9 of the app review.
 
 - After an event was deselected the chart cursor stayed at its month, so the line under the chart turned into "Add event in <that month>" at the same spot. `selectEvent(null)` now clears `chartMonth` (and so does removing the selected event), which takes the pinned tooltip away and brings back the "Click the chart…" hint. Selecting an event still puts the cursor at its month; the arrow keys still set it.
 - **Checked:** typecheck, 704 tests, build. Browser: select then deselect from the list, select then deselect with the badge, and removing the selected event each ended on the hint with no pinned tooltip; an arrow key still gave "Add event in Nov 2056".
+
+### A live goal slider on the Goal card (branch `feature/live-goal-slider`)
+
+- The Goal card has a slider under its figures ("Goal amount", the amount beside it), 100 000 to 20 000 000 kr like the dialog's. Dragging it moves the dashed goal line on the chart, the gauge, the "Short … / On track" chip and the figures live, and saves on release (`setGoal`, keeping the date). The dialog's slider stays.
+- `PlanPreview` (plan fields or a goal) is what the live preview takes, `previewOf` applies a goal with `setGoal`, and `drawPreview` now also redraws the Goal card, swapping only its head and body so the slider is not replaced while dragged. As a result every Plan card slider updates the Goal card live too (deposit needed, projected balance), which it did not before.
+- **Checked:** typecheck, 704 tests, build. Browser: dragging to 2 000 000 showed "On track" and the chart line "Goal 2M kr" with nothing saved and the same slider element in the page; to 9 000 000 "Short 4.5M kr", 50 %; release saved 900 000 000 öre; a Plan card deposit slider moved the Goal card's "kr/mo more or less than your deposit" line live.
+- **Known gaps:** the goal's date has no slider; a goal above 20 000 000 kr puts the thumb at the end but keeps its real amount until the slider is moved; checked with dispatched events, not a real drag.
