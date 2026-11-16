@@ -223,7 +223,7 @@ export const en = {
       openHint: "Adds the plan from a file next to your plans. Nothing is replaced.",
       downloadFailed: "The file could not be made. Your browser may be blocking downloads.",
     },
-    goal: { add: "Set a goal", edit: "Edit goal", addConfirm: "Set goal", amount: "I want to have", by: "By" },
+    goal: { add: "Set a goal", edit: "Edit goal", addConfirm: "Set goal", amount: "I want to have", amountSlider: "Adjust the goal amount", by: "By" },
   },
   planCard: {
     heading: "Plan",

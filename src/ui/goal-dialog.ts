@@ -3,8 +3,9 @@ import type { YearMonth } from "../core/year-month";
 import type { GoalPlan } from "../state/plan-document";
 import { renderTextField } from "./components";
 import { earliestMonth, inputIn, openFormDialog, showErrors } from "./dialog-form";
-import { formatKronor } from "./format";
+import { formatKronor, formatMoney } from "./format";
 import { errorMessage, monthInputValue, parseGoalAmount, parseMonthOnOrAfter } from "./parse-input";
+import { ORE_PER_KRONA, SLIDER_RANGES, withFieldSlider } from "./plan-slider";
 import { messages } from "./i18n";
 
 export interface GoalDialogProps {
@@ -23,7 +24,7 @@ export function openGoalDialog(props: GoalDialogProps): void {
   const earliest = earliestMonth(props.start, initial?.date);
   const nothing = (): void => undefined; // the dialog reads the inputs itself on Save
 
-  const amount = renderTextField({
+  const amountField = renderTextField({
     id: "goal-amount",
     label: messages.dialogs.goal.amount,
     unit: messages.units.currencyField,
@@ -32,6 +33,19 @@ export function openGoalDialog(props: GoalDialogProps): void {
     inputMode: "numeric",
     validate: errorMessage(parseGoalAmount),
     onCommit: nothing,
+  });
+  // A slider under the amount for the everyday span; the typed field still takes anything up to the limit.
+  const amount = withFieldSlider({
+    field: amountField,
+    ...SLIDER_RANGES.goalAmount,
+    label: messages.dialogs.goal.amountSlider,
+    read: (text) => {
+      const parsed = parseGoalAmount(text);
+      return parsed.ok ? parsed.value / ORE_PER_KRONA : null;
+    },
+    fieldText: (kronor) => formatKronor(kronor * ORE_PER_KRONA),
+    valueText: (kronor) => formatMoney(kronor * ORE_PER_KRONA),
+    dataKey: "goal-amount-slider",
   });
   const month = renderTextField({
     id: "goal-month",

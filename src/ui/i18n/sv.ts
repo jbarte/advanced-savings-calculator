@@ -217,7 +217,7 @@ export const sv: Messages = {
       openHint: "Lägger till planen från en fil bredvid dina planer. Inget ersätts.",
       downloadFailed: "Filen kunde inte skapas. Din webbläsare kanske blockerar nedladdningar.",
     },
-    goal: { add: "Sätt ett mål", edit: "Redigera mål", addConfirm: "Sätt mål", amount: "Jag vill ha", by: "Senast" },
+    goal: { add: "Sätt ett mål", edit: "Redigera mål", addConfirm: "Sätt mål", amount: "Jag vill ha", amountSlider: "Justera målbeloppet", by: "Senast" },
   },
   planCard: {
     heading: "Plan",

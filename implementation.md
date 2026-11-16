@@ -1204,3 +1204,19 @@ Items 4, 8 and 9 of the app review.
 - "Delete plan" was only in the Plan card's "more" menu, which was hard to find. The open plan's tab now has a trash button inside its pill (28 px, grey, red on hover, named "Delete <plan>"). It shows only on the open tab and only for an own plan that isn't the last one; it deletes with the same undo toast as before, and the menu entry stays. A tab is now a `.tabs__tab` wrapper (the pill look moved to it) around the name button and the trash button.
 - **Checked:** typecheck, 704 tests, build. Browser: with two plans the trash is on the open tab only and moves when another tab is opened; it deleted the open plan, showed "Deleted plan" with Undo, and Undo brought the plan back as the second tab; with one plan left there is no trash.
 - **Known gaps:** not looked at on a real phone; a long plan name makes the pill wider (the name is cut at 220 px as before).
+
+### Plan card beside the chart (branch `feature/workspace-layout`; item 1 of the app review)
+
+- **The problem.** The Plan card was 1 500 px down on desktop and 1 900 px on a phone, so dragging a slider changed a headline and chart that were off-screen.
+- **Desktop (1100 px and wider).** The chart, the comparison, the inputs and the goal are one grid (`.workspace`, named areas; the old `.bento` is gone). The Plan card is a 380 px column beside the chart and the Compare card, sticky, with two columns of fields, so the chart is in view while it is edited; the Goal card is under the chart on the left. A short window scrolls the card inside itself instead of cutting off its end.
+- **Tablet (761 to 1099 px).** As before: the Plan and Goal cards side by side under the chart.
+- **Phone.** One column, in the same order as before. While a slider moves a pill under the tabs shows the new result ("Balance by Feb 2056 · 14 809 662 kr"), fed by the same preview as the headline, and goes away 1.5 s after the last move.
+- **Checked:** typecheck, 704 tests, build. Browser: at 1280 px the Plan card is at x 836, 380 wide, `position: sticky`, and stays at the top (72 px) after scrolling 560 px; at 900 px two columns, not sticky; at 375 px one column and the pill appeared at the top while a slider moved, with the new balance; no horizontal scroll at any width.
+- **Known gaps:** the Goal card is wide on desktop (gauge and list centred in 750 px) and could use two columns inside; the pill was checked with a dispatched `input` event, not a real drag; not looked at on a real phone.
+
+### A slider for the goal amount (in `feature/workspace-layout`)
+
+- The goal dialog has a slider under "I want to have", like the Plan card's fields: 100 000 to 20 000 000 kr in steps of 100 000, named "Adjust the goal amount" (`withFieldSlider`, a dialog version of the Plan card's slider: it has no live preview, since a dialog saves nothing until Save). Moving it writes the amount in the field (and clears an old error message); typing moves it, and an amount beyond 20 000 000 kr puts the thumb at the end; text that isn't an amount leaves the thumb where it was. Editing a goal opens with the thumb at its amount. A new goal's field is still empty, with the thumb at the left.
+- The range is tested against `PLAN_LIMITS.maxGoalAmount` and for whole-krona steps like the other sliders.
+- **Checked:** typecheck, 704 tests, build. Browser: drag to 5 000 000 filled "5 000 000"; typing 12 000 000 moved the thumb to 60 %; 75 000 000 put it at the end with no error; "abc" showed the error and kept the thumb; dragging again cleared the error; Save made the goal; Edit reopened with 3 000 000 and the thumb at 14.6 %.
+- **Known gaps:** no live preview on the chart while the slider moves (it was chosen to keep the slider in the dialog); a keyboard drag was not tried separately (the browser's range input handles the arrow keys).
