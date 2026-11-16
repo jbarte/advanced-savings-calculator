@@ -5,7 +5,7 @@ import type { AppState, ScenarioView } from "../state/types";
 import type { Actions } from "./actions";
 import { captureHeadline, countHeadline } from "./count-up";
 import { h, s } from "./dom";
-import { formatMoney } from "./format";
+import { formatMoney, formatPercent } from "./format";
 import { lastPoint, monthLabel } from "./view-helpers";
 import { announce } from "./announcer";
 import { noticeText } from "./notice-text";
@@ -76,7 +76,7 @@ export function renderApp(root: HTMLElement, view: AppView, actions: Actions): v
   const showReadout = (previewed: ScenarioView): void => {
     const end = lastPoint(previewed);
     readout.replaceChildren(
-      h("span", {}, messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(previewed, end.month), previewed.inflationAdjusted)),
+      h("span", {}, messages.hero.eyebrow(messages.metrics[state.metric], monthLabel(previewed, end.month), formatPercent(previewed.annualReturnPct), previewed.inflationAdjusted)),
       h("strong", {}, formatMoney(end[state.metric])),
     );
     readout.hidden = false;

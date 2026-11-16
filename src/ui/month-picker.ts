@@ -7,6 +7,11 @@ import { monthInputValue } from "./parse-input";
 /** The months are a grid of this many columns; `.month-picker__grid` in app.css draws the same number. */
 const GRID_COLUMNS = 4;
 
+/** The floating panel is at least this wide (px), keeps this far from the window's edge and from its field. */
+const PANEL_MIN_WIDTH = 260;
+const EDGE = 8;
+const PANEL_GAP = 6;
+
 const monthNames = (): string[] => {
   const format = new Intl.DateTimeFormat(messages.locale.dates, { month: "short", timeZone: "UTC" });
   return Array.from({ length: MONTHS_PER_YEAR }, (_, index) => format.format(new Date(Date.UTC(2000, index, 1))));
@@ -53,6 +58,22 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
     panel.hidden = true;
     button.setAttribute("aria-expanded", "false");
     document.removeEventListener("pointerdown", outside, true);
+    window.removeEventListener("scroll", close, true);
+    window.removeEventListener("resize", close);
+  };
+
+  /**
+   * The panel floats (fixed to the window), so it never pushes a dialog taller or gets clipped by a card that scrolls. It
+   * opens under the field, or above it when there is no room below, and closes if the page moves under it.
+   */
+  const place = (): void => {
+    const anchor = (input.closest(".field__control") ?? input).getBoundingClientRect();
+    const width = Math.max(anchor.width, PANEL_MIN_WIDTH);
+    const height = panel.getBoundingClientRect().height;
+    const below = anchor.bottom + PANEL_GAP;
+    panel.style.width = `${width}px`;
+    panel.style.top = `${below + height > window.innerHeight - EDGE ? Math.max(EDGE, anchor.top - PANEL_GAP - height) : below}px`;
+    panel.style.left = `${Math.max(EDGE, Math.min(anchor.left, window.innerWidth - width - EDGE))}px`;
   };
   const outside = (event: Event): void => {
     // A re-render can remove the picker while it is open; the next press anywhere then lets go of its listener.
@@ -119,9 +140,12 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
         year = Math.min(last, Math.max(first, current.year));
         draw(current);
         panel.hidden = false;
+        place();
         focusMonth(current.year === year ? current.month - 1 : 0);
         button.setAttribute("aria-expanded", "true");
         document.addEventListener("pointerdown", outside, true);
+        window.addEventListener("scroll", close, true);
+        window.addEventListener("resize", close);
       },
     },
     calendarIcon(),

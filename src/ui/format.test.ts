@@ -76,6 +76,11 @@ describe("formatting in Swedish", () => {
     expect(sv.formatYearMonth({ year: 2031, month: 6 })).toBe("juni 2031");
   });
 
+  it("writes a compact amount with no unit for an axis", () => {
+    expect(plain(sv.formatCompact(171_609_335))).toBe("1,7 mn");
+    expect(sv.formatCompact(0)).toBe("0");
+  });
+
   it("writes compact amounts with a decimal comma and Swedish magnitudes", () => {
     expect(plain(sv.formatMoneyCompact(171_609_335))).toBe("1,7 mn kr");
     expect(plain(sv.formatMoneyCompact(300_000_000_000))).toBe("3 md kr");

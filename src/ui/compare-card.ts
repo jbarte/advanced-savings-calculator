@@ -6,7 +6,7 @@ import type { Actions } from "./actions";
 import { axisMonths, axisTicks, calendarPoints, cursorAfterKey, isAllZero, linePath, nearestIndex, niceScale, valueToPercent } from "./chart-geometry";
 import { renderCollapseToggle, renderEmptyState, renderSteadyText } from "./components";
 import { h, s } from "./dom";
-import { formatMoney, formatMoneyCompact, formatSignedMoney, formatYearMonth } from "./format";
+import { formatMoney, formatMoneyCompact, formatSignedMoney, formatYearMonth, formatCompact } from "./format";
 import { messages } from "./i18n";
 
 /** How many line colours there are (`--compare-1` … `--compare-6`): five plans of the user's own and one from a link. */
@@ -93,7 +93,8 @@ function renderChart(comparison: Comparison, activeId: string): HTMLElement {
   );
   show(last);
 
-  const yLabels = ticks.map((tick) => h("span", {}, formatMoneyCompact(tick)));
+  // Only the top label names the unit; the others are bare numbers.
+  const yLabels = ticks.map((tick, i) => h("span", {}, i === 0 ? formatMoneyCompact(tick) : formatCompact(tick)));
   const xLabels = axisMonths(span).map((offset) => h("span", {}, String(yearMonthOf(firstMonth + offset).year)));
   return h(
     "div",

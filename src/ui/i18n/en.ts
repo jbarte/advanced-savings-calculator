@@ -302,9 +302,16 @@ export const en = {
     subtitle: (name: string): string => `${name} · How your savings grow, and what each event adds or costs.`,
     subtitleAdjusted: (name: string, inflationPct: number): string =>
       `${name} · Inflation adjusted at ${inflationPct} % a year. What you enter stays as entered.`,
+    insight: (name: string, deposited: string, growth: string, withdrawn: string | null, lost: boolean): string =>
+      lost
+        ? `${name} · The ${deposited} you put in ends ${growth} lower.`
+        : withdrawn === null
+          ? `${name} · The ${deposited} you put in grows by ${growth}.`
+          : `${name} · The ${deposited} you put in grows by ${growth}, and ${withdrawn} is taken out.`,
+    adjustedNote: (inflationPct: number): string => `Inflation adjusted at ${inflationPct} % a year.`,
     pickMetric: "Show on the chart",
-    eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>
-      `${metric} by ${month}${inflationAdjusted ? " · inflation adjusted" : ""}`,
+    eyebrow: (metric: string, month: string, returnPct: string, inflationAdjusted: boolean): string =>
+      `${metric} by ${month} · estimated at ${returnPct} % a year${inflationAdjusted ? " · inflation adjusted" : ""}`,
     timeHorizon: "Time horizon",
     planHorizon: (years: number): string => `Plan · ${years} yrs`,
     inflationAdjusted: "Inflation adjusted",

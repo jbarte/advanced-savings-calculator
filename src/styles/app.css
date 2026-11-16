@@ -1426,12 +1426,14 @@ button {
   box-shadow: var(--shadow-lift-sm);
 }
 
-/* The calendar opens under the field and pushes what follows down, so a dialog never clips it. */
+/* The calendar floats over the page (month-picker.ts sets where), so it neither grows a dialog nor is clipped by a scrolling card. */
 .month-picker {
+  position: fixed;
+  z-index: 40;
   padding: var(--space-2);
-  border-radius: var(--radius-control);
-  background: var(--fill);
-  box-shadow: var(--shadow-inner);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-float), 0 0 0 var(--border-1) var(--edge);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -2270,7 +2272,7 @@ button {
   width: 100%;
   height: 10px;
   border-radius: var(--radius-pill);
-  background: linear-gradient(to right, var(--elevated) var(--pct, 0%), var(--fill) var(--pct, 0%));
+  background: linear-gradient(to right, var(--solid) var(--pct, 0%), var(--fill) var(--pct, 0%));
   box-shadow: var(--shadow-inner-sm);
   cursor: pointer;
 }

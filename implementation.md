@@ -1266,3 +1266,19 @@ The items left from the code review after the first fixes (PR #46):
 - **Footer.** The lone disclaimer line became a footer with a rule above it: a small lock and "Your plans stay in this browser. Nothing is sent anywhere.", and the disclaimer. Stacked on a phone.
 - **Checked:** typecheck, 710 tests (the contrast test passes with the new token), build. Browser, light and dark at 1440 px and at 375 px: the green line and fill, the gauge, the footer; committing a new monthly deposit made the headline pass through 10.0, 11.0, 11.8, 12.1, 12.2 million to 12 237 233; no horizontal scroll.
 - **Known gaps:** the count was checked with a typed change, not on a plan switch; the Compare chart keeps its own line colours (the open plan there is the same colour only when it is the first tab).
+
+### Premium polish 2 (branch `feature/premium-polish-2`)
+
+- **Green sliders.** Every slider's fill was rose while every button, the chart and the gauge are green. The fill is `--solid` now, so the page reads as one colour family.
+- **One unit on the axis.** The chart's axis said "kr" on every tick ("15M kr / 10M kr / 5M kr / 0 kr"); now only the top label has it ("15M kr / 10M / 5M / 0"), on the main chart and the Compare chart. `formatCompact` is the unit-free version (tested in Swedish too).
+- **An insight under the headline.** The generic "How your savings grow, and what each event adds or costs" is replaced by what the plan does: "House and car · The 3.3M kr you put in grows by 7M kr, and 150K kr is taken out." (growth below zero: "… ends 1.2M kr lower"; no withdrawal: the last clause is left out; inflation adjusted adds "Inflation adjusted at 2 % a year."). With no savings, or a return of exactly nothing, the general line stays.
+- **A floating month picker.** The calendar pushed the dialog taller by 200 px when it opened. It is a fixed-position panel now (surface colour, raised, with an edge), opened under the field or above it when there is no room, and closed by a scroll or a resize. The dialog stayed 389 px with it open.
+- **Checked:** typecheck, 711 tests (a new format test), build. Browser, 1440 px: the sub-line, the axis labels on both charts, the slider fill colour (rgb 88 120 100), the picker 372 px wide just under its field while the dialog height didn't change.
+- **Known gaps:** the picker was not looked at on a phone (it keeps 8 px from the window's edge and is at least 260 px wide); dark theme was not looked at again for the green sliders (they use the theme's `--solid`).
+
+### Premium polish 2, part 2: the estimate in the headline, a quiet hint (in `feature/premium-polish-2`)
+
+- **The estimate is said where the number is.** The line above the headline now reads "Balance by Nov 2056 · estimated at 7 % a year" (Swedish: "beräknat med 7 % om året"), with "· inflation adjusted" after it when the switch is on; the phone's slider pill uses the same text. The disclaimer stays in the footer.
+- **The hint goes once it has done its job.** "Click the chart to add an event at that month." shows only while the plan has no events. With events the line is an empty slot of the same 44 px, so the page below doesn't move when a month is picked and the button takes its place.
+- **Checked:** typecheck, 711 tests, build. Browser: the example (two events) shows no hint and a 44 px empty slot; removing both brought the hint back; an arrow key put "Add event in Nov 2056" in the same slot; the eyebrow shows the return.
+- **Known gaps:** the eyebrow is longer and wraps on a narrow phone (it is a steady text, so both wordings keep the same height); a returning visitor with events never sees the hint again, which is the point.

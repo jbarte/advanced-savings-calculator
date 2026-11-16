@@ -296,9 +296,16 @@ export const sv: Messages = {
     subtitle: (name: string): string => `${name} · Så växer ditt sparande, och vad varje händelse tillför eller kostar.`,
     subtitleAdjusted: (name: string, inflationPct: number): string =>
       `${name} · Inflationsjusterat med ${num(inflationPct)} % per år. Det du anger förblir som du skrev det.`,
+    insight: (name: string, deposited: string, growth: string, withdrawn: string | null, lost: boolean): string =>
+      lost
+        ? `${name} · De ${deposited} du sätter in blir ${growth} mindre.`
+        : withdrawn === null
+          ? `${name} · De ${deposited} du sätter in växer med ${growth}.`
+          : `${name} · De ${deposited} du sätter in växer med ${growth}, och ${withdrawn} tas ut.`,
+    adjustedNote: (inflationPct: number): string => `Inflationsjusterat med ${inflationPct} % om året.`,
     pickMetric: "Visa i diagrammet",
-    eyebrow: (metric: string, month: string, inflationAdjusted: boolean): string =>
-      `${metric} per ${month}${inflationAdjusted ? " · inflationsjusterat" : ""}`,
+    eyebrow: (metric: string, month: string, returnPct: string, inflationAdjusted: boolean): string =>
+      `${metric} per ${month} · beräknat med ${returnPct} % om året${inflationAdjusted ? " · inflationsjusterat" : ""}`,
     timeHorizon: "Tidshorisont",
     planHorizon: (years: number): string => `Plan · ${years} år`,
     inflationAdjusted: "Inflationsjusterat",
