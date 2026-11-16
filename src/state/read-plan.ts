@@ -1,5 +1,5 @@
 import type { YearMonth } from "../core/year-month";
-import { DEFAULT_HORIZON_YEARS, DEFAULT_INFLATION_PCT, PLAN_LIMITS } from "./plan-document";
+import { DEFAULT_HORIZON_YEARS, DEFAULT_INFLATION_PCT, PLAN_LIMITS, PLAN_VERSION } from "./plan-document";
 import type { DepositChangeEvent, GoalPlan, OneTimeDepositEvent, PlanDocument, WithdrawalEvent } from "./plan-document";
 import { failWith } from "./plan-problem";
 import { cleanText } from "./plan-text";
@@ -80,8 +80,8 @@ function readOneTimeDeposit(value: unknown): OneTimeDepositEvent {
   };
 }
 
-/** The newest plan format. Older formats are upgraded when read; newer ones can't be read. */
-const CURRENT_VERSION = 4;
+/** The formats that can be read: the newest, and the older ones, which are upgraded. A newer one can't be read. */
+const READABLE_VERSIONS: readonly unknown[] = [1, 2, 3, PLAN_VERSION];
 
 function readGoal(value: unknown): GoalPlan | null {
   if (value === null) return null;
@@ -121,11 +121,11 @@ function readVersionFields(doc: Raw, version: number): Pick<PlanDocument, "name"
 export function readPlanDocument(value: unknown): PlanDocument {
   const doc = raw(value, "The plan");
   const version = doc["version"];
-  if (typeof version === "number" && version > CURRENT_VERSION) failWith({ code: "newer-version" }, "This plan was made by a newer version of the app");
-  if (version !== 1 && version !== 2 && version !== 3 && version !== 4) fail(`Unknown plan version ${String(version)}`);
+  if (typeof version === "number" && version > PLAN_VERSION) failWith({ code: "newer-version" }, "This plan was made by a newer version of the app");
+  if (typeof version !== "number" || !READABLE_VERSIONS.includes(version)) fail(`Unknown plan version ${String(version)}`);
 
   const plan: PlanDocument = {
-    version: 4,
+    version: PLAN_VERSION,
     start: yearMonth(doc["start"], "The start date"),
     startAmount: numberField(doc, "startAmount", "The plan"),
     monthlyDeposit: numberField(doc, "monthlyDeposit", "The plan"),

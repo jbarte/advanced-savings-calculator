@@ -7,7 +7,8 @@ import { renderMenu, renderTextField } from "./components";
 import type { MenuItem } from "./components";
 import { h, s } from "./dom";
 import { formatKronor, formatMoney, formatPercent, formatYearMonth } from "./format";
-import { ORE_PER_KRONA, SLIDER_RANGES, withPlanSlider } from "./plan-slider";
+import { SLIDER_RANGES, withPlanSlider } from "./plan-slider";
+import { ORE_PER_KRONA } from "../core/money";
 import type { PreviewPlan } from "./plan-slider";
 import { errorMessage, monthInputValue, parseEndYear, parseInflationPct, parseKronor, parseReturnPct, parseYearMonth } from "./parse-input";
 import type { ParseResult } from "./parse-input";
@@ -143,6 +144,11 @@ function renderPlanActions(scenario: ScenarioView, state: AppState, actions: Act
   );
 }
 
+/**
+ * The Plan card: its name (a button that renames), file and "more" actions, and a typed field with a slider under each of
+ * start amount, monthly deposit, expected return, inflation, start and end year. A field commits on `change`; a slider
+ * also drives `preview` while it moves (see `withPlanSlider`).
+ */
 export function renderInputsCard(scenario: ScenarioView, state: AppState, actions: Actions, preview: PreviewPlan): HTMLElement {
   const side = renderPlanActions(scenario, state, actions);
 

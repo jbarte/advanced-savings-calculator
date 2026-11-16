@@ -5,7 +5,8 @@ import { renderTextField } from "./components";
 import { earliestMonth, inputIn, openFormDialog, showErrors } from "./dialog-form";
 import { formatKronor, formatMoney } from "./format";
 import { errorMessage, monthInputValue, parseGoalAmount, parseMonthOnOrAfter } from "./parse-input";
-import { ORE_PER_KRONA, SLIDER_RANGES, withFieldSlider } from "./plan-slider";
+import { SLIDER_RANGES, withFieldSlider } from "./plan-slider";
+import { ORE_PER_KRONA } from "../core/money";
 import { messages } from "./i18n";
 
 export interface GoalDialogProps {

@@ -74,6 +74,15 @@ describe("buildComparison", () => {
   });
 });
 
+describe("buildComparison with no plans", () => {
+  it("has no lines and a span of zero instead of Infinity", () => {
+    const comparison = buildComparison([], "none", "balance");
+    expect(comparison.lines).toEqual([]);
+    expect(comparison.rows).toEqual([]);
+    expect([comparison.firstMonth, comparison.lastMonth]).toEqual([0, 0]);
+  });
+});
+
 describe("valueAtMonth", () => {
   it("is null before the line starts and after it ends", () => {
     const line = { id: "1", name: "P", firstMonth: 100, values: [5, 6, 7] };

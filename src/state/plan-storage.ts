@@ -63,14 +63,21 @@ export function loadSavedPlans(storage: StorageLike | null = browserStorage()): 
 /** Saves the user's own plans. Returns false when the browser refuses (blocked or full), so the app can say so. */
 export function savePlans(set: PlanSet, storage: StorageLike | null = browserStorage()): boolean {
   if (storage === null) return false;
+  // Made before the `try`: a failure in making the text is a bug, not blocked storage, and must not be reported as one.
+  const text = serializeWorkspace(set);
   try {
-    storage.setItem(PLANS_STORAGE_KEY, serializeWorkspace(set));
-    storage.removeItem(PLAN_STORAGE_KEY);
-    storage.removeItem(LEGACY_PLAN_STORAGE_KEY);
-    return true;
+    storage.setItem(PLANS_STORAGE_KEY, text);
   } catch {
+    // Storage blocked or full: the caller says so and the app goes on in memory.
     return false;
   }
+  try {
+    storage.removeItem(PLAN_STORAGE_KEY);
+    storage.removeItem(LEGACY_PLAN_STORAGE_KEY);
+  } catch {
+    // The plans are saved; the old keys just stay until the next save, and the new key is read first.
+  }
+  return true;
 }
 
 /** Removes every saved plan. Returns false when the browser refuses. */
@@ -82,6 +89,7 @@ export function clearSavedPlans(storage: StorageLike | null = browserStorage()):
     storage.removeItem(LEGACY_PLAN_STORAGE_KEY);
     return true;
   } catch {
+    // Storage blocked: the caller reports that nothing was cleared.
     return false;
   }
 }

@@ -17,7 +17,7 @@ const colourOf = (index: number): string => `var(--compare-${(index % COLOURS) +
 function renderChart(comparison: Comparison, activeId: string): HTMLElement {
   const { lines, firstMonth, lastMonth, metric } = comparison;
   const every = lines.flatMap((line) => line.values);
-  const scale = niceScale(Math.min(...every), Math.max(...every));
+  const scale = niceScale(Math.min(0, ...every), Math.max(0, ...every));
   const ticks = axisTicks(scale);
   const span = lastMonth - firstMonth;
   const paths = lines.map((line, i) => ({ line, colour: colourOf(i), d: linePath(calendarPoints(line.values, line.firstMonth, firstMonth, lastMonth, scale)) }));

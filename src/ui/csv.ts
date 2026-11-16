@@ -1,3 +1,4 @@
+import { ORE_PER_KRONA } from "../core/money";
 import type { YearMonth } from "../core/year-month";
 import type { Ore } from "../state/types";
 
@@ -22,7 +23,7 @@ function isoMonth({ year, month }: YearMonth): string {
 
 /** Whole kronor with no grouping or unit, so a spreadsheet reads the cell as a number. */
 function kronor(amount: Ore): string {
-  return String(Math.round(amount / 100));
+  return String(Math.round(amount / ORE_PER_KRONA));
 }
 
 /**
@@ -36,6 +37,9 @@ export function figuresCsv(headers: readonly string[], rows: readonly FigureRow[
   return `﻿${[line(headers), ...body].join("\r\n")}\r\n`;
 }
 
+/** A file name is cut here, so a long plan name doesn't make a path some systems refuse. */
+const MAX_FILE_NAME_CHARS = 60;
+
 /**
  * A file name from a plan's name: "Anna's house 2031" → "life-ledger-annas-house-2031". Letters with accents lose them
  * (å → a, é → e), anything else becomes a dash, and an empty result falls back to "plan".
@@ -48,7 +52,7 @@ export function fileBaseName(name: string): string {
     .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 60)
+    .slice(0, MAX_FILE_NAME_CHARS)
     .replace(/-+$/, "");
   return `life-ledger-${slug === "" ? "plan" : slug}`;
 }

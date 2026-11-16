@@ -1,7 +1,8 @@
+import { ORE_PER_KRONA } from "../core/money";
 import type { Ore } from "../core/types";
 import { MONTHS_PER_YEAR, monthsBetween } from "../core/year-month";
 import type { YearMonth } from "../core/year-month";
-import { PLAN_LIMITS } from "../state/plan-document";
+import { DEFAULT_HORIZON_YEARS, PLAN_LIMITS } from "../state/plan-document";
 import { formatKronor, formatYearMonth } from "./format";
 import { messages } from "./i18n";
 
@@ -38,7 +39,8 @@ function splitAmount(text: string): { readonly whole: string; readonly fraction:
  * works on the digits, never on a float. Fractions other than zero are rejected.
  */
 export function parseKronor(text: string, maxOre: Ore): ParseResult<Ore> {
-  const cleaned = text.replace(/[\s  ]/g, "").replace(/kr$/i, "");
+  // \u00a0 and \u202f are the no-break spaces that grouped numbers are written with.
+  const cleaned = text.replace(/[\s\u00a0\u202f]/g, "").replace(/kr$/i, "");
   if (cleaned === "") return fail(messages.inputErrors.enterAmount);
   if (cleaned.startsWith("-")) return /^-\d/.test(cleaned) ? fail(messages.inputErrors.enterZeroOrMore) : fail(messages.inputErrors.enterNumber);
 
@@ -50,18 +52,23 @@ export function parseKronor(text: string, maxOre: Ore): ParseResult<Ore> {
 
   const maxMessage = messages.inputErrors.amountMax(formatKronor(maxOre));
   if (whole.length > MAX_DIGITS) return fail(maxMessage);
-  const ore = Number(whole) * 100;
+  const ore = Number(whole) * ORE_PER_KRONA;
   return ore > maxOre ? fail(maxMessage) : { ok: true, value: ore };
+}
+
+/** A percent typed like "7", "6,5", "7 %" or "-1 %", within `min` to `max`. `notANumber` is the message for text that isn't one. */
+function parsePercent(text: string, min: number, max: number, notANumber: string): ParseResult<number> {
+  const cleaned = text.replace(/\s/g, "").replace(/%$/, "").replace(",", ".");
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail(notANumber);
+  const value = Number(cleaned) || 0; // turns -0 into 0
+  if (value < min) return fail(messages.inputErrors.percentMin(min));
+  if (value > max) return fail(messages.inputErrors.percentMax(max));
+  return { ok: true, value };
 }
 
 /** Reads a yearly return like "7", "6,5" or "7 %". */
 export function parseReturnPct(text: string): ParseResult<number> {
-  const cleaned = text.replace(/\s/g, "").replace(/%$/, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail(messages.inputErrors.percentReturn);
-  const value = Number(cleaned) || 0; // turns -0 into 0
-  if (value < PLAN_LIMITS.minReturnPct) return fail(messages.inputErrors.percentMin(PLAN_LIMITS.minReturnPct));
-  if (value > PLAN_LIMITS.maxReturnPct) return fail(messages.inputErrors.percentMax(PLAN_LIMITS.maxReturnPct));
-  return { ok: true, value };
+  return parsePercent(text, PLAN_LIMITS.minReturnPct, PLAN_LIMITS.maxReturnPct, messages.inputErrors.percentReturn);
 }
 
 /** Reads an end year typed in the Plan card and returns the horizon in whole years after `startYear`. */
@@ -69,7 +76,7 @@ export function parseEndYear(text: string, startYear: number): ParseResult<numbe
   const first = startYear + PLAN_LIMITS.minHorizonYears;
   const last = startYear + PLAN_LIMITS.maxHorizonYears;
   const cleaned = text.trim();
-  if (!/^\d{4}$/.test(cleaned)) return fail(messages.inputErrors.enterYear(startYear + 30));
+  if (!/^\d{4}$/.test(cleaned)) return fail(messages.inputErrors.enterYear(startYear + DEFAULT_HORIZON_YEARS));
   const year = Number(cleaned);
   if (year < first || year > last) return fail(messages.inputErrors.pickYear(first, last));
   return { ok: true, value: year - startYear };
@@ -77,12 +84,7 @@ export function parseEndYear(text: string, startYear: number): ParseResult<numbe
 
 /** Reads a yearly inflation like "2", "2,5" or "-1 %". */
 export function parseInflationPct(text: string): ParseResult<number> {
-  const cleaned = text.replace(/\s/g, "").replace(/%$/, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return fail(messages.inputErrors.percentInflation);
-  const value = Number(cleaned) || 0; // turns -0 into 0
-  if (value < PLAN_LIMITS.minInflationPct) return fail(messages.inputErrors.percentMin(PLAN_LIMITS.minInflationPct));
-  if (value > PLAN_LIMITS.maxInflationPct) return fail(messages.inputErrors.percentMax(PLAN_LIMITS.maxInflationPct));
-  return { ok: true, value };
+  return parsePercent(text, PLAN_LIMITS.minInflationPct, PLAN_LIMITS.maxInflationPct, messages.inputErrors.percentInflation);
 }
 
 /** Reads "YYYY-MM", the value of <input type="month"> and the fallback text box. Events may reach `maxYear`. */
@@ -103,22 +105,25 @@ export function monthInputValue(ym: YearMonth): string {
   return `${ym.year}-${String(ym.month).padStart(2, "0")}`;
 }
 
+/** Whole kronor above 0, up to `maxOre`: what a withdrawal, a one-time deposit and a goal all take. */
+function parsePositiveKronor(text: string, maxOre: Ore): ParseResult<Ore> {
+  const result = parseKronor(text, maxOre);
+  return result.ok && result.value === 0 ? fail(messages.inputErrors.amountAboveZero) : result;
+}
+
 /** A withdrawal amount: whole kronor, above 0. */
 export function parseWithdrawalAmount(text: string): ParseResult<Ore> {
-  const result = parseKronor(text, PLAN_LIMITS.maxStartAmount);
-  return result.ok && result.value === 0 ? fail(messages.inputErrors.amountAboveZero) : result;
+  return parsePositiveKronor(text, PLAN_LIMITS.maxStartAmount);
 }
 
 /** A one-time deposit amount: whole kronor, above 0, up to the one-time deposit limit. */
 export function parseOneTimeDepositAmount(text: string): ParseResult<Ore> {
-  const result = parseKronor(text, PLAN_LIMITS.maxOneTimeDepositAmount);
-  return result.ok && result.value === 0 ? fail(messages.inputErrors.amountAboveZero) : result;
+  return parsePositiveKronor(text, PLAN_LIMITS.maxOneTimeDepositAmount);
 }
 
 /** A goal amount: whole kronor, above 0, up to the goal limit. */
 export function parseGoalAmount(text: string): ParseResult<Ore> {
-  const result = parseKronor(text, PLAN_LIMITS.maxGoalAmount);
-  return result.ok && result.value === 0 ? fail(messages.inputErrors.amountAboveZero) : result;
+  return parsePositiveKronor(text, PLAN_LIMITS.maxGoalAmount);
 }
 
 /** A short name for an event. Empty text becomes `fallback`. */

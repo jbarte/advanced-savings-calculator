@@ -12,7 +12,10 @@ function assertValidGoal(goal: GoalInput): void {
 
 /** The balance at the end of `month`, whatever the plan's own `months` is. */
 export function balanceAtMonth(plan: PlanInput, month: number): Ore {
-  return project({ ...plan, months: month }).points[month]?.balance ?? 0;
+  const point = project({ ...plan, months: month }).points[month];
+  // A projection of `month` months always has that month; a silent 0 here would read as "the goal is out of reach".
+  if (!point) throw new RangeError(`The projection has no month ${month}`);
+  return point.balance;
 }
 
 /**

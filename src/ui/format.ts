@@ -1,3 +1,4 @@
+import { ORE_PER_KRONA } from "../core/money";
 import type { YearMonth } from "../core/year-month";
 import type { Ore } from "../state/types";
 import { messages } from "./i18n";
@@ -26,13 +27,13 @@ export function createFormatters({ locale, currency }: FormatSettings) {
   const monthFormat = new Intl.DateTimeFormat(locale.dates, { month: "short", year: "numeric", timeZone: "UTC" });
 
   /** 171609335 öre → "1 716 093" (whole kronor, no unit) */
-  const formatKronor = (amount: Ore): string => fullFormat.format(Math.round(amount / 100));
+  const formatKronor = (amount: Ore): string => fullFormat.format(Math.round(amount / ORE_PER_KRONA));
 
   /** 171609335 öre → "1 716 093 kr" */
   const formatMoney = (amount: Ore): string => `${formatKronor(amount)} ${currency}`;
 
   /** 171609335 öre → "1.7M kr" in English, "1,7 mn kr" in Swedish. */
-  const formatMoneyCompact = (amount: Ore): string => `${compactFormat.format(amount / 100)} ${currency}`;
+  const formatMoneyCompact = (amount: Ore): string => `${compactFormat.format(amount / ORE_PER_KRONA)} ${currency}`;
 
   /** −81411474 öre → "−814 115 kr", 54274305 → "+542 743 kr". For effects, where the sign is the point. */
   const formatSignedMoney = (amount: Ore): string => `${signOf(amount)}${formatMoney(Math.abs(amount))}`;

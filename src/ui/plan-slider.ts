@@ -1,9 +1,7 @@
+import { PLAN_LIMITS } from "../state/plan-document";
 import type { GoalPlan, PlanFields } from "../state/plan-document";
 import { h } from "./dom";
 import { inputIn } from "./dialog-form";
-
-/** One krona in öre: the sliders work in whole kronor, the plan in öre. */
-export const ORE_PER_KRONA = 100;
 
 /**
  * The sliders' ranges: the everyday span, in the slider's units, not the whole allowed range (the typed field covers
@@ -15,7 +13,7 @@ export const SLIDER_RANGES = {
   annualReturn: { min: 0, max: 12, step: 0.5 },
   inflation: { min: 0, max: 6, step: 0.5 },
   /** Whole years: the start month stays as it is. */
-  startYear: { min: 2000, max: 2060, step: 1 },
+  startYear: { min: PLAN_LIMITS.minStartYear, max: 2060, step: 1 },
   /** The goal's amount in the goal dialog: from 100 000 kr to 20 000 000 kr, the span most goals fall in. */
   goalAmount: { min: 100_000, max: 20_000_000, step: 100_000 },
 } as const;

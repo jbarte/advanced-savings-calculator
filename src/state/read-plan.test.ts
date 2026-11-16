@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PLAN_LIMITS, createBlankPlan, createExamplePlan } from "./plan-document";
+import { PLAN_LIMITS, PLAN_VERSION, createBlankPlan, createExamplePlan } from "./plan-document";
 import type { PlanDocument } from "./plan-document";
 import { readPlanDocument, readPlanText, serializePlan } from "./read-plan";
 
@@ -32,7 +32,7 @@ describe("readPlanDocument", () => {
   });
 
   it("says when a plan comes from a newer version, and rejects other versions", () => {
-    expect(() => readPlanDocument({ ...asJson(full), version: 5 })).toThrow(/newer version/);
+    expect(() => readPlanDocument({ ...asJson(full), version: PLAN_VERSION + 1 })).toThrow(/newer version/);
     expect(() => readPlanDocument({ ...asJson(full), version: "1" })).toThrow(RangeError);
     const { version: _version, ...noVersion } = asJson(full);
     expect(() => readPlanDocument(noVersion)).toThrow(RangeError);

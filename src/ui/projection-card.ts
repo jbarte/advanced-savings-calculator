@@ -117,6 +117,10 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
   );
 }
 
+/**
+ * The chart card: the chart of the chosen figure with the plan's events on it, the line about adding or editing an event,
+ * the legend, and the yearly figures as a table. Shows an empty state instead of a chart when there is nothing to draw.
+ */
 export function renderChartCard(
   scenario: ScenarioView,
   timeline: readonly TimelineEntry[],

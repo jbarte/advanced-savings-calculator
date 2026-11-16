@@ -210,8 +210,10 @@ UI languages: **English** and **Swedish** (the switch in the app bar; see "Inter
     `RangeError` instead of returning an inexact balance. The limits assume a 40-year
     projection (`PROJECTION_MONTHS`): a longer one needs them rechecked, and a test fails if
     the largest allowed plan stops fitting.
-  - **No magic 12.** Months per year is `MONTHS_PER_YEAR`, and years become months with
-    `yearsToMonths()` (`src/core/year-month.ts`).
+  - **No magic 12, no magic 100.** Months per year is `MONTHS_PER_YEAR`, and years become months with
+    `yearsToMonths()` (`src/core/year-month.ts`); öre per krona is `ORE_PER_KRONA` (`src/core/money.ts`), used wherever kronor are shown, typed or
+    put on a slider. The plan format's number is `PLAN_VERSION` (`plan-document.ts`), and the largest plan file is `MAX_PLAN_FILE_CHARS` /
+    `MAX_PLAN_FILE_BYTES`.
   - **The chart scale always contains zero.** `niceScale(min, max)` reaches below zero for
     negative values (for example negative growth at a negative return) and one step above zero
     when nothing is positive. A zero line is drawn when the scale goes below zero.

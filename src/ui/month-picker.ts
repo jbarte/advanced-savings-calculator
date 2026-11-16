@@ -4,6 +4,9 @@ import { h, s } from "./dom";
 import { messages } from "./i18n";
 import { monthInputValue } from "./parse-input";
 
+/** The months are a grid of this many columns; `.month-picker__grid` in app.css draws the same number. */
+const GRID_COLUMNS = 4;
+
 const monthNames = (): string[] => {
   const format = new Intl.DateTimeFormat(messages.locale.dates, { month: "short", timeZone: "UTC" });
   return Array.from({ length: MONTHS_PER_YEAR }, (_, index) => format.format(new Date(Date.UTC(2000, index, 1))));
@@ -52,7 +55,8 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
     document.removeEventListener("pointerdown", outside, true);
   };
   const outside = (event: Event): void => {
-    if (!(event.target instanceof Node) || panel.contains(event.target) || button.contains(event.target)) return;
+    // A re-render can remove the picker while it is open; the next press anywhere then lets go of its listener.
+    if (panel.isConnected && (!(event.target instanceof Node) || panel.contains(event.target) || button.contains(event.target))) return;
     close();
   };
 
@@ -126,8 +130,7 @@ export function renderMonthPicker(input: HTMLInputElement, today: { year: number
     const buttons = [...grid.querySelectorAll<HTMLButtonElement>(".month-picker__month")];
     const index = buttons.findIndex((candidate) => candidate === document.activeElement);
     if (index === -1) return;
-    const columns = 4;
-    const moves: Record<string, number> = { ArrowLeft: index - 1, ArrowRight: index + 1, ArrowUp: index - columns, ArrowDown: index + columns, Home: 0, End: MONTHS_PER_YEAR - 1 };
+    const moves: Record<string, number> = { ArrowLeft: index - 1, ArrowRight: index + 1, ArrowUp: index - GRID_COLUMNS, ArrowDown: index + GRID_COLUMNS, Home: 0, End: MONTHS_PER_YEAR - 1 };
     const move = moves[event.key];
     if (move !== undefined) {
       event.preventDefault();
