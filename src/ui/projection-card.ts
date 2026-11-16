@@ -95,7 +95,8 @@ export function renderHero(scenario: ScenarioView, state: AppState, actions: Act
         h(
           "p",
           { class: isLongAmount(end[state.metric]) ? "hero__value hero__value--long" : "hero__value" },
-          formatKronor(end[state.metric]),
+          // The amount in öre rides along, so a change can count from the number that was shown (see `count-up.ts`).
+          h("span", { class: "hero__number", "data-value": String(end[state.metric]) }, formatKronor(end[state.metric])),
           h("span", { class: "hero__unit" }, messages.units.currency),
         ),
         h("p", { class: "hero__sub" }, heroSubtitle(scenario)),
@@ -247,7 +248,7 @@ function renderChart(
       s(
         "linearGradient",
         { id: "chart-fill", x1: 0, y1: 0, x2: 0, y2: 1 },
-        s("stop", { class: "chart__fill-stop", offset: 0, "stop-opacity": 0.1 }),
+        s("stop", { class: "chart__fill-stop", offset: 0, "stop-opacity": 0.28 }),
         s("stop", { class: "chart__fill-stop", offset: 1, "stop-opacity": 0 }),
       ),
     ),

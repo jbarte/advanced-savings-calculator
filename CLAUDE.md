@@ -473,6 +473,7 @@ with the toggle.
   horizon just appears). Each step of a Plan card slider's live preview glides too, but for 140 ms (`PREVIEW_GLIDE_MS`) and from where the line is drawn right now, so a drag follows the thumb smoothly and a click on the track or an arrow key glides instead of jumping; switching plans fades the
   page in instead (`.canvas--switched`, keyed on `data-plan` on the shell). Dialogs fade and rise in (`.modal[open]`). Under
   `prefers-reduced-motion` the glide doesn't run, transitions and animations are off, except the spinner.
+- **The main chart is drawn in the plan colour.** Its line, the soft fill under it, the cursor, the dot's ring and the goal gauge use `--chart-line` (the first plan colour, `--compare-1`, so it follows the theme and is covered by the contrast test), not the text colour. The headline number counts from the amount it showed to the new one after a change (`captureHeadline` and `countHeadline` in `src/ui/count-up.ts`, 520 ms, from `data-value` on `.hero__number`; not during a slider's preview, which has already shown the number, and not under reduced motion). The page ends with a footer: a line that the plans stay in this browser, and the disclaimer.
 - **Chart details.** The first drawing of the page reveals the main chart left to right (`.chart__svg--intro`, a `clip-path`
   animation, set by `introduceChart` only when no chart was on the page before); the tooltip, dot and cursor follow the pointer
   with no transition on position, and the dot grows while the pointer is over the chart. The tooltip is hidden at rest (it covered the end of the curve): it shows on hover, on keyboard focus, and while a month is picked (`data-pinned` on the plot when `AppState.chartMonth` is set); the Compare chart's follows the same rule. A badge for an event
@@ -606,6 +607,7 @@ with the toggle.
     │   ├── render-scheduler.ts # Defers renders one tick (focus and click safety)
     │   ├── chart-geometry.ts # Chart scale (incl. negative values), points, paths, bands, badge lanes (+ .test.ts)
     │   ├── motion.ts         # motionAllowed(): false when the system asks for less motion
+    │   ├── count-up.ts       # captureHeadline, countHeadline: the headline counts to its new amount
     │   ├── chart-glide.ts    # captureCharts, glideCharts: the chart paths glide to their new shape
     │   ├── chart-events.ts   # Event layer on the chart (numbered badges, bands, lines) and its legend
     │   ├── view-helpers.ts   # Small shared view helpers

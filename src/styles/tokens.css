@@ -66,6 +66,8 @@
   --goal-line: var(--ink2);
 
   /* Line colours of the plans in the Compare card, in tab order. Each is at least 3 : 1 against the card. */
+  /* The main chart's line, its soft fill and the goal gauge: the first plan colour, so the charts agree (it follows the theme). */
+  --chart-line: var(--compare-1);
   --compare-1: #5f7f6a;
   --compare-2: #a8786b;
   --compare-3: #4f7fa8;
