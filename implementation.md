@@ -28,7 +28,8 @@ Plans and goals live in [NEXT_STEPS.md](NEXT_STEPS.md), rules in [CLAUDE.md](CLA
 - **Merged since:** polish, part 1 (PR #39).
 - **Open:** polish, part 2: chart details (branch `feature/polish-chart`).
 - **Next:** polish, part 3 (undo and empty states), see NEXT_STEPS.md.
-- **Tests:** 688 (`npm test`), typecheck and build pass.
+- **Open:** the design-system page brought up to date (branch `feature/design-system-refresh`).
+- **Tests:** 711 (`npm test`), typecheck and build pass.
 
 ## Working rules
 
@@ -1282,3 +1283,14 @@ The items left from the code review after the first fixes (PR #46):
 - **The hint goes once it has done its job.** "Click the chart to add an event at that month." shows only while the plan has no events. With events the line is an empty slot of the same 44 px, so the page below doesn't move when a month is picked and the button takes its place.
 - **Checked:** typecheck, 711 tests, build. Browser: the example (two events) shows no hint and a 44 px empty slot; removing both brought the hint back; an arrow key put "Add event in Nov 2056" in the same slot; the eyebrow shows the return.
 - **Known gaps:** the eyebrow is longer and wraps on a narrow phone (it is a steady text, so both wordings keep the same height); a returning visitor with events never sees the hint again, which is the point.
+
+### Design-system page brought up to date (branch `feature/design-system-refresh`)
+
+- **Why.** The `#design-system` page had last changed at the rebrand, 76 commits earlier. It drew with the live tokens, but showed none of the colour tokens, none of the components added since, and none of the app's own pieces, and its shadow demo predated `--shadow-raised` and the dialog shadow.
+- **Colour.** Six palettes (surfaces, text, brand and state, event kinds, plan lines, effects), each token as a swatch with its name and the value it has in the theme on screen (`getComputedStyle`), so switching the theme shows the other set.
+- **Components added:** the text field (checks itself while typing; type a letter to see the error), the month field with its own picker, the "more" menu (with a switched-off item and its reason, and a danger item; placed at the end of its row as in the app), the collapse toggle (keeps focus when it swaps), steady text (a toggle flips the wording and the line keeps its height), the undo toast, an empty state with an action, and the modal opened through `openModal` with a body.
+- **App pieces added:** plan tabs (the open one with its trash button, the add button), the segmented horizon switch, the KPI tiles with their caption, the numbered event badges, the legend, the chips, the live readout (shown in place instead of floating), and the text and round buttons.
+- **Scales added:** the card radius, the type scale (`--text-*`), the shadow levels Raised and Dialog, and a motion demo (`--duration-fast/base/slow` with `--ease-out`, Play moves a puck at each speed). Captions that described the old glow now describe what the styles do.
+- **Checked:** typecheck, 711 tests, build. Browser, light and dark at desktop width and at 375 px (no horizontal scroll; only the table card scrolls inside itself): all 31 sections render with no console errors; the menu opens with the hint and the red item; the collapse toggle hides the body and keeps focus; the amount field shows and clears its error; the steady text stays 34 px tall when flipped; the month picker opens; the modal sits on `--frame` and Primary closes it and adds a toast; Play starts a transition at each duration.
+- **Known gaps:** the page stays English only, as before (it is for developers, outside the language files); it shows the components with example data, not wired to a plan.
+
